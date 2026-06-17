@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Décompte des bons — Festi'Jorat</title>
+<style>
+  :root {
+    --c-blue: #2e6d8e;
+    --c-blue-dark: #1d4d66;
+    --c-blue-light: #e8f3f8;
+    --c-lime: #c8d926;
+    --c-lime-dark: #9aa81a;
+    --c-bg: #f4f5f0;
+    --c-surface: #ffffff;
+    --c-border: rgba(46,109,142,0.15);
+    --c-border-strong: rgba(46,109,142,0.3);
+    --c-text: #1a2e38;
+    --c-muted: #6b8a98;
+    --c-red: #c0392b;
+    --radius: 14px;
+    --radius-sm: 9px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--c-bg); color: var(--c-text); min-height: 100vh; }
+  header { background: var(--c-blue-dark); padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .logo-sub { font-size: 11px; letter-spacing: 2.5px; color: rgba(255,255,255,0.55); text-transform: uppercase; }
+  .logo-main { font-size: 21px; font-weight: 800; color: #fff; }
+  .view-tabs { display: flex; gap: 6px; }
+  .view-tab { padding: 9px 18px; border-radius: var(--radius-sm); border: 1.5px solid rgba(255,255,255,0.25); background: transparent; color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .view-tab.active { background: var(--c-lime); color: var(--c-blue-dark); border-color: var(--c-lime); }
+
+  .container { padding: 22px; max-width: 900px; margin: 0 auto; }
+
+  .merchant-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+  .merchant-tab { padding: 10px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--c-border-strong); background: var(--c-surface); color: var(--c-text); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .merchant-tab.active { background: var(--c-blue); color: #fff; border-color: var(--c-blue); }
+
+  .section-title { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--c-blue); font-weight: 700; margin-bottom: 14px; border-left: 3px solid var(--c-lime); padding-left: 10px; }
+
+  /* combo line (décompte) */
+  .combo-line { background: var(--c-surface); border: 1.5px solid var(--c-border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+  .combo-info { flex: 1; min-width: 0; }
+  .combo-name { font-size: 16px; font-weight: 600; }
+  .combo-detail { font-size: 13px; color: var(--c-muted); margin-top: 2px; }
+  .combo-stepper { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .step-btn { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--c-border-strong); background: var(--c-surface); font-size: 22px; font-weight: 700; color: var(--c-blue); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .step-btn:active { background: var(--c-blue-light); }
+  .qty-input { width: 64px; padding: 9px; border-radius: var(--radius-sm); border: 1.5px solid var(--c-border-strong); font-size: 18px; font-weight: 700; text-align: center; color: var(--c-text); -moz-appearance: textfield; }
+  .qty-input:focus { outline: none; border-color: var(--c-blue); }
+  .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .combo-linetotal { width: 92px; text-align: right; font-size: 16px; font-weight: 700; color: var(--c-blue-dark); flex-shrink: 0; }
+
+  .totals-card { background: var(--c-blue); border-radius: var(--radius); padding: 20px 22px; margin-top: 18px; color: #fff; }
+  .totals-row { display: flex; justify-content: space-between; font-size: 14px; color: rgba(255,255,255,0.85); margin-bottom: 6px; }
+  .totals-main { display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.25); margin-top: 8px; }
+  .totals-label { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+  .totals-amount { font-size: 38px; font-weight: 900; line-height: 1; }
+  .totals-chf { font-size: 18px; color: rgba(255,255,255,0.7); margin-right: 4px; }
+
+  /* edit mode */
+  .edit-combo { background: var(--c-surface); border: 1.5px solid var(--c-border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .edit-field { display: flex; flex-direction: column; gap: 4px; }
+  .edit-field label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--c-muted); font-weight: 600; }
+  .edit-field.grow { flex: 1; min-width: 160px; }
+  .edit-field input { padding: 10px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--c-border-strong); font-size: 15px; color: var(--c-text); width: 100%; }
+  .edit-field input.num { width: 100px; }
+  .edit-field input:focus { outline: none; border-color: var(--c-blue); }
+  .edit-actions { display: flex; gap: 6px; }
+  .btn-save { padding: 10px 16px; border-radius: var(--radius-sm); border: none; background: var(--c-blue); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-save:active { background: var(--c-blue-dark); }
+  .btn-del { padding: 10px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--c-red); background: transparent; color: var(--c-red); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-del:active { background: #fdecea; }
+  .btn-add { width: 100%; padding: 14px; border-radius: var(--radius); border: 2px dashed var(--c-border-strong); background: transparent; color: var(--c-blue); font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+  .btn-add:active { background: var(--c-blue-light); }
+  .save-flash { font-size: 12px; color: var(--c-lime-dark); font-weight: 700; opacity: 0; transition: opacity 0.2s; }
+  .save-flash.show { opacity: 1; }
+
+  /* recap */
+  table { width: 100%; border-collapse: collapse; background: var(--c-surface); border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--c-border); }
+  th, td { padding: 14px 18px; text-align: left; }
+  th { background: var(--c-blue-light); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--c-blue); font-weight: 700; }
+  td { border-top: 1px solid var(--c-border); font-size: 15px; }
+  tr td:last-child, tr th:last-child { text-align: right; font-weight: 700; }
+  .total-row td { background: var(--c-blue-light); font-weight: 800; font-size: 16px; border-top: 2px solid var(--c-border-strong); }
+
+  .empty { text-align: center; color: var(--c-muted); padding: 40px; font-size: 14px; }
+  .loading { text-align: center; color: var(--c-muted); padding: 40px; }
+
+  /* gate */
+  #gate { position: fixed; inset: 0; background: var(--c-bg); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .gate-box { background: #fff; border: 1.5px solid var(--c-border); border-radius: var(--radius); padding: 32px; width: 320px; text-align: center; }
+  .gate-box h2 { color: var(--c-blue-dark); margin-bottom: 18px; font-size: 18px; }
+  .gate-box input { width: 100%; padding: 12px; border-radius: 9px; border: 1.5px solid var(--c-border-strong); font-size: 16px; margin-bottom: 14px; text-align: center; }
+  .gate-box button { width: 100%; padding: 12px; border-radius: 9px; border: none; background: var(--c-blue); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .gate-err { color: var(--c-red); font-size: 13px; margin-top: 10px; min-height: 18px; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-box">
+    <h2>Décompte des bons</h2>
+    <input type="password" id="gate-code" placeholder="Code d'accès" autocomplete="off">
+    <button onclick="checkGate()">Entrer</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<header>
+  <div>
+    <div class="logo-sub">Festi'Jorat 2026</div>
+    <div class="logo-main">Décompte des bons</div>
+  </div>
+  <div class="view-tabs">
+    <button class="view-tab active" id="vt-decompte" onclick="setView('decompte')">Décompte</button>
+    <button class="view-tab" id="vt-edition" onclick="setView('edition')">Édition</button>
+    <button class="view-tab" id="vt-recap" onclick="setView('recap')">Récap global</button>
+  </div>
+</header>
+
+<div class="container" id="content" style="display:none">
+
+  <!-- merchant selector (shared by décompte + édition) -->
+  <div class="merchant-tabs" id="merchant-tabs"></div>
+
+  <!-- DECOMPTE -->
+  <div id="view-decompte">
+    <div id="decompte-list"></div>
+    <div class="totals-card">
+      <div class="totals-row"><span>Produits</span><span id="tot-produits">CHF 0.—</span></div>
+      <div class="totals-row"><span>Consignes</span><span id="tot-consignes">CHF 0.—</span></div>
+      <div class="totals-main">
+        <span class="totals-label">Total dû</span>
+        <span><span class="totals-chf">CHF</span><span class="totals-amount" id="tot-total">0.—</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITION -->
+  <div id="view-edition" style="display:none">
+    <div id="edition-list"></div>
+    <button class="btn-add" onclick="addCombo()">+ Ajouter un combo</button>
+  </div>
+
+  <!-- RECAP -->
+  <div id="view-recap" style="display:none">
+    <div class="section-title">Total dû par commerçant</div>
+    <table>
+      <thead><tr><th>Commerçant</th><th>Produits</th><th>Consignes</th><th>Total dû</th></tr></thead>
+      <tbody id="recap-rows"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="loading" id="loading" style="display:none">Chargement…</div>
+
+<script>
+const API_URL = 'https://api.jorapp.org';
+const GATE_CODE = 'jorat2026';
+const MERCHANTS = ['QueenBurger', 'Aux Complices', 'Z Atelier', 'Dame du Café', 'Bar des Bûcherons'];
+
+let combos = [];          // all combos from PocketBase
+let currentMerchant = MERCHANTS[0];
+let currentView = 'decompte';
+
+function checkGate() {
+  if (document.getElementById('gate-code').value === GATE_CODE) {
+    sessionStorage.setItem('voucher_ok', '1');
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('content').style.display = '';
+    loadCombos();
+  } else {
+    document.getElementById('gate-err').textContent = 'Code incorrect';
+  }
+}
+document.getElementById('gate-code').addEventListener('keydown', e => { if (e.key === 'Enter') checkGate(); });
+if (sessionStorage.getItem('voucher_ok') === '1') {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('content').style.display = '';
+}
+
+function fmtCHF(n) {
+  const v = Math.round(n * 100) / 100;
+  const hasDec = v % 1 !== 0;
+  return v.toLocaleString('fr-CH', { minimumFractionDigits: hasDec ? 2 : 0, maximumFractionDigits: 2 });
+}
+
+async function loadCombos() {
+  const loading = document.getElementById('loading');
+  if (combos.length === 0) loading.style.display = '';
+  try {
+    let page = 1, items = [];
+    while (true) {
+      const res = await fetch(`${API_URL}/api/collections/voucher_combos/records?perPage=500&page=${page}&sort=ordre`);
+      if (!res.ok) throw new Error('API ' + res.status);
+      const data = await res.json();
+      items = items.concat(data.items);
+      if (page >= data.totalPages || data.totalPages === 0) break;
+      page++;
+    }
+    combos = items;
+    loading.style.display = 'none';
+    buildMerchantTabs();
+    renderAll();
+  } catch (e) {
+    loading.style.display = 'none';
+    alert('Erreur de chargement : ' + e.message);
+  }
+}
+
+function buildMerchantTabs() {
+  const wrap = document.getElementById('merchant-tabs');
+  wrap.style.display = (currentView === 'recap') ? 'none' : 'flex';
+  wrap.innerHTML = MERCHANTS.map(m =>
+    `<button class="merchant-tab ${m === currentMerchant ? 'active' : ''}" onclick="selectMerchant('${m.replace(/'/g, "\\'")}')">${m}</button>`
+  ).join('');
+}
+
+function selectMerchant(m) {
+  currentMerchant = m;
+  buildMerchantTabs();
+  renderAll();
+}
+
+function setView(v) {
+  currentView = v;
+  ['decompte', 'edition', 'recap'].forEach(x => {
+    document.getElementById('view-' + x).style.display = (x === v) ? '' : 'none';
+    document.getElementById('vt-' + x).classList.toggle('active', x === v);
+  });
+  buildMerchantTabs();
+  renderAll();
+}
+
+function combosOf(merchant) {
+  return combos
+    .filter(c => c.commercant === merchant && c.actif !== false)
+    .sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
+}
+
+function renderAll() {
+  if (currentView === 'decompte') renderDecompte();
+  else if (currentView === 'edition') renderEdition();
+  else renderRecap();
+}
+
+// === DECOMPTE ===
+function renderDecompte() {
+  const list = document.getElementById('decompte-list');
+  const items = combosOf(currentMerchant);
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty">Aucun combo pour ce commerçant. Ajoute-les dans l\'onglet Édition.</div>';
+  } else {
+    list.innerHTML = items.map(c => {
+      const detail = c.consigne > 0
+        ? `Produit ${fmtCHF(c.prix)}.— + consigne ${fmtCHF(c.consigne)}.—`
+        : `Produit ${fmtCHF(c.prix)}.—`;
+      const lineTotal = (Number(c.prix) + Number(c.consigne || 0)) * (Number(c.quantite) || 0);
+      return `
+        <div class="combo-line">
+          <div class="combo-info">
+            <div class="combo-name">${c.produit}</div>
+            <div class="combo-detail">${detail}</div>
+          </div>
+          <div class="combo-stepper">
+            <button class="step-btn" onclick="bumpQty('${c.id}', -1)">−</button>
+            <input class="qty-input" type="number" min="0" id="qty-${c.id}" value="${Number(c.quantite) || 0}" onchange="setQty('${c.id}', this.value)">
+            <button class="step-btn" onclick="bumpQty('${c.id}', 1)">+</button>
+          </div>
+          <div class="combo-linetotal" id="lt-${c.id}">${fmtCHF(lineTotal)}.—</div>
+        </div>`;
+    }).join('');
+  }
+  updateDecompteTotals();
+}
+
+function updateDecompteTotals() {
+  const items = combosOf(currentMerchant);
+  let prod = 0, cons = 0;
+  items.forEach(c => {
+    const q = Number(c.quantite) || 0;
+    prod += Number(c.prix) * q;
+    cons += Number(c.consigne || 0) * q;
+  });
+  document.getElementById('tot-produits').textContent = 'CHF ' + fmtCHF(prod) + '.—';
+  document.getElementById('tot-consignes').textContent = 'CHF ' + fmtCHF(cons) + '.—';
+  document.getElementById('tot-total').textContent = fmtCHF(prod + cons) + '.—';
+}
+
+function bumpQty(id, delta) {
+  const input = document.getElementById('qty-' + id);
+  let v = (parseInt(input.value) || 0) + delta;
+  if (v < 0) v = 0;
+  input.value = v;
+  setQty(id, v);
+}
+
+let saveTimers = {};
+function setQty(id, val) {
+  let v = parseInt(val);
+  if (isNaN(v) || v < 0) v = 0;
+  const c = combos.find(x => x.id === id);
+  if (!c) return;
+  c.quantite = v;
+  // update line total + grand total immediately
+  const lt = document.getElementById('lt-' + id);
+  if (lt) lt.textContent = fmtCHF((Number(c.prix) + Number(c.consigne || 0)) * v) + '.—';
+  updateDecompteTotals();
+  // debounce save to server
+  clearTimeout(saveTimers[id]);
+  saveTimers[id] = setTimeout(() => patchCombo(id, { quantite: v }), 500);
+}
+
+// === EDITION ===
+function renderEdition() {
+  const list = document.getElementById('edition-list');
+  const items = combosOf(currentMerchant);
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty">Aucun combo. Clique « Ajouter un combo » ci-dessous.</div>';
+    return;
+  }
+  list.innerHTML = items.map(c => `
+    <div class="edit-combo" id="edit-${c.id}">
+      <div class="edit-field grow">
+        <label>Produit</label>
+        <input type="text" id="ep-${c.id}" value="${(c.produit || '').replace(/"/g, '&quot;')}">
+      </div>
+      <div class="edit-field">
+        <label>Prix CHF</label>
+        <input type="number" class="num" step="0.5" id="epr-${c.id}" value="${c.prix}">
+      </div>
+      <div class="edit-field">
+        <label>Consigne CHF</label>
+        <input type="number" class="num" step="0.5" id="ec-${c.id}" value="${c.consigne || 0}">
+      </div>
+      <div class="edit-actions">
+        <button class="btn-save" onclick="saveEdit('${c.id}')">Enregistrer</button>
+        <button class="btn-del" onclick="deleteCombo('${c.id}')">Suppr.</button>
+      </div>
+      <span class="save-flash" id="flash-${c.id}">✓ Enregistré</span>
+    </div>
+  `).join('');
+}
+
+async function saveEdit(id) {
+  const produit = document.getElementById('ep-' + id).value.trim();
+  const prix = parseFloat(document.getElementById('epr-' + id).value) || 0;
+  const consigne = parseFloat(document.getElementById('ec-' + id).value) || 0;
+  if (!produit) { alert('Le nom du produit est requis.'); return; }
+  const c = combos.find(x => x.id === id);
+  if (c) { c.produit = produit; c.prix = prix; c.consigne = consigne; }
+  await patchCombo(id, { produit, prix, consigne });
+  const flash = document.getElementById('flash-' + id);
+  if (flash) { flash.classList.add('show'); setTimeout(() => flash.classList.remove('show'), 1500); }
+}
+
+async function addCombo() {
+  const maxOrdre = Math.max(0, ...combosOf(currentMerchant).map(c => c.ordre || 0));
+  const body = { commercant: currentMerchant, produit: 'Nouveau combo', prix: 0, consigne: 0, quantite: 0, ordre: maxOrdre + 1, actif: true };
+  try {
+    const res = await fetch(`${API_URL}/api/collections/voucher_combos/records`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const rec = await res.json();
+    combos.push(rec);
+    renderEdition();
+  } catch (e) { alert('Erreur ajout : ' + e.message); }
+}
+
+async function deleteCombo(id) {
+  if (!confirm('Supprimer ce combo ?')) return;
+  try {
+    const res = await fetch(`${API_URL}/api/collections/voucher_combos/records/${id}`, { method: 'DELETE' });
+    if (!res.ok && res.status !== 404) throw new Error('API ' + res.status);
+    combos = combos.filter(c => c.id !== id);
+    renderEdition();
+  } catch (e) { alert('Erreur suppression : ' + e.message); }
+}
+
+async function patchCombo(id, fields) {
+  try {
+    const res = await fetch(`${API_URL}/api/collections/voucher_combos/records/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields)
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+  } catch (e) {
+    console.error('patch failed', e);
+  }
+}
+
+// === RECAP ===
+function renderRecap() {
+  let grandProd = 0, grandCons = 0;
+  const rows = MERCHANTS.map(m => {
+    let prod = 0, cons = 0;
+    combosOf(m).forEach(c => {
+      const q = Number(c.quantite) || 0;
+      prod += Number(c.prix) * q;
+      cons += Number(c.consigne || 0) * q;
+    });
+    grandProd += prod; grandCons += cons;
+    return `<tr><td>${m}</td><td>CHF ${fmtCHF(prod)}.—</td><td>CHF ${fmtCHF(cons)}.—</td><td>CHF ${fmtCHF(prod + cons)}.—</td></tr>`;
+  }).join('');
+  document.getElementById('recap-rows').innerHTML = rows +
+    `<tr class="total-row"><td>Total général</td><td>CHF ${fmtCHF(grandProd)}.—</td><td>CHF ${fmtCHF(grandCons)}.—</td><td>CHF ${fmtCHF(grandProd + grandCons)}.—</td></tr>`;
+}
+
+if (sessionStorage.getItem('voucher_ok') === '1') loadCombos();
+</script>
+</body>
+</html>

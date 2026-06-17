@@ -1,0 +1,17 @@
+[Unit]
+Description=PocketBase Mobilier (db.jorapp.org)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+LimitNOFILE=4096
+Restart=always
+RestartSec=5s
+WorkingDirectory=/opt/pb-mobilier
+ExecStart=/opt/pb-mobilier/pocketbase serve --http=127.0.0.1:8091
+StandardOutput=append:/opt/pb-mobilier/pb_data/std.log
+StandardError=append:/opt/pb-mobilier/pb_data/errors.log
+
+[Install]
+WantedBy=multi-user.target

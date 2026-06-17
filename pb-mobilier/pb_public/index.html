@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Base de données — maquette de travail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F5F6; --panel:#FFFFFF; --ink:#17191C; --muted:#6A6F75; --faint:#9AA0A6;
+    --line:#D7DBDF; --line-2:#EAECEE; --hover:#F6F7F8;
+    --accent:#2563A8; --accent-soft:#E7EEF7; --accent-line:#BcD2EA;
+    --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .mono{font-family:var(--mono)}
+
+  /* top bar */
+  .bar{position:sticky;top:0;z-index:30;background:var(--panel);
+    border-bottom:1px solid var(--line)}
+  .bar-in{display:flex;align-items:center;gap:20px;height:52px;padding:0 18px}
+  .mark{font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.02em}
+  .tabs{display:flex;gap:2px;margin-left:auto;background:var(--bg);
+    border:1px solid var(--line);border-radius:6px;padding:3px}
+  .tab{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:500;
+    padding:6px 16px;border-radius:4px}
+  .tab.is-active{background:var(--panel);color:var(--ink);
+    box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .view[hidden]{display:none}
+
+  /* ---------- SCHEMA VIEW ---------- */
+  .toolbar{display:flex;align-items:center;gap:8px;padding:12px 18px;
+    border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+  .toolbar .t-lbl{font-family:var(--mono);font-size:11px;color:var(--faint);
+    text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+  .tbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    font-size:12.5px;padding:6px 12px;border-radius:5px}
+  .tbtn:hover{border-color:var(--accent)}
+  .tbtn.on{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent)}
+
+  .schema{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 105px)}
+  .canvas-scroll{overflow:auto;background:
+    radial-gradient(var(--line-2) 1px,transparent 1px);background-size:22px 22px;
+    background-color:var(--bg)}
+  .canvas{position:relative;width:1020px;height:640px}
+  #edges{position:absolute;inset:0;width:1020px;height:640px;pointer-events:none}
+  .edge{fill:none;stroke:var(--line);stroke-width:1}
+  .edge.dim{stroke:var(--line-2)}
+  .edge.hot{stroke:var(--accent);stroke-width:1.6}
+  .elabel{font-family:var(--mono);font-size:10px;fill:var(--faint)}
+  .elabel.hot{fill:var(--accent)}
+  .ecard{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+
+  .entity{position:absolute;width:210px;background:var(--panel);
+    border:1px solid var(--line);border-radius:5px;box-shadow:0 1px 2px rgba(0,0,0,.04);
+    z-index:2}
+  .entity.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .entity.related{border-color:var(--accent-line)}
+  .ehead{display:flex;align-items:center;gap:8px;padding:9px 11px;cursor:grab;
+    user-select:none;touch-action:none}
+  .entity.open .ehead{border-bottom:1px solid var(--line-2)}
+  .ehead .nm{font-family:var(--mono);font-weight:500;font-size:13px}
+  .ehead .kind{font-family:var(--mono);font-size:9px;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--muted);border:1px solid var(--line);
+    border-radius:3px;padding:1px 5px;margin-left:auto}
+  .ehead .chev{font-family:var(--mono);font-size:11px;color:var(--faint);width:10px}
+  .fields{display:none}
+  .entity.open .fields{display:block}
+  .frow{display:flex;align-items:center;gap:8px;padding:6px 11px;cursor:pointer;
+    border-top:1px solid var(--line-2);font-size:12.5px}
+  .frow:hover{background:var(--hover)}
+  .frow.sel{background:var(--accent-soft)}
+  .frow .fn{font-family:var(--mono);white-space:nowrap;overflow:hidden;
+    text-overflow:ellipsis}
+  .frow .tg{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--muted);
+    border:1px solid var(--line);border-radius:3px;padding:1px 5px;flex:none}
+  .frow .tg.rel{color:var(--accent);border-color:var(--accent-line);
+    background:var(--accent-soft)}
+
+  /* inspector */
+  .inspector{border-left:1px solid var(--line);background:var(--panel);
+    overflow:auto;padding:18px}
+  .insp-empty{color:var(--muted);font-size:13.5px}
+  .crumb{font-family:var(--mono);font-size:11px;color:var(--faint);
+    margin-bottom:10px;word-break:break-word}
+  .crumb b{color:var(--accent);font-weight:500}
+  .insp h3,.inspector h3{font-family:var(--mono);font-size:17px;margin:0 0 4px;font-weight:500}
+  .role{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+  .kv{display:grid;grid-template-columns:80px 1fr;gap:6px 12px;font-size:13px;margin:0 0 16px}
+  .kv dt{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;
+    letter-spacing:.04em;color:var(--faint);padding-top:1px}
+  .kv dd{margin:0}
+  .desc{font-size:14px;line-height:1.55;border-top:1px solid var(--line-2);padding-top:14px}
+  .vals{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .val{font-family:var(--mono);font-size:11px;border:1px solid var(--line);
+    border-radius:3px;padding:2px 7px;color:var(--muted);background:var(--bg)}
+  .rellist{list-style:none;padding:0;margin:8px 0 0}
+  .rellist li{font-family:var(--mono);font-size:12px;padding:5px 0;
+    border-top:1px solid var(--line-2);display:flex;justify-content:space-between;gap:10px}
+  .rellist .to{color:var(--accent)}
+  .legend{margin-top:22px;border-top:1px solid var(--line-2);padding-top:14px}
+  .legend .h{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--faint);margin-bottom:8px}
+  .legend .row{display:flex;flex-wrap:wrap;gap:6px}
+
+  /* ---------- DATA VIEW ---------- */
+  .data-tools{padding:14px 18px;border-bottom:1px solid var(--line);
+    background:var(--panel);display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .search{display:flex;align-items:center;gap:8px;border:1px solid var(--line);
+    border-radius:5px;padding:7px 11px;background:var(--panel);min-width:230px}
+  .search input{border:0;outline:0;font:inherit;background:transparent;flex:1}
+  .search svg{width:15px;color:var(--faint)}
+  .facets{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .fl{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--faint);margin:0 2px 0 6px}
+  .chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    font-size:12px;border-radius:99px;padding:4px 11px}
+  .chip:hover{border-color:var(--accent)}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .data-body{padding:18px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .rec{background:var(--panel);border:1px solid var(--line);border-radius:5px;
+    overflow:hidden;text-align:left;display:flex;flex-direction:column;transition:.13s}
+  .rec:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .rec .img{aspect-ratio:3/2;background:var(--bg);display:grid;place-items:center;
+    border-bottom:1px solid var(--line)}
+  .rec .img img{width:100%;height:100%;object-fit:cover}
+  .rec .img .ph{font-family:var(--mono);color:var(--faint);font-size:11px}
+  .rec .b{padding:11px 12px;display:flex;flex-direction:column;gap:7px;flex:1}
+  .rec .fam{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+    letter-spacing:.04em;color:var(--muted)}
+  .rec h3{font-size:15px;margin:0;font-weight:600;line-height:1.25}
+  .rec .tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+  .pill{font-family:var(--mono);font-size:10px;border:1px solid var(--line);
+    border-radius:3px;padding:2px 6px;color:var(--muted)}
+  .pill.n{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+
+  .ddetail{padding:22px 18px;max-width:880px}
+  .back{font-family:var(--mono);font-size:12px;border:1px solid var(--line);
+    background:var(--panel);border-radius:5px;padding:5px 11px;margin-bottom:18px}
+  .ddetail h1{font-size:26px;margin:6px 0 0;font-weight:600;letter-spacing:-.01em}
+  .ddetail .fam{font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted)}
+  .specs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
+  .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:18px 0 0}
+  .gal img{width:100%;aspect-ratio:3/2;object-fit:cover;border:1px solid var(--line);border-radius:4px}
+  .row-ref{margin:18px 0 0}
+  .row-ref .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--faint);margin-bottom:7px}
+  .tagline{display:flex;flex-wrap:wrap;gap:6px}
+  .tg2{font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 11px;background:var(--panel)}
+  .reals{margin-top:34px}
+  .reals .h{border-top:2px solid var(--ink);padding-top:12px;margin-bottom:14px;
+    display:flex;gap:10px;align-items:baseline}
+  .reals .h h2{font-size:19px;margin:0;font-weight:600}
+  .reals .h .n{font-family:var(--mono);color:var(--muted);font-size:13px}
+  .real{border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:16px;margin-bottom:13px}
+  .real .rt{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .real h3{font-size:16px;margin:0;font-weight:600}
+  .real .m{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px}
+  .facts{display:flex;flex-wrap:wrap;gap:16px;margin:12px 0 0;font-size:13px}
+  .facts span{display:block;font-family:var(--mono);font-size:9.5px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--faint)}
+  .chain{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line)}
+  .chain .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--faint);margin-bottom:9px}
+  .actors{display:flex;flex-wrap:wrap;gap:9px}
+  .actor{border:1px solid var(--line);border-radius:4px;padding:8px 11px;background:var(--bg)}
+  .actor.owner{border-color:var(--accent-line);background:var(--accent-soft)}
+  .actor .r{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;
+    letter-spacing:.04em;color:var(--faint)}
+  .actor .nm{font-weight:500;font-size:13.5px}
+  .actor .ty{font-size:12px;color:var(--muted)}
+  .actor .lk{font-family:var(--mono);font-size:11px}
+
+  .state{padding:50px 18px;text-align:center;color:var(--muted)}
+  .state b{display:block;color:var(--ink);font-weight:500;margin-bottom:5px}
+
+  @media (max-width:860px){
+    .schema{grid-template-columns:1fr;height:auto}
+    .inspector{border-left:0;border-top:1px solid var(--line)}
+    .canvas-scroll{height:62vh}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <span class="mark">proto · structure de données</span>
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" data-view="schema" role="tab">Schéma</button>
+      <button class="tab" data-view="data" role="tab">Données</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ============ SCHEMA ============ -->
+  <section id="v-schema" class="view" role="tabpanel">
+    <div class="toolbar">
+      <span class="t-lbl">Vue</span>
+      <button class="tbtn" id="toggleAll">Tout déployer</button>
+      <button class="tbtn" id="toggleRel">Surligner les relations</button>
+      <button class="tbtn" id="resetLayout">Réinitialiser la disposition</button>
+    </div>
+    <div class="schema">
+      <div class="canvas-scroll">
+        <div class="canvas" id="canvas">
+          <svg id="edges" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+      <aside class="inspector" id="inspector"></aside>
+    </div>
+  </section>
+
+  <!-- ============ DATA ============ -->
+  <section id="v-data" class="view" hidden role="tabpanel">
+    <div id="data-list">
+      <div class="data-tools">
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Filtrer les objets…" autocomplete="off">
+        </label>
+        <div class="facets" id="facets"></div>
+      </div>
+      <div class="data-body"><div class="grid" id="grid"></div></div>
+    </div>
+    <div id="data-detail" hidden><div class="ddetail" id="detail-body"></div></div>
+  </section>
+</main>
+
+<script>
+/* ===================== SCHEMA METADATA ===================== */
+const SCHEMA = {
+  order:["essences","contextes","acteurs","objets_types","realisations"],
+  tables:{
+    essences:{ label:"essences", kind:"référentiel",
+      desc:"Référentiel des essences de bois mobilisables sur le territoire.",
+      pos:{x:36,y:70}, fields:[
+        {n:"nom",t:"text",d:"Nom courant de l'essence (ex. Sapin blanc)."},
+        {n:"type",t:"select",vals:["résineux","feuillu"],d:"Famille botanique."},
+        {n:"disponibilite_locale",t:"select",vals:["large","disponible","limitée","limitée/rare","via Valais","indisponible localement"],d:"Niveau de disponibilité dans le périmètre des parcs."},
+        {n:"note_usage",t:"text",d:"Usages typiques et remarques (durabilité, débouché)."},
+      ]},
+    contextes:{ label:"contextes", kind:"référentiel",
+      desc:"Référentiel des contextes d'implantation du mobilier.",
+      pos:{x:36,y:380}, fields:[
+        {n:"nom",t:"text",d:"Nom du contexte d'implantation."},
+        {n:"densite",t:"select",vals:["très élevée","moyenne","variable","faible","saisonnière","très faible"],d:"Densité bâtie environnante."},
+        {n:"frequentation",t:"select",vals:["continue","régulière","diffuse","locale","par pics"],d:"Intensité de fréquentation."},
+        {n:"expression_mobilier",t:"text",d:"Registre d'expression attendu du mobilier."},
+      ]},
+    acteurs:{ label:"acteurs", kind:"entité",
+      desc:"Acteurs de la filière : forestiers, scieurs, menuisiers, designers, communes…",
+      pos:{x:730,y:230}, fields:[
+        {n:"nom",t:"text",d:"Raison sociale ou nom de l'acteur."},
+        {n:"type",t:"select",mult:true,vals:["forestier/groupement","scierie","menuiserie","charpenterie","designer/architecte","serrurier","commune/collectivité","entreprise spécialisée","institution (insertion/école)"],d:"Métier(s) exercé(s) par l'acteur."},
+        {n:"parc_territoire",t:"select",vals:["Jorat","Jura vaudois","Gruyère P-E","autre"],d:"Parc / territoire de rattachement."},
+        {n:"label_bois_suisse",t:"bool",d:"Détenteur du label Bois Suisse (oui / non)."},
+        {n:"prestations",t:"select",mult:true,vals:["conception/design","aide à l'exécution","rédaction de cahier des charges","fabrication","pose/installation","maintenance","serrurerie/pièces métalliques","logistique/livraison"],d:"Prestations proposées par l'acteur."},
+        {n:"capacites",t:"text",d:"Capacités de production (petites séries, sur-mesure…)."},
+        {n:"contact",t:"text",d:"Coordonnées de contact."},
+        {n:"site_web",t:"url",d:"Adresse du site web."},
+      ]},
+    objets_types:{ label:"objets_types", kind:"entité",
+      desc:"Le modèle reproductible. Colonne vertébrale, reliée aux réalisations.",
+      pos:{x:380,y:36}, fields:[
+        {n:"nom",t:"text",d:"Désignation de l'objet-type."},
+        {n:"famille",t:"select",vals:["rustique/forestier","urbain standardisé","urbain design/sur-mesure","pédagogique/scolaire","places de jeux","signalétique","infrastructures/abris"],d:"Famille de mobilier."},
+        {n:"typologie_fonctionnelle",t:"select",mult:true,vals:["s'asseoir","informer/orienter","protéger/abriter","jouer","pratiques sociales","structurer/sécuriser","gérer/assainir"],d:"Fonction(s) remplie(s) par l'objet."},
+        {n:"niveau_service",t:"select",vals:["passif","actif","augmenté"],d:"Niveau de service rendu."},
+        {n:"rusticite",t:"select",vals:["brut","intermédiaire","épuré/design"],d:"Registre de finition."},
+        {n:"statut",t:"select",vals:["concept","prototype","produit"],d:"Maturité du modèle."},
+        {n:"plans_disponibles",t:"bool",d:"Des plans techniques existent (oui / non)."},
+        {n:"open_source",t:"bool",d:"Plans diffusés en open source (oui / non)."},
+        {n:"dimensions",t:"text",d:"Dimensions indicatives."},
+        {n:"essences_possibles",t:"relation",rel:"essences",mult:true,d:"Essences mobilisables pour ce modèle."},
+        {n:"contextes_adaptes",t:"relation",rel:"contextes",mult:true,d:"Contextes d'implantation adaptés à ce modèle."},
+        {n:"photos",t:"file",d:"Visuels du modèle."},
+      ]},
+    realisations:{ label:"realisations", kind:"entité",
+      desc:"L'exemplaire concret installé, relié à son modèle et à ses producteurs.",
+      pos:{x:380,y:380}, fields:[
+        {n:"titre",t:"text",d:"Nom de la réalisation (ex. Bassin de Rossinière)."},
+        {n:"objet_type",t:"relation",rel:"objets_types",d:"Modèle dont cet exemplaire dérive."},
+        {n:"commune_lieu",t:"text",d:"Commune / lieu d'installation."},
+        {n:"proprietaire",t:"relation",rel:"acteurs",d:"Acteur propriétaire (souvent une commune)."},
+        {n:"contexte",t:"relation",rel:"contextes",d:"Contexte d'implantation effectif."},
+        {n:"parc",t:"select",vals:["Jorat","Jura vaudois","Gruyère P-E","hors parc"],d:"Parc concerné."},
+        {n:"date_installation",t:"date",d:"Date de mise en place."},
+        {n:"essence_utilisee",t:"relation",rel:"essences",mult:true,d:"Essence(s) réellement employée(s)."},
+        {n:"producteur",t:"relation",rel:"acteurs",mult:true,d:"Acteur(s) ayant produit l'exemplaire."},
+        {n:"cout_indicatif",t:"number",d:"Coût indicatif en CHF."},
+        {n:"cout_unite",t:"select",vals:["pièce","mètre linéaire","ensemble"],d:"Unité à laquelle se rapporte le coût."},
+        {n:"duree_vie_observee",t:"text",d:"Longévité constatée sur le terrain."},
+        {n:"etat",t:"select",vals:["en service","stocké","démonté"],d:"État actuel de l'exemplaire."},
+        {n:"coordonnees",t:"geo",d:"Coordonnées géographiques (pour la carte)."},
+        {n:"photos",t:"file",d:"Photos de l'exemplaire installé."},
+      ]},
+  }
+};
+const TYPE_LABEL={text:"Texte",select:"Sélection",bool:"Booléen",date:"Date",number:"Nombre",url:"URL",file:"Fichier",relation:"Relation",geo:"Point géographique"};
+const TYPE_TAG={text:"txt",select:"sel",bool:"bool",date:"date",number:"num",url:"url",file:"file",relation:"rel",geo:"geo"};
+
+const EDGES=[];
+SCHEMA.order.forEach(t=>SCHEMA.tables[t].fields.forEach(f=>{
+  if(f.t==="relation") EDGES.push({from:t,to:f.rel,field:f.n,mult:!!f.mult});
+}));
+(function curves(){
+  const g={};
+  EDGES.forEach(e=>{const k=e.from+">"+e.to;(g[k]??=[]).push(e);});
+  Object.values(g).forEach(arr=>arr.forEach((e,i)=>{e.curve=(i-(arr.length-1)/2)*40;}));
+})();
+
+const positions={}; SCHEMA.order.forEach(t=>positions[t]={...SCHEMA.tables[t].pos});
+const openSet=new Set();
+let sel={table:null,field:null};
+let relAll=false;
+
+const canvas=document.getElementById("canvas");
+const svg=document.getElementById("edges");
+const inspector=document.getElementById("inspector");
+
+function renderEntities(){
+  [...canvas.querySelectorAll(".entity")].forEach(e=>e.remove());
+  SCHEMA.order.forEach(t=>{
+    const tb=SCHEMA.tables[t], el=document.createElement("div");
+    el.className="entity"+(openSet.has(t)?" open":"");
+    el.dataset.table=t;
+    el.style.left=positions[t].x+"px"; el.style.top=positions[t].y+"px";
+    el.innerHTML=`<div class="ehead">
+        <span class="chev">${openSet.has(t)?"–":"+"}</span>
+        <span class="nm">${tb.label}</span>
+        <span class="kind">${tb.kind}</span>
+      </div>
+      <div class="fields">${tb.fields.map(f=>`
+        <div class="frow" data-field="${f.n}">
+          <span class="fn">${f.n}</span>
+          <span class="tg ${f.t==='relation'?'rel':''}">${TYPE_TAG[f.t]}${f.mult?'∗':''}</span>
+        </div>`).join("")}</div>`;
+    canvas.appendChild(el);
+    bindEntity(el,t);
+  });
+  applySelClasses();
+}
+
+function bindEntity(el,t){
+  const head=el.querySelector(".ehead");
+  let sx,sy,ox,oy,moved,dragging;
+  head.addEventListener("pointerdown",e=>{
+    dragging=true;moved=false;sx=e.clientX;sy=e.clientY;
+    ox=positions[t].x;oy=positions[t].y;head.setPointerCapture(e.pointerId);
+    head.style.cursor="grabbing";
+  });
+  head.addEventListener("pointermove",e=>{
+    if(!dragging)return;
+    const dx=e.clientX-sx,dy=e.clientY-sy;
+    if(Math.abs(dx)+Math.abs(dy)>4)moved=true;
+    positions[t].x=Math.max(0,ox+dx);positions[t].y=Math.max(0,oy+dy);
+    el.style.left=positions[t].x+"px";el.style.top=positions[t].y+"px";
+    drawEdges();
+  });
+  head.addEventListener("pointerup",()=>{
+    dragging=false;head.style.cursor="grab";
+    if(!moved){ openSet.has(t)?openSet.delete(t):openSet.add(t); selectTable(t); renderEntities(); drawEdges(); }
+  });
+  el.querySelectorAll(".frow").forEach(r=>{
+    r.addEventListener("click",ev=>{ ev.stopPropagation(); selectField(t,r.dataset.field); });
+  });
+}
+
+function rectOf(t){const el=canvas.querySelector(`.entity[data-table="${t}"]`);
+  return{cx:el.offsetLeft+el.offsetWidth/2,cy:el.offsetTop+el.offsetHeight/2,
+         hw:el.offsetWidth/2,hh:el.offsetHeight/2};}
+function border(r,tx,ty){let dx=tx-r.cx,dy=ty-r.cy;if(!dx&&!dy)return{x:r.cx,y:r.cy};
+  const sx=dx?r.hw/Math.abs(dx):1e9, sy=dy?r.hh/Math.abs(dy):1e9, s=Math.min(sx,sy);
+  return{x:r.cx+dx*s,y:r.cy+dy*s};}
+
+function isHot(e){
+  if(relAll) return true;
+  if(sel.field) return e.from===sel.table && e.field===sel.field;
+  if(sel.table) return e.from===sel.table || e.to===sel.table;
+  return false;
+}
+function anyHot(){ return relAll || !!sel.table || !!sel.field; }
+
+function drawEdges(){
+  const NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
+  EDGES.forEach(e=>{
+    const ra=rectOf(e.from), rb=rectOf(e.to);
+    const a=border(ra,rb.cx,rb.cy), b=border(rb,ra.cx,ra.cy);
+    const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    let nx=0,ny=0;
+    if(e.curve){const ux=b.x-a.x,uy=b.y-a.y,len=Math.hypot(ux,uy)||1;nx=-uy/len*e.curve;ny=ux/len*e.curve;}
+    const cx=mx+nx, cy=my+ny;
+    const hot=isHot(e), dim=anyHot()&&!hot;
+    const p=document.createElementNS(NS,"path");
+    p.setAttribute("d",`M${a.x} ${a.y} Q${cx} ${cy} ${b.x} ${b.y}`);
+    p.setAttribute("class","edge"+(hot?" hot":"")+(dim?" dim":""));
+    svg.appendChild(p);
+    const card=(px,py,txt)=>{const dirx=cx-px,diry=cy-py,l=Math.hypot(dirx,diry)||1;
+      const tx=document.createElementNS(NS,"text");
+      tx.setAttribute("x",px+dirx/l*15);tx.setAttribute("y",py+diry/l*15+3);
+      tx.setAttribute("text-anchor","middle");tx.setAttribute("class","ecard");
+      tx.textContent=txt;svg.appendChild(tx);};
+    card(a.x,a.y,"n"); card(b.x,b.y,e.mult?"n":"1");
+    if(hot){
+      const t2=document.createElementNS(NS,"text");
+      const lx=0.25*a.x+0.5*cx+0.25*b.x, ly=0.25*a.y+0.5*cy+0.25*b.y;
+      t2.setAttribute("x",lx);t2.setAttribute("y",ly-4);t2.setAttribute("text-anchor","middle");
+      t2.setAttribute("class","elabel hot");t2.textContent=e.field;svg.appendChild(t2);
+    }
+  });
+}
+
+function applySelClasses(){
+  const related=new Set();
+  if(sel.table){related.add(sel.table);
+    EDGES.forEach(e=>{if(e.from===sel.table)related.add(e.to);if(e.to===sel.table)related.add(e.from);});}
+  canvas.querySelectorAll(".entity").forEach(el=>{
+    const t=el.dataset.table;
+    el.classList.toggle("sel",t===sel.table);
+    el.classList.toggle("related",t!==sel.table&&related.has(t));
+    el.querySelectorAll(".frow").forEach(r=>
+      r.classList.toggle("sel",t===sel.table&&r.dataset.field===sel.field));
+  });
+}
+
+function selectTable(t){ sel={table:t,field:null}; applySelClasses(); drawEdges(); inspectTable(t); }
+function selectField(t,fn){
+  if(!openSet.has(t)){openSet.add(t);renderEntities();}
+  sel={table:t,field:fn}; applySelClasses(); drawEdges(); inspectField(t,fn);
+}
+
+function legendHTML(){
+  const tags=Object.entries(TYPE_LABEL).map(([k,v])=>`<span class="val">${TYPE_TAG[k]} · ${v}</span>`).join("");
+  return `<div class="legend"><div class="h">Légende des types</div><div class="row">${tags}</div>
+    <div class="h" style="margin-top:12px">Cardinalité</div>
+    <div class="row"><span class="val">∗ champ multiple</span><span class="val">n → 1 · plusieurs vers un</span><span class="val">n ↔ n · multiple</span></div></div>`;
+}
+function inspectDefault(){
+  inspector.innerHTML=`<p class="insp-empty">Cliquez une table pour déployer ses variables, puis une variable pour sa description. Les liens indiquent les relations entre tables.</p>${legendHTML()}`;
+}
+function inspectTable(t){
+  const tb=SCHEMA.tables[t];
+  const rels=EDGES.filter(e=>e.from===t);
+  const inbound=EDGES.filter(e=>e.to===t);
+  inspector.innerHTML=`
+    <div class="crumb"><b>${tb.label}</b></div>
+    <h3>${tb.label}</h3>
+    <p class="role">${tb.desc}</p>
+    <dl class="kv">
+      <dt>Type</dt><dd>${tb.kind}</dd>
+      <dt>Variables</dt><dd>${tb.fields.length}</dd>
+      <dt>Relations</dt><dd>${rels.length} sortante(s) · ${inbound.length} entrante(s)</dd>
+    </dl>
+    ${rels.length?`<div class="desc"><span class="mono" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--faint)">Pointe vers</span>
+      <ul class="rellist">${rels.map(e=>`<li><span>${e.field}</span><span class="to">→ ${e.to} ${e.mult?'(n↔n)':'(n→1)'}</span></li>`).join("")}</ul></div>`:""}
+    ${legendHTML()}`;
+}
+function inspectField(t,fn){
+  const tb=SCHEMA.tables[t], f=tb.fields.find(x=>x.n===fn);
+  const typeLbl=TYPE_LABEL[f.t]+(f.mult?" (multiple)":"");
+  let relRow="";
+  if(f.t==="relation") relRow=`<dt>Cible</dt><dd><span class="mono" style="color:var(--accent)">→ ${f.rel}</span></dd>
+    <dt>Cardinalité</dt><dd>${f.mult?"n ↔ n (relation multiple)":"n → 1 (plusieurs "+t+" pour un "+f.rel+")"}</dd>`;
+  const vals=f.vals?`<div class="desc"><span class="mono" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--faint)">Valeurs possibles</span><div class="vals">${f.vals.map(v=>`<span class="val">${v}</span>`).join("")}</div></div>`:"";
+  inspector.innerHTML=`
+    <div class="crumb">${tb.label} · <b>${f.n}</b></div>
+    <h3>${f.n}</h3>
+    <dl class="kv"><dt>Type</dt><dd>${typeLbl}</dd>${relRow}</dl>
+    <p class="desc">${f.d}</p>
+    ${vals}`;
+}
+
+document.getElementById("toggleAll").addEventListener("click",e=>{
+  const all=openSet.size===SCHEMA.order.length;
+  openSet.clear(); if(!all)SCHEMA.order.forEach(t=>openSet.add(t));
+  e.target.textContent=all?"Tout déployer":"Tout replier";
+  renderEntities(); drawEdges();
+});
+document.getElementById("toggleRel").addEventListener("click",e=>{
+  relAll=!relAll; e.target.classList.toggle("on",relAll); drawEdges();
+});
+document.getElementById("resetLayout").addEventListener("click",()=>{
+  SCHEMA.order.forEach(t=>positions[t]={...SCHEMA.tables[t].pos});
+  renderEntities(); drawEdges();
+});
+canvas.addEventListener("pointerdown",e=>{ if(e.target===canvas||e.target===svg){
+  sel={table:null,field:null}; applySelClasses(); drawEdges(); inspectDefault(); }});
+
+/* ===================== DATA VIEW ===================== */
+const API="";
+const C={objets:"objets_types",real:"realisations",acteurs:"acteurs",essences:"essences",contextes:"contextes"};
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
+let dataLoaded=false;
+const store={objets:[],realByObjet:{},essences:[],contextes:[]};
+const F={q:"",typo:new Set(),ess:new Set(),ctx:new Set()};
+
+async function listAPI(coll,params={}){
+  const u=new URL(`${API}/api/collections/${coll}/records`,location.origin);
+  u.searchParams.set("perPage","500");
+  for(const k in params)u.searchParams.set(k,params[k]);
+  const r=await fetch(u); if(!r.ok)throw new Error(coll+" "+r.status);
+  return (await r.json()).items;
+}
+function fileUrl(coll,rec,fn,thumb){ if(!fn)return null;
+  const u=new URL(`${API}/api/files/${coll}/${rec.id}/${fn}`,location.origin);
+  if(thumb)u.searchParams.set("thumb",thumb); return u.toString(); }
+
+async function loadData(){
+  if(dataLoaded)return; dataLoaded=true;
+  const grid=document.getElementById("grid");
+  grid.innerHTML=`<div class="state" style="grid-column:1/-1"><b>Chargement…</b></div>`;
+  try{
+    const [objets,real,ess,ctx]=await Promise.all([
+      listAPI(C.objets,{expand:"essences_possibles,contextes_adaptes",sort:"nom"}),
+      listAPI(C.real,{expand:"producteur,proprietaire,contexte,essence_utilisee,objet_type",sort:"-date_installation"}),
+      listAPI(C.essences,{sort:"nom"}), listAPI(C.contextes,{sort:"nom"}),
+    ]);
+    store.objets=objets;store.essences=ess;store.contextes=ctx;store.realByObjet={};
+    real.forEach(r=>{const k=r.objet_type;if(k)(store.realByObjet[k]??=[]).push(r);});
+    renderFacets(); renderGrid();
+  }catch(e){
+    grid.innerHTML=`<div class="state" style="grid-column:1/-1"><b>Données indisponibles</b>
+      Vérifiez que PocketBase répond et que les collections sont publiques en lecture.<br>
+      <span class="mono" style="font-size:11px">${esc(e.message)}</span></div>`;
+  }
+}
+function renderFacets(){
+  const typo=[...new Set(store.objets.flatMap(o=>arr(o.typologie_fonctionnelle)))].sort();
+  const grp=(cls,lbl,vals)=>`<span class="fl">${lbl}</span>`+vals.map(v=>
+    `<button class="chip" data-grp="${cls}" data-val="${esc(v.id)}" aria-pressed="false">${esc(v.label)}</button>`).join("");
+  const f=document.getElementById("facets");
+  f.innerHTML=grp("typo","usage",typo.map(v=>({id:v,label:v})))+
+    grp("ess","essence",store.essences.map(e=>({id:e.id,label:e.nom})))+
+    grp("ctx","contexte",store.contextes.map(c=>({id:c.id,label:c.nom})));
+  f.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+    const s=F[b.dataset.grp],v=b.dataset.val,on=b.getAttribute("aria-pressed")==="true";
+    on?s.delete(v):s.add(v);b.setAttribute("aria-pressed",String(!on));renderGrid();});
+}
+function passes(o){
+  if(F.q&&!o.nom.toLowerCase().includes(F.q))return false;
+  if(F.typo.size&&!arr(o.typologie_fonctionnelle).some(v=>F.typo.has(v)))return false;
+  if(F.ess.size&&!arr(o.essences_possibles).some(v=>F.ess.has(v)))return false;
+  if(F.ctx.size&&!arr(o.contextes_adaptes).some(v=>F.ctx.has(v)))return false;
+  return true;
+}
+function renderGrid(){
+  const grid=document.getElementById("grid");
+  if(!store.objets.length){grid.innerHTML=`<div class="state" style="grid-column:1/-1"><b>Aucun enregistrement</b>Ajoutez des objets-types dans PocketBase.</div>`;return;}
+  const out=store.objets.filter(passes);
+  if(!out.length){grid.innerHTML=`<div class="state" style="grid-column:1/-1"><b>Aucun résultat</b>Élargissez les filtres.</div>`;return;}
+  grid.innerHTML=out.map(o=>{
+    const ph=fileUrl(C.objets,o,arr(o.photos)[0],"500x0");
+    const n=(store.realByObjet[o.id]||[]).length;
+    return `<button class="rec" data-id="${o.id}">
+      <div class="img">${ph?`<img src="${ph}" alt="" loading="lazy">`:`<span class="ph">sans visuel</span>`}</div>
+      <div class="b">${o.famille?`<span class="fam">${esc(o.famille)}</span>`:""}
+        <h3>${esc(o.nom)}</h3>
+        <div class="tags">
+          ${o.statut?`<span class="pill">${esc(o.statut)}</span>`:""}
+          ${n?`<span class="pill n">${n} réalisation${n>1?"s":""}</span>`:""}
+        </div></div></button>`;}).join("");
+  grid.querySelectorAll(".rec").forEach(c=>c.onclick=()=>location.hash=`#data/objet/${c.dataset.id}`);
+}
+function showDataDetail(id){
+  const o=store.objets.find(x=>x.id===id);
+  document.getElementById("data-list").hidden=true;
+  document.getElementById("data-detail").hidden=false;
+  window.scrollTo(0,0);
+  if(!o){document.getElementById("detail-body").innerHTML=`<button class="back" onclick="location.hash='#data'">← Retour</button><div class="state"><b>Introuvable</b></div>`;return;}
+  const reals=store.realByObjet[o.id]||[];
+  const photos=arr(o.photos).map(fn=>fileUrl(C.objets,o,fn));
+  const ess=arr(o.expand?.essences_possibles).map(e=>e.nom);
+  const ctx=arr(o.expand?.contextes_adaptes).map(c=>c.nom);
+  const pill=v=>v?`<span class="pill">${esc(v)}</span>`:"";
+  document.getElementById("detail-body").innerHTML=`
+    <button class="back" onclick="location.hash='#data'">← Tous les objets</button>
+    ${o.famille?`<div class="fam">${esc(o.famille)}</div>`:""}
+    <h1>${esc(o.nom)}</h1>
+    <div class="specs">
+      ${pill(o.statut)}${o.niveau_service?pill("service "+o.niveau_service):""}${pill(o.rusticite)}
+      ${o.dimensions?pill(o.dimensions):""}${o.plans_disponibles?`<span class="pill">plans</span>`:""}
+      ${o.open_source?`<span class="pill n">open source</span>`:""}
+      ${arr(o.typologie_fonctionnelle).map(t=>`<span class="pill">${esc(t)}</span>`).join("")}
+    </div>
+    ${photos.length?`<div class="gal">${photos.map(p=>`<img src="${p}" alt="" loading="lazy">`).join("")}</div>`:""}
+    ${ess.length?`<div class="row-ref"><div class="l">Essences possibles</div><div class="tagline">${ess.map(n=>`<span class="tg2">${esc(n)}</span>`).join("")}</div></div>`:""}
+    ${ctx.length?`<div class="row-ref"><div class="l">Contextes adaptés</div><div class="tagline">${ctx.map(n=>`<span class="tg2">${esc(n)}</span>`).join("")}</div></div>`:""}
+    <div class="reals"><div class="h"><h2>Réalisations</h2><span class="n">${reals.length}</span></div>
+      ${reals.length?reals.map(realHTML).join(""):`<div class="state" style="text-align:left;padding:18px 0"><b>Aucune réalisation pour ce modèle</b></div>`}</div>`;
+}
+function actorHTML(a,role){
+  if(!a)return"";
+  const ty=arr(a.type).join(" · ");
+  const bs=a.label_bois_suisse?` <span class="mono" style="font-size:9px;background:var(--accent);color:#fff;border-radius:3px;padding:1px 4px">BS</span>`:"";
+  const lk=a.site_web?`<div class="lk"><a href="${esc(a.site_web)}" target="_blank" rel="noopener">site ↗</a></div>`:"";
+  return `<div class="actor ${role==='Propriétaire'?'owner':''}">
+    <div class="r">${role}</div><div class="nm">${esc(a.nom)}${bs}</div>
+    ${ty?`<div class="ty">${esc(ty)}</div>`:""}${lk}</div>`;
+}
+function realHTML(r){
+  const ex=r.expand||{};
+  const photos=arr(r.photos).map(fn=>fileUrl(C.real,r,fn));
+  const date=r.date_installation?new Date(r.date_installation).toLocaleDateString("fr-CH",{year:"numeric",month:"long"}):"";
+  const cost=r.cout_indicatif?`${Number(r.cout_indicatif).toLocaleString("fr-CH")} CHF${r.cout_unite?" / "+esc(r.cout_unite):""}`:"";
+  const fact=(l,v)=>v?`<div><span>${l}</span>${esc(v)}</div>`:"";
+  const prod=arr(ex.producteur).map(a=>actorHTML(a,"Producteur")).join("");
+  const owner=ex.proprietaire?actorHTML(ex.proprietaire,"Propriétaire"):"";
+  const essU=arr(ex.essence_utilisee).map(e=>e.nom).join(" · ");
+  return `<article class="real">
+    <div class="rt"><div><h3>${esc(r.titre)}</h3>
+      <div class="m">${[esc(r.commune_lieu),r.parc?esc(r.parc):""].filter(Boolean).join(" · ")}</div></div>
+      ${r.etat?`<span class="pill">${esc(r.etat)}</span>`:""}</div>
+    <div class="facts">${fact("Installé",date)}${cost?`<div><span>Coût</span>${cost}</div>`:""}
+      ${fact("Durée de vie",r.duree_vie_observee)}${fact("Essence",essU)}
+      ${ex.contexte?fact("Contexte",ex.contexte.nom):""}</div>
+    ${photos.length?`<div class="gal">${photos.map(p=>`<img src="${p}" alt="" loading="lazy">`).join("")}</div>`:""}
+    ${(prod||owner)?`<div class="chain"><div class="l">Filière — producteurs de cet exemplaire</div>
+      <div class="actors">${prod}${owner}</div></div>`:""}</article>`;
+}
+document.getElementById("q").addEventListener("input",e=>{F.q=e.target.value.trim().toLowerCase();renderGrid();});
+
+/* ===================== ROUTER / TABS ===================== */
+function setTab(v){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("is-active",b.dataset.view===v));
+  document.getElementById("v-schema").hidden=v!=="schema";
+  document.getElementById("v-data").hidden=v!=="data";
+}
+function route(){
+  const h=location.hash;
+  if(h.startsWith("#data")){
+    setTab("data"); loadData().then(()=>{
+      const m=h.match(/^#data\/objet\/(.+)$/);
+      if(m){ showDataDetail(decodeURIComponent(m[1])); }
+      else{ document.getElementById("data-list").hidden=false; document.getElementById("data-detail").hidden=true; }
+    });
+  }else{ setTab("schema"); }
+}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
+  location.hash = b.dataset.view==="data" ? "#data" : "#schema";
+}));
+window.addEventListener("hashchange",route);
+
+renderEntities(); drawEdges(); inspectDefault(); route();
+</script>
+</body>
+</html>

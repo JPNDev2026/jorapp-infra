@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Le Bar des Bûcherons — Festi'Jorat 2026</title>
+<style>
+  :root {
+    --c-blue: #2e6d8e;
+    --c-blue-dark: #1d4d66;
+    --c-blue-light: #e8f3f8;
+    --c-lime: #c8d926;
+    --c-lime-dark: #9aa81a;
+    --c-bg: #f4f5f0;
+    --c-surface: #ffffff;
+    --c-border: rgba(46,109,142,0.15);
+    --c-border-strong: rgba(46,109,142,0.3);
+    --c-text: #1a2e38;
+    --c-muted: #6b8a98;
+    --c-red: #c0392b;
+    --radius: 14px;
+    --radius-sm: 9px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: var(--c-bg);
+    color: var(--c-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: var(--c-blue-dark);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .logo { display: flex; flex-direction: column; line-height: 1.1; }
+  .logo-sub { font-size: 11px; letter-spacing: 2.5px; color: rgba(255,255,255,0.55); text-transform: uppercase; }
+  .logo-main { font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
+  .logo-accent { display: inline-block; width: 28px; height: 4px; background: var(--c-lime); border-radius: 2px; margin-top: 3px; }
+  .header-tabs { display: flex; gap: 6px; }
+  .sync-badge {
+    align-self: center;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-right: 4px;
+  }
+  .sync-badge.pending { background: #fff3cd; color: #8a6d00; border: 1px solid #ffe08a; }
+  .tab-btn {
+    padding: 9px 22px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    background: transparent;
+    color: rgba(255,255,255,0.75);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn.active {
+    background: var(--c-lime);
+    color: var(--c-blue-dark);
+    border-color: var(--c-lime);
+  }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 62px);
+  }
+
+  /* === CAISSE VIEW === */
+  #view-caisse { display: flex; flex: 1; overflow: hidden; }
+  .menu-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: var(--c-bg);
+  }
+  .category-label {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--c-blue);
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-left: 2px;
+    border-left: 3px solid var(--c-lime);
+    padding-left: 10px;
+  }
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .item-btn {
+    background: var(--c-surface);
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--radius);
+    padding: 16px 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.1s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .item-btn { transition: background 0.3s ease, border-color 0.3s ease, transform 0.08s ease; }
+  .item-btn:active { transform: scale(0.95); }
+  .item-btn.flash {
+    background: var(--c-blue) !important;
+    border-color: var(--c-blue-dark) !important;
+    transition: none;
+  }
+  .item-btn.flash .item-name,
+  .item-btn.flash .item-sub,
+  .item-btn.flash .item-price { color: #fff !important; }
+  .item-btn.flash .consigne-badge { background: rgba(255,255,255,0.2); color: #fff; border-color: rgba(255,255,255,0.3); }
+  .item-btn.flash .item-stock-badge { background: rgba(255,255,255,0.2); color: #fff; }
+  .item-btn.out-of-stock { opacity: 0.35; cursor: not-allowed; }
+  .item-btn.out-of-stock:active { transform: none; }
+  .item-name { font-size: 16px; font-weight: 600; color: var(--c-text); line-height: 1.3; }
+  .item-sub { font-size: 12px; color: var(--c-muted); }
+  .item-price { font-size: 22px; font-weight: 800; color: var(--c-blue); margin-top: 4px; }
+  .item-stock-badge {
+    align-self: flex-start;
+    font-size: 11px;
+    background: var(--c-blue-light);
+    color: var(--c-blue);
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .item-stock-badge.low { background: #fff8e6; color: #b8860b; }
+  .item-stock-badge.empty { background: #fdecea; color: var(--c-red); }
+  .consigne-badge {
+    font-size: 11px;
+    color: var(--c-lime-dark);
+    background: #f5f8d6;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    font-weight: 600;
+    border: 1px solid rgba(200,217,38,0.4);
+  }
+
+  .order-panel {
+    width: 320px;
+    background: var(--c-surface);
+    border-left: 1.5px solid var(--c-border-strong);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .order-header {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--c-border);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--c-blue);
+    font-weight: 700;
+  }
+  .order-items { flex: 1; overflow-y: auto; padding: 14px; }
+  .order-empty {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; color: var(--c-muted); font-size: 14px; font-style: italic;
+  }
+  .order-line {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--c-border);
+  }
+  .order-qty {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--c-blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0; color: #fff;
+  }
+  .order-line-name { flex: 1; font-size: 15px; font-weight: 500; color: var(--c-text); line-height: 1.3; }
+  .order-line-sub { font-size: 12px; color: var(--c-muted); }
+  .order-line-price { font-size: 16px; color: var(--c-blue); font-weight: 700; flex-shrink: 0; }
+  .order-line-del {
+    width: 28px; height: 28px;
+    border-radius: 50%; border: none;
+    background: #fdecea; color: var(--c-red);
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .order-line-del:active { background: #f5c6c4; }
+
+  .order-footer {
+    padding: 18px;
+    border-top: 1.5px solid var(--c-border-strong);
+    display: flex; flex-direction: column; gap: 12px;
+    background: var(--c-bg);
+  }
+  .total-breakdown { display: flex; flex-direction: column; gap: 6px; }
+  .total-row {
+    display: flex; justify-content: space-between;
+    font-size: 14px; color: var(--c-muted);
+  }
+  .total-main {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 10px;
+    border-top: 1.5px solid var(--c-border-strong);
+  }
+  .total-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--c-blue); font-weight: 700; }
+  .total-amount { font-size: 44px; color: var(--c-blue-dark); font-weight: 900; line-height: 1; }
+  .total-chf { font-size: 18px; color: var(--c-muted); margin-right: 4px; }
+
+  .btn-reset {
+    width: 100%; padding: 15px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--c-red);
+    background: transparent; color: var(--c-red);
+    font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 0.3px;
+  }
+  .btn-reset:active { background: #fdecea; }
+
+  /* === STOCK VIEW === */
+  #view-stock {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    flex-direction: column;
+    gap: 24px;
+  }
+  #view-stock.active { display: flex; }
+  .stock-section-title {
+    font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--c-blue); font-weight: 700; margin-bottom: 12px;
+    border-left: 3px solid var(--c-lime); padding-left: 10px;
+  }
+  .stock-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .stock-card {
+    background: var(--c-surface);
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .stock-card-name { font-size: 16px; font-weight: 600; color: var(--c-text); margin-bottom: 2px; }
+  .stock-card-sub { font-size: 12px; color: var(--c-muted); margin-bottom: 14px; }
+  .stock-bar-wrap { height: 7px; background: var(--c-blue-light); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+  .stock-bar { height: 100%; border-radius: 4px; transition: width 0.3s; background: var(--c-blue); }
+  .stock-bar.low { background: #e6a817; }
+  .stock-bar.empty { background: var(--c-red); }
+  .stock-numbers { display: flex; justify-content: space-between; align-items: center; }
+  .stock-current { font-size: 26px; font-weight: 900; color: var(--c-blue-dark); }
+  .stock-unit { font-size: 13px; color: var(--c-muted); margin-left: 4px; }
+  .stock-portions { font-size: 13px; color: var(--c-muted); }
+  .stock-input-wrap {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .stock-input {
+    flex: 1; padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--c-border-strong);
+    background: var(--c-bg); color: var(--c-text);
+    font-size: 15px;
+  }
+  .stock-input:focus { outline: none; border-color: var(--c-blue); }
+  .btn-set {
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--c-blue);
+    background: transparent; color: var(--c-blue);
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .btn-set:active { background: var(--c-blue-light); }
+
+  .stock-consigne-card {
+    background: #f5f8d6;
+    border: 1.5px solid rgba(200,217,38,0.5);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .consigne-stat { font-size: 14px; color: var(--c-blue-dark); }
+  .consigne-stat strong { display: block; font-size: 36px; color: var(--c-blue-dark); font-weight: 900; line-height: 1.1; }
+  .consigne-stat span { font-size: 14px; color: var(--c-lime-dark); font-weight: 600; }
+  .btn-reset-consigne {
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--c-lime-dark);
+    background: transparent; color: var(--c-lime-dark);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .btn-reset-consigne:active { background: rgba(200,217,38,0.15); }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--c-border-strong); border-radius: 3px; }
+
+  /* === CONSIGNE RENDUE === */
+  .btn-return-consigne {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: var(--radius);
+    border: 2px solid var(--c-lime-dark);
+    background: var(--c-lime);
+    color: #3a3f00;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .btn-return-consigne:active { background: var(--c-lime-dark); color: #fff; }
+  .order-qty-return { background: var(--c-lime-dark); }
+  .order-line-price-neg { color: var(--c-lime-dark) !important; }
+  .order-total-row-neg { color: var(--c-lime-dark); font-weight: 600; }
+
+  /* === ENCAISSER + PAYMENT === */
+  .btn-encaisser {
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--c-blue);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  .btn-encaisser:active { background: var(--c-blue-dark); }
+  .btn-encaisser:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-cancel-order {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    border-radius: var(--radius);
+    border: 2px solid #c0392b;
+    background: transparent;
+    color: #c0392b;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-cancel-order:active { background: #fdecea; }
+
+  .pay-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .pay-overlay.open { display: flex; }
+  .pay-box {
+    background: var(--c-surface);
+    border-radius: 20px;
+    padding: 28px 24px 24px;
+    width: 460px;
+    max-width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  .pay-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 36px; height: 36px;
+    border-radius: 50%; border: none;
+    background: var(--c-bg); color: var(--c-muted);
+    font-size: 16px; cursor: pointer;
+  }
+  .pay-total-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--c-muted); font-weight: 700; text-align: center; }
+  .pay-total-amount { font-size: 52px; font-weight: 900; color: var(--c-blue-dark); text-align: center; line-height: 1.1; margin: 6px 0 22px; }
+  .pay-chf { font-size: 22px; color: var(--c-muted); font-weight: 600; }
+
+  .pay-method-btns { display: flex; flex-direction: column; gap: 12px; }
+  .pay-method {
+    width: 100%;
+    padding: 26px;
+    border-radius: var(--radius);
+    border: 3px solid var(--c-border-strong);
+    background: var(--c-surface);
+    cursor: pointer;
+    display: flex; flex-direction: column; gap: 5px;
+    transition: all 0.1s;
+  }
+  .pay-method:active { transform: scale(0.98); }
+  .pay-method-title { font-size: 26px; font-weight: 800; color: var(--c-text); }
+  .pay-method-sub { font-size: 14px; color: var(--c-muted); }
+  .pay-twint { border-color: var(--c-blue); background: var(--c-blue-light); }
+  .pay-twint .pay-method-title { color: var(--c-blue); }
+  .pay-cash { border-color: var(--c-lime-dark); background: #f5f8d6; }
+  .pay-cash .pay-method-title { color: var(--c-lime-dark); }
+
+  .pay-received-label { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--c-muted); font-weight: 700; text-align: center; margin-top: 8px; margin-bottom: 10px; }
+  .pay-input {
+    width: 100%;
+    padding: 18px;
+    border-radius: var(--radius);
+    border: 2.5px solid var(--c-blue);
+    background: var(--c-surface);
+    font-size: 36px;
+    font-weight: 800;
+    text-align: center;
+    color: var(--c-text);
+    margin-bottom: 18px;
+    -moz-appearance: textfield;
+  }
+  .pay-input:focus { outline: none; border-color: var(--c-blue-dark); }
+  .pay-input::-webkit-outer-spin-button, .pay-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .pay-change-box {
+    background: var(--c-blue);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .pay-change-label { font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.8); font-weight: 700; }
+  .pay-change-amount { font-size: 40px; font-weight: 900; color: #fff; line-height: 1; }
+  .pay-change-box.insufficient { background: #fdecea; }
+  .pay-change-box.insufficient .pay-change-label { color: #c0392b; }
+  .pay-change-box.insufficient .pay-change-amount { font-size: 22px; color: #c0392b; }
+  .pay-actions { display: flex; gap: 10px; }
+  .pay-actions .btn-cancel-order { margin-top: 0; flex: 1; }
+  .pay-actions .btn-encaisser { flex: 2; }
+
+  /* === FAB + DRAWER MOBILE === */
+  .fab {
+    display: none;
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--c-blue-dark);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 28px;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(29,77,102,0.35);
+    min-width: 200px;
+  }
+  .fab-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.75; }
+  .fab-total { font-size: 24px; font-weight: 900; color: var(--c-lime); line-height: 1; }
+
+  .drawer-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+  }
+  .drawer {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--c-surface);
+    border-radius: 20px 20px 0 0;
+    z-index: 201;
+    flex-direction: column;
+    max-height: 85vh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .drawer.open { display: flex; }
+  .drawer-overlay.open { display: block; }
+  .drawer-handle {
+    width: 40px; height: 4px;
+    background: var(--c-border-strong);
+    border-radius: 2px;
+    margin: 12px auto 4px;
+    flex-shrink: 0;
+  }
+  .drawer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 18px 12px;
+    border-bottom: 1px solid var(--c-border);
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--c-blue); font-weight: 700; flex-shrink: 0;
+  }
+  .drawer-close {
+    border: none; background: var(--c-bg); color: var(--c-muted);
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    font-size: 14px; display: flex; align-items: center; justify-content: center;
+  }
+  .drawer-items { overflow-y: auto; padding: 8px 16px; flex: 1; }
+  .drawer-footer { padding: 12px 16px; border-top: 1px solid var(--c-border); flex-shrink: 0; }
+
+  @media (max-width: 1023px) {
+    .order-panel { display: none !important; }
+    .fab { display: flex; }
+  }
+
+  /* === TOTAL INLINE (collé aux articles) === */
+  .order-total-inline {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1.5px solid var(--c-border-strong);
+  }
+  .order-total-rows { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+  .order-total-row {
+    display: flex; justify-content: space-between;
+    font-size: 14px; color: var(--c-muted);
+  }
+  .order-total-main {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 8px 0 12px;
+  }
+  .order-total-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--c-blue); font-weight: 700; }
+  .order-total-amount { font-size: 44px; color: var(--c-blue-dark); font-weight: 900; line-height: 1; }
+  .order-total-chf { font-size: 18px; color: var(--c-muted); margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-sub">Le Bar des</span>
+    <span class="logo-main">Bûcherons</span>
+    <span class="logo-accent"></span>
+  </div>
+  <div class="header-tabs">
+    <span class="sync-badge" id="sync-badge" style="display:none"></span>
+    <button class="tab-btn active" onclick="showView('caisse')">Caisse</button>
+    <button class="tab-btn" onclick="showView('stock')">Stock</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- CAISSE -->
+  <div id="view-caisse" style="display:flex; flex:1; overflow:hidden;">
+    <div class="menu-panel" id="menu-panel"></div>
+    <div class="order-panel" id="order-panel">
+      <div class="order-header">Commande en cours</div>
+      <div class="order-items" id="order-items">
+        <div class="order-empty">Aucun article</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB mobile -->
+  <button class="fab" id="fab" onclick="toggleDrawer()">
+    <span class="fab-label">Commande</span>
+    <span class="fab-total" id="fab-total">CHF 0.—</span>
+  </button>
+
+  <!-- Drawer mobile -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-handle"></div>
+    <div class="drawer-header">
+      <span>Commande en cours</span>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-items" id="drawer-items"></div>
+    <div class="drawer-footer" id="drawer-footer"></div>
+  </div>
+
+  <!-- PAYMENT MODAL -->
+  <div class="pay-overlay" id="pay-overlay">
+    <div class="pay-box">
+      <button class="pay-close" onclick="closePayment()">✕</button>
+
+      <!-- Step 1: total + method choice -->
+      <div id="pay-step-method">
+        <div class="pay-total-label">Total à encaisser</div>
+        <div class="pay-total-amount"><span id="pay-total">0</span> <span class="pay-chf">CHF</span></div>
+        <div class="pay-method-btns">
+          <button class="pay-method pay-twint" onclick="payTwint()">
+            <span class="pay-method-title">TWINT / Carte</span>
+            <span class="pay-method-sub">paiement sans monnaie</span>
+          </button>
+          <button class="pay-method pay-cash" onclick="goCash()">
+            <span class="pay-method-title">Cash</span>
+            <span class="pay-method-sub">calcul de la monnaie</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: cash -->
+      <div id="pay-step-cash" style="display:none">
+        <div class="pay-total-label">À payer</div>
+        <div class="pay-total-amount"><span id="pay-cash-total">0</span> <span class="pay-chf">CHF</span></div>
+
+        <div class="pay-received-label">Montant reçu (CHF)</div>
+        <input type="number" inputmode="decimal" id="pay-input" class="pay-input" placeholder="0" oninput="onPayInput()" autocomplete="off">
+
+        <div class="pay-change-box" id="pay-change-box" style="display:none">
+          <span class="pay-change-label" id="pay-change-label">À rendre</span>
+          <span class="pay-change-amount" id="pay-change">0.—</span>
+        </div>
+
+        <div class="pay-actions">
+          <button class="btn-cancel-order" onclick="backToMethod()">← Retour</button>
+          <button class="btn-encaisser" id="pay-validate-cash" onclick="payCash()" disabled>Valider</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOCK -->
+  <div id="view-stock">
+    <div>
+      <div class="stock-section-title">Consignes en circulation</div>
+      <div class="stock-consigne-card">
+        <div class="consigne-stat">
+          <strong id="consigne-count">0</strong>
+          verres consignés · <span id="consigne-total">CHF 0.—</span>
+        </div>
+        <button class="btn-reset-consigne" onclick="resetConsigne()">Remettre à zéro</button>
+      </div>
+    </div>
+    <div>
+      <div class="stock-section-title">Stock des boissons</div>
+      <div class="stock-grid" id="stock-grid"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PRODUCTS = [
+  {
+    id: 'vaudoise', category: 'Bières', name: 'La Vaudoise', sub: 'Brasserie du Jorat',
+    price: 6, size_cl: 33, unit: 'L', consigne: true
+  },
+  {
+    id: 'ipa', category: 'Bières', name: "L'IPA", sub: 'Brasserie du Jorat',
+    price: 6, size_cl: 33, unit: 'L', consigne: true
+  },
+  {
+    id: 'chasselas_v', category: 'Vins', name: 'Chasselas — verre', sub: 'La Côte Abbaye des Monts',
+    price: 6, size_cl: 10, unit: 'L', consigne: true
+  },
+  {
+    id: 'chasselas_b', category: 'Vins', name: 'Chasselas — bouteille', sub: 'La Côte Abbaye des Monts',
+    price: 40, size_cl: 70, unit: 'L', consigne: false
+  },
+  {
+    id: 'rouge_v', category: 'Vins', name: 'Assemblage rouge — verre', sub: 'La Côte Abbaye des Monts',
+    price: 7, size_cl: 10, unit: 'L', consigne: true
+  },
+  {
+    id: 'rouge_b', category: 'Vins', name: 'Assemblage rouge — bouteille', sub: 'La Côte Abbaye des Monts',
+    price: 50, size_cl: 70, unit: 'L', consigne: false
+  },
+  {
+    id: 'kombu_gingembre', category: 'Kombucha', name: 'Gingembre · Citron · Cayenne', sub: 'Klover',
+    price: 5, size_cl: 33, unit: 'L', consigne: true
+  },
+  {
+    id: 'kombu_framboise', category: 'Kombucha', name: 'Framboise · Citron', sub: 'Klover',
+    price: 5, size_cl: 33, unit: 'L', consigne: true
+  },
+  {
+    id: 'kombu_concombre', category: 'Kombucha', name: 'Concombre · Basilic', sub: 'Klover',
+    price: 5, size_cl: 33, unit: 'L', consigne: true
+  },
+  {
+    id: 'kombu_grenade', category: 'Kombucha', name: 'Grenade · Lavande · Camomille', sub: 'Klover',
+    price: 5, size_cl: 33, unit: 'L', consigne: true
+  },
+  {
+    id: 'jus_pomme', category: 'Sans alcool', name: 'Jus de pomme', sub: 'La Ferme du Taulard',
+    price: 3, size_cl: 33, unit: 'L', consigne: true
+  },
+  {
+    id: 'limonade', category: 'Sans alcool', name: 'Limonade citron', sub: 'Chalet des Enfants',
+    price: 4, size_cl: 33, unit: 'L', consigne: true
+  },
+  {
+    id: 'eau', category: 'Sans alcool', name: 'Eau minérale', sub: 'Henniez, plate ou gazeuse',
+    price: 2, size_cl: 50, unit: 'bouteilles', consigne: false
+  },
+  {
+    id: 'sirop', category: 'Sans alcool', name: 'Sirop artisanal', sub: 'Chalet des Enfants — menthe, sureau, thym, mélisse',
+    price: 2, size_cl: 33, unit: 'L', consigne: true
+  }
+];
+
+const CONSIGNE_PRICE = 2;
+const STOCK_KEY = 'bucherons_stock_v1';
+const ORDER_KEY = 'bucherons_order_v1';
+const CONSIGNE_KEY = 'bucherons_consigne_v1';
+const RETURNS_KEY = 'bucherons_returns_v1';
+
+// === API / SYNC ===
+const API_URL = 'https://api.jorapp.org';
+const DEVICE_ID = (function() {
+  let d = localStorage.getItem('bucherons_device');
+  if (!d) { d = 'bar-1'; localStorage.setItem('bucherons_device', d); }
+  return d;
+})();
+const QUEUE_KEY = 'bucherons_queue_v1';
+
+function loadQueue() {
+  try { return JSON.parse(localStorage.getItem(QUEUE_KEY)) || []; } catch(e) { return []; }
+}
+function saveQueue(q) {
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+}
+
+function genTicketId() {
+  return DEVICE_ID + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+}
+
+// Add a ticket to the offline queue, then try to flush
+function enqueueTicket(ticket) {
+  const q = loadQueue();
+  q.push(ticket);
+  saveQueue(q);
+  flushQueue();
+}
+
+let flushing = false;
+async function flushQueue() {
+  if (flushing) return;
+  flushing = true;
+  let q = loadQueue();
+  while (q.length > 0) {
+    const ticket = q[0];
+    try {
+      const res = await fetch(API_URL + '/api/collections/ventes/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ticket)
+      });
+      if (res.ok || res.status === 400) {
+        // 400 likely means duplicate ticket_id (unique) — treat as already saved
+        q.shift();
+        saveQueue(q);
+      } else {
+        break; // server error, retry later
+      }
+    } catch (e) {
+      break; // network down, retry later
+    }
+    q = loadQueue();
+  }
+  flushing = false;
+  updateSyncBadge();
+}
+
+function updateSyncBadge() {
+  const badge = document.getElementById('sync-badge');
+  if (!badge) return;
+  const pending = loadQueue().length;
+  if (pending > 0) {
+    badge.style.display = '';
+    badge.textContent = pending + ' à envoyer';
+    badge.className = 'sync-badge pending';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// Retry flush periodically and when network returns
+setInterval(flushQueue, 5000);
+window.addEventListener('online', flushQueue);
+
+function loadStock() {
+  try { return JSON.parse(localStorage.getItem(STOCK_KEY)) || {}; } catch(e) { return {}; }
+}
+function saveStock(s) {
+  localStorage.setItem(STOCK_KEY, JSON.stringify(s));
+}
+function loadOrder() {
+  try { return JSON.parse(localStorage.getItem(ORDER_KEY)) || []; } catch(e) { return []; }
+}
+function saveOrder(o) {
+  localStorage.setItem(ORDER_KEY, JSON.stringify(o));
+}
+function loadConsigne() {
+  return parseInt(localStorage.getItem(CONSIGNE_KEY) || '0');
+}
+function saveConsigne(n) {
+  localStorage.setItem(CONSIGNE_KEY, String(n));
+}
+function loadReturns() {
+  return parseInt(localStorage.getItem(RETURNS_KEY) || '0');
+}
+function saveReturns(n) {
+  localStorage.setItem(RETURNS_KEY, String(n));
+}
+
+let stock = loadStock();
+let order = loadOrder();
+let consigneCount = loadConsigne();
+let consigneReturns = loadReturns();
+
+function getStock(id) {
+  return stock[id] !== undefined ? stock[id] : null;
+}
+function setStock(id, val) {
+  stock[id] = Math.max(0, val);
+  saveStock(stock);
+}
+
+function portionsLeft(product) {
+  const s = getStock(product.id);
+  if (s === null) return null;
+  if (product.unit === 'bouteilles') return s;
+  return Math.floor((s * 100) / product.size_cl);
+}
+
+function addToOrder(product) {
+  const p = portionsLeft(product);
+  if (p !== null && p <= 0) return;
+  const existing = order.find(l => l.id === product.id);
+  if (existing) {
+    existing.qty++;
+  } else {
+    order.push({ id: product.id, qty: 1 });
+  }
+  if (getStock(product.id) !== null) {
+    const cl = product.size_cl;
+    if (product.unit === 'bouteilles') {
+      setStock(product.id, getStock(product.id) - 1);
+    } else {
+      setStock(product.id, parseFloat((getStock(product.id) - cl / 100).toFixed(3)));
+    }
+  }
+  if (product.consigne) {
+    consigneCount++;
+    saveConsigne(consigneCount);
+  }
+  saveOrder(order);
+  renderOrder();
+  renderMenu();
+  updateStockView();
+}
+
+function removeFromOrder(productId) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  const line = order.find(l => l.id === productId);
+  if (!line) return;
+  if (line.qty > 1) {
+    line.qty--;
+  } else {
+    order = order.filter(l => l.id !== productId);
+  }
+  if (getStock(productId) !== null) {
+    if (product.unit === 'bouteilles') {
+      setStock(productId, getStock(productId) + 1);
+    } else {
+      setStock(productId, parseFloat((getStock(productId) + product.size_cl / 100).toFixed(3)));
+    }
+  }
+  if (product.consigne) {
+    consigneCount = Math.max(0, consigneCount - 1);
+    saveConsigne(consigneCount);
+  }
+  saveOrder(order);
+  renderOrder();
+  renderMenu();
+  updateStockView();
+}
+
+function returnConsigne() {
+  consigneReturns++;
+  saveReturns(consigneReturns);
+  consigneCount = Math.max(0, consigneCount - 1);
+  saveConsigne(consigneCount);
+  renderOrder();
+  updateStockView();
+}
+
+function undoReturnConsigne() {
+  if (consigneReturns <= 0) return;
+  consigneReturns--;
+  saveReturns(consigneReturns);
+  consigneCount++;
+  saveConsigne(consigneCount);
+  renderOrder();
+  updateStockView();
+}
+
+function computeOrderTotals() {
+  let ca = 0;
+  let consigneIn = 0;
+  const items = [];
+  order.forEach(line => {
+    const p = PRODUCTS.find(x => x.id === line.id);
+    if (!p) return;
+    ca += p.price * line.qty;
+    if (p.consigne) consigneIn += CONSIGNE_PRICE * line.qty;
+    items.push({ id: p.id, name: p.name, qty: line.qty, unit_price: p.price });
+  });
+  const consigneOut = consigneReturns * CONSIGNE_PRICE;
+  const total = ca + consigneIn - consigneOut;
+  return { ca, consigneIn, consigneOut, items, total };
+}
+
+// Commit the ticket to the server with a payment method, then clear
+function commitOrder(paiement) {
+  const hasContent = order.length > 0 || consigneReturns > 0;
+  if (hasContent) {
+    const t = computeOrderTotals();
+    enqueueTicket({
+      ticket_id: genTicketId(),
+      device: DEVICE_ID,
+      items: t.items,
+      ca: t.ca,
+      consigne_in: t.consigneIn,
+      consigne_out: t.consigneOut,
+      paiement: paiement
+    });
+  }
+  clearOrder();
+}
+
+// Clear the order WITHOUT committing (cancel / error)
+function clearOrder() {
+  order = [];
+  consigneReturns = 0;
+  saveOrder(order);
+  saveReturns(consigneReturns);
+  renderOrder();
+  renderMenu();
+}
+
+function cancelOrder() {
+  if (order.length === 0 && consigneReturns === 0) return;
+  if (confirm('Annuler cette commande sans l\'enregistrer ?')) {
+    clearOrder();
+    closeDrawer();
+  }
+}
+
+// === PAYMENT FLOW ===
+let payTotal = 0;
+
+function openPayment() {
+  if (order.length === 0 && consigneReturns === 0) return;
+  payTotal = computeOrderTotals().total;
+  document.getElementById('pay-total').textContent = payTotal;
+  document.getElementById('pay-cash-total').textContent = payTotal;
+  document.getElementById('pay-step-method').style.display = '';
+  document.getElementById('pay-step-cash').style.display = 'none';
+  document.getElementById('pay-overlay').classList.add('open');
+}
+
+function closePayment() {
+  document.getElementById('pay-overlay').classList.remove('open');
+}
+
+function backToMethod() {
+  document.getElementById('pay-step-cash').style.display = 'none';
+  document.getElementById('pay-step-method').style.display = '';
+}
+
+function payTwint() {
+  commitOrder('twint');
+  closePayment();
+  closeDrawer();
+}
+
+function goCash() {
+  document.getElementById('pay-step-method').style.display = 'none';
+  document.getElementById('pay-step-cash').style.display = '';
+  const input = document.getElementById('pay-input');
+  input.value = '';
+  updateChange();
+  setTimeout(() => input.focus(), 100);
+}
+
+function onPayInput() {
+  updateChange();
+}
+
+function updateChange() {
+  const input = document.getElementById('pay-input');
+  const received = parseFloat(input.value);
+  const box = document.getElementById('pay-change-box');
+  const changeEl = document.getElementById('pay-change');
+  const labelEl = document.getElementById('pay-change-label');
+  const validateBtn = document.getElementById('pay-validate-cash');
+  if (isNaN(received) || received <= 0) {
+    box.style.display = 'none';
+    validateBtn.disabled = true;
+    return;
+  }
+  const change = received - payTotal;
+  box.style.display = 'flex';
+  if (change < 0) {
+    box.classList.add('insufficient');
+    labelEl.textContent = 'Manque';
+    changeEl.textContent = (-change) + '.— manquant';
+    validateBtn.disabled = true;
+  } else {
+    box.classList.remove('insufficient');
+    labelEl.textContent = 'À rendre';
+    changeEl.textContent = change + '.—';
+    validateBtn.disabled = false;
+  }
+}
+
+function payCash() {
+  const received = parseFloat(document.getElementById('pay-input').value);
+  if (isNaN(received) || received < payTotal) return;
+  commitOrder('cash');
+  closePayment();
+  closeDrawer();
+}
+
+function resetConsigne() {
+  if (confirm('Remettre le compteur de consignes à zéro ?')) {
+    consigneCount = 0;
+    saveConsigne(0);
+    updateStockView();
+  }
+}
+
+let menuBuilt = false;
+
+function badgeText(p, portions, outOfStock) {
+  if (portions === null) return '';
+  if (p.unit === 'bouteilles') return outOfStock ? 'Épuisé' : portions + ' btl';
+  return outOfStock ? 'Épuisé' : portions + ' verres';
+}
+
+function buildMenu() {
+  const categories = [...new Set(PRODUCTS.map(p => p.category))];
+  const panel = document.getElementById('menu-panel');
+  panel.innerHTML = '';
+  categories.forEach(cat => {
+    const items = PRODUCTS.filter(p => p.category === cat);
+    const sec = document.createElement('div');
+    const label = document.createElement('div');
+    label.className = 'category-label';
+    label.textContent = cat;
+    sec.appendChild(label);
+    const grid = document.createElement('div');
+    grid.className = 'items-grid';
+    items.forEach(p => {
+      const btn = document.createElement('button');
+      btn.id = 'btn-' + p.id;
+      btn.className = 'item-btn';
+      btn.onclick = (e) => {
+        const b = e.currentTarget;
+        if (b.classList.contains('out-of-stock')) return;
+        b.classList.add('flash');
+        setTimeout(() => b.classList.remove('flash'), 300);
+        addToOrder(p);
+      };
+      const consigneBadge = p.consigne ? `<span class="consigne-badge">+2 CHF consigne</span>` : '';
+      btn.innerHTML = `
+        <span class="item-name">${p.name}</span>
+        <span class="item-sub">${p.sub} · ${p.size_cl}cl</span>
+        ${consigneBadge}
+        <span class="item-price">${p.price}.—</span>
+        <span class="item-stock-badge" id="badge-${p.id}" style="display:none"></span>
+      `;
+      grid.appendChild(btn);
+    });
+    sec.appendChild(grid);
+    panel.appendChild(sec);
+  });
+  menuBuilt = true;
+}
+
+function renderMenu() {
+  if (!menuBuilt) { buildMenu(); }
+  PRODUCTS.forEach(p => {
+    const portions = portionsLeft(p);
+    const outOfStock = portions !== null && portions <= 0;
+    const low = portions !== null && portions > 0 && portions <= 3;
+    const btn = document.getElementById('btn-' + p.id);
+    if (!btn) return;
+    btn.classList.toggle('out-of-stock', outOfStock);
+    const badge = document.getElementById('badge-' + p.id);
+    if (portions === null) {
+      badge.style.display = 'none';
+    } else {
+      badge.style.display = '';
+      badge.className = 'item-stock-badge' + (outOfStock ? ' empty' : (low ? ' low' : ''));
+      badge.textContent = badgeText(p, portions, outOfStock);
+    }
+  });
+}
+
+function buildOrderHTML(containerEl, includeReset) {
+  containerEl.innerHTML = '';
+  if (order.length === 0 && consigneReturns === 0) {
+    containerEl.innerHTML = '<div class="order-empty">Aucun article</div>';
+    return 0;
+  }
+  let boissonsTotal = 0;
+  let consignesTotal = 0;
+  order.forEach(line => {
+    const p = PRODUCTS.find(x => x.id === line.id);
+    if (!p) return;
+    const linePrice = p.price * line.qty;
+    const lineConsigne = p.consigne ? CONSIGNE_PRICE * line.qty : 0;
+    boissonsTotal += linePrice;
+    consignesTotal += lineConsigne;
+    const el = document.createElement('div');
+    el.className = 'order-line';
+    el.innerHTML = `
+      <div class="order-qty">${line.qty}</div>
+      <div style="flex:1">
+        <div class="order-line-name">${p.name}</div>
+        ${p.consigne ? '<div class="order-line-sub">+ consigne</div>' : ''}
+      </div>
+      <div class="order-line-price">${(linePrice + lineConsigne).toFixed(0)}.—</div>
+      <button class="order-line-del" onclick="removeFromOrder('${p.id}')">−</button>
+    `;
+    containerEl.appendChild(el);
+  });
+  const returnsTotal = consigneReturns * CONSIGNE_PRICE;
+  if (consigneReturns > 0) {
+    const el = document.createElement('div');
+    el.className = 'order-line order-line-return';
+    el.innerHTML = `
+      <div class="order-qty order-qty-return">${consigneReturns}</div>
+      <div style="flex:1">
+        <div class="order-line-name">Consigne rendue</div>
+        <div class="order-line-sub">verre rapporté au bar</div>
+      </div>
+      <div class="order-line-price order-line-price-neg">−${returnsTotal}.—</div>
+      <button class="order-line-del" onclick="undoReturnConsigne()">−</button>
+    `;
+    containerEl.appendChild(el);
+  }
+  const total = boissonsTotal + consignesTotal - returnsTotal;
+  let breakdownRows = '';
+  if (consignesTotal > 0 || returnsTotal > 0) {
+    breakdownRows += `<div class="order-total-row"><span>Boissons</span><span>CHF ${boissonsTotal}.—</span></div>`;
+    if (consignesTotal > 0) {
+      breakdownRows += `<div class="order-total-row"><span>Consignes (${consignesTotal / CONSIGNE_PRICE}×)</span><span>CHF ${consignesTotal}.—</span></div>`;
+    }
+    if (returnsTotal > 0) {
+      breakdownRows += `<div class="order-total-row order-total-row-neg"><span>Consignes rendues (${consigneReturns}×)</span><span>− CHF ${returnsTotal}.—</span></div>`;
+    }
+  }
+  const breakdownHTML = breakdownRows ? `<div class="order-total-rows">${breakdownRows}</div>` : '';
+  const totalBlock = document.createElement('div');
+  totalBlock.className = 'order-total-inline';
+  totalBlock.innerHTML = `
+    ${breakdownHTML}
+    <button class="btn-return-consigne" onclick="returnConsigne()">↩ Rendre une consigne (−2 CHF)</button>
+    <div class="order-total-main">
+      <span class="order-total-label">Total</span>
+      <span><span class="order-total-chf">CHF</span><span class="order-total-amount">${total}.—</span></span>
+    </div>
+    <button class="btn-encaisser" onclick="openPayment()">Encaisser</button>
+    <button class="btn-cancel-order" onclick="cancelOrder()">Annuler la commande</button>
+  `;
+  containerEl.appendChild(totalBlock);
+  return total;
+}
+
+function renderOrder() {
+  const total = buildOrderHTML(document.getElementById('order-items'), false);
+  buildOrderHTML(document.getElementById('drawer-items'), true);
+  const t = total || 0;
+  document.getElementById('fab-total').textContent = 'CHF ' + t + '.—';
+}
+
+function updateStockView() {
+  const grid = document.getElementById('stock-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  PRODUCTS.forEach(p => {
+    const s = getStock(p.id);
+    const card = document.createElement('div');
+    card.className = 'stock-card';
+    const initial = stock['_initial_' + p.id];
+    const maxVal = initial !== undefined ? initial : (s || 0);
+    const pct = maxVal > 0 && s !== null ? Math.max(0, Math.min(100, (s / maxVal) * 100)) : 0;
+    const portions = portionsLeft(p);
+    const isEmpty = s !== null && portions <= 0;
+    const isLow = s !== null && portions > 0 && portions <= 3;
+    const barClass = isEmpty ? 'empty' : (isLow ? 'low' : '');
+    const stockDisplay = s !== null
+      ? (p.unit === 'bouteilles' ? s + ' btl' : s.toFixed(2) + ' L')
+      : '—';
+    const portionsText = portions !== null
+      ? (p.unit === 'bouteilles' ? '' : `≈ ${portions} verres de ${p.size_cl}cl`)
+      : '';
+    card.innerHTML = `
+      <div class="stock-card-name">${p.name}</div>
+      <div class="stock-card-sub">${p.sub}</div>
+      <div class="stock-bar-wrap">
+        <div class="stock-bar ${barClass}" style="width:${pct}%"></div>
+      </div>
+      <div class="stock-numbers">
+        <span><span class="stock-current">${s !== null ? (p.unit === 'bouteilles' ? s : s.toFixed(2)) : '—'}</span><span class="stock-unit">${p.unit}</span></span>
+        <span class="stock-portions">${portionsText}</span>
+      </div>
+      <div class="stock-input-wrap">
+        <input class="stock-input" type="number" min="0" step="${p.unit === 'bouteilles' ? 1 : 0.5}" placeholder="${p.unit === 'bouteilles' ? 'nb. bouteilles' : 'litres'}" id="input-${p.id}">
+        <button class="btn-set" onclick="setStockFromInput('${p.id}', '${p.unit}')">Définir</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  const cc = loadConsigne();
+  document.getElementById('consigne-count').textContent = cc;
+  document.getElementById('consigne-total').textContent = 'CHF ' + (cc * CONSIGNE_PRICE) + '.—';
+}
+
+function setStockFromInput(id, unit) {
+  const input = document.getElementById('input-' + id);
+  const val = parseFloat(input.value);
+  if (isNaN(val) || val < 0) return;
+  setStock(id, val);
+  stock['_initial_' + id] = val;
+  saveStock(stock);
+  input.value = '';
+  updateStockView();
+  renderMenu();
+}
+
+function showView(view) {
+  document.getElementById('view-caisse').style.display = view === 'caisse' ? 'flex' : 'none';
+  const stockEl = document.getElementById('view-stock');
+  stockEl.style.display = view === 'stock' ? 'flex' : 'none';
+  stockEl.className = view === 'stock' ? 'active' : '';
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && view === 'caisse') || (i === 1 && view === 'stock'));
+  });
+  if (view === 'stock') updateStockView();
+}
+
+
+function toggleDrawer() {
+  const d = document.getElementById('drawer');
+  const o = document.getElementById('drawer-overlay');
+  if (d.classList.contains('open')) {
+    closeDrawer();
+  } else {
+    d.classList.add('open');
+    o.classList.add('open');
+  }
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+renderMenu();
+renderOrder();
+updateSyncBadge();
+flushQueue();
+</script>
+</body>
+</html>
