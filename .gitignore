@@ -1,0 +1,35 @@
+﻿# Données PocketBase (NE JAMAIS versionner)
+pb_data/
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# Binaires PocketBase (à télécharger depuis GitHub releases)
+pocketbase/pocketbase
+pb-mobilier/pocketbase
+*.zip
+
+# Secrets et variables d'environnement
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Sauvegardes locales
+backups/
+*.backup
+*.bak
+
+# OS / Éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs et fichiers temporaires
+*.tmp
+*.temp
