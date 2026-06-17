@@ -78,6 +78,39 @@ systemctl start pocketbase
 # Si tout fonctionne, supprime l'ancien pb_data
 rm -rf /opt/pocketbase/pb_data.before_restore
 ```
+## Sauvegardes automatiques
+
+`scripts/backup.sh` s'exécute **tous les jours à 3h** via cron, sous root.
+
+- **Emplacement** : `/var/backups/pocketbase/`
+- **Format** : `pocketbase_YYYYMMDD_HHMMSS.tar.gz` et `pb-mobilier_YYYYMMDD_HHMMSS.tar.gz`
+- **Rotation** : 7 fichiers les plus récents par instance, les plus anciens supprimés automatiquement
+- **Logs** : `/var/log/jorapp-backup.log`
+
+### Vérifier les sauvegardes
+
+```bash
+# Voir les archives disponibles
+ls -lh /var/backups/pocketbase/
+
+# Voir les logs des dernières exécutions cron
+tail -50 /var/log/jorapp-backup.log
+```
+
+### Modifier la programmation
+
+```bash
+crontab -e   # éditer la planification cron
+crontab -l   # lister la planification actuelle
+```
+
+### Sauvegarder à la main
+
+Voir « Sauvegarder `pb_data` manuellement » plus haut, ou simplement :
+
+```bash
+bash /opt/jorapp-infra/scripts/backup.sh
+```
 
 ## Renouveler / vérifier les certificats Certbot
 
