@@ -32,7 +32,7 @@ TARGET="${1:-all}"
 
 deploy_nginx() {
     echo "→ Déploiement nginx…"
-    rsync -av --delete "$REPO_DIR/nginx/" /etc/nginx/sites-available/ \
+    rsync -av "$REPO_DIR/nginx/" /etc/nginx/sites-available/ \
         --exclude=".gitkeep" --exclude="README.md"
     nginx -t
     systemctl reload nginx
