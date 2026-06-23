@@ -23,6 +23,7 @@ Flutter (mobile + web) vit dans un dépôt séparé : [JorAppLab](https://github
 | `dashboard.jorapp.org`  | `web/dashboard/` (dans ce dépôt)   | via `api.jorapp.org`             |
 | `voucher.jorapp.org`    | `web/voucher/` (dans ce dépôt)     | via `api.jorapp.org`             |
 | `db.jorapp.org`         | `pb-mobilier/pb_public/` (servi par PocketBase) | PocketBase `pb-mobilier` |
+| `concours.jorapp.org`   | `pb-concours/pb_public/` (servi par PocketBase) | PocketBase `pb-concours`        |
 
 ## Structure du dépôt
 
@@ -47,6 +48,10 @@ jorapp-infra/
     ├── bar/                   ← bar.jorapp.org (Festi'Jorat)
     ├── dashboard/             ← dashboard.jorapp.org
     └── voucher/               ← voucher.jorapp.org
+├── pb-concours/               ← code de l'instance concours (/opt//opt/pb-concours)
+│   ├── pb_hooks/              ← hook JSVM
+│   ├── pb_migrations/         ← schéma PocketBase versionné
+│   └── pb_public/             ← HTML servi directement par PocketBase
 ```
 
 ## Ce qui n'est PAS dans le dépôt (par choix)

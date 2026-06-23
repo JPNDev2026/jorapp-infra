@@ -14,6 +14,10 @@ systemctl status pocketbase
 systemctl restart pocketbase-mobilier
 systemctl status pocketbase-mobilier
 
+# Instance concours
+systemctl restart pb-concours
+systemctl status pb-concours
+
 # nginx
 systemctl reload nginx        # recharge la config sans couper
 systemctl restart nginx       # redémarre complètement
@@ -30,6 +34,10 @@ journalctl -u pocketbase -f               # suivi en direct
 # PocketBase mobilier
 journalctl -u pocketbase-mobilier -n 100 --no-pager
 journalctl -u pocketbase-mobilier -f
+
+# PocketBase concours
+journalctl -u pb-concours -n 100 --no-pager
+journalctl -u pb-concours -f
 
 # nginx
 tail -f /var/log/nginx/access.log
@@ -58,6 +66,11 @@ systemctl start pocketbase
 systemctl stop pocketbase-mobilier
 tar czf /var/backups/pocketbase/pb-mobilier_${ts}.tar.gz -C /opt/pb-mobilier pb_data
 systemctl start pocketbase-mobilier
+
+# Instance concours
+systemctl stop pb-concours
+tar czf /var/backups/pocketbase/pb-concours_${ts}.tar.gz -C /opt/pb-concours pb_data
+systemctl start pb-concours
 ```
 
 > ⚠️ Arrêter le service avant de copier `pb_data` garantit la cohérence de la base SQLite.
@@ -146,7 +159,7 @@ Voir `docs/deploiement.md` (à venir).
 
 ## Diagnostic rapide « ça ne répond plus »
 
-1. `systemctl status pocketbase pocketbase-mobilier nginx` — les trois services tournent ?
+1. `systemctl status pocketbase pocketbase-mobilier pb-concours nginx` — les trois services tournent ?
 2. `nginx -t` — la config nginx est valide ?
 3. `curl -I http://127.0.0.1:8090` et `curl -I http://127.0.0.1:8091` — les backends répondent ?
 4. `df -h` — le disque n'est pas plein ?

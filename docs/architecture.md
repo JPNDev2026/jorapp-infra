@@ -20,6 +20,7 @@ Un seul droplet DigitalOcean (Ubuntu 24.04, fra1, 1 vCPU / 512 Mo) héberge **de
 | `dashboard.jorapp.org` |   ✓     | nginx statique         | `/var/www/dashboard`        | `web/dashboard/` (ce dépôt)            |
 | `voucher.jorapp.org`   |   ✓     | nginx statique         | `/var/www/voucher`          | `web/voucher/` (ce dépôt)              |
 | `db.jorapp.org`        |   ✓     | nginx proxy            | `127.0.0.1:8091`            | `pb-mobilier/` (ce dépôt)              |
+| `concours.jorapp.org`  |   ✓     | nginx proxy            | `127.0.0.1:8093`            | `pb-concours/` (ce dépôt)              |
 
 ### Points à connaître
 
@@ -51,6 +52,17 @@ Un seul droplet DigitalOcean (Ubuntu 24.04, fra1, 1 vCPU / 512 Mo) héberge **de
 - **`pb_public/`** : `index.html` (navigateur relationnel) + `schema.html` (visualiseur ER)
 - **`pb_migrations/`** : voir `pb-mobilier/pb_migrations/` dans ce dépôt
 
+### Instance concours : `pb-concours`
+
+- **Chemin sur le serveur** : `/opt/pb-concours/`
+- **Port** : `127.0.0.1:8093`
+- **Service systemd** : `pb-concours.service`
+- **Utilisée par** : sondage / concours QR-code du PNJ (`concours.jorapp.org`)
+- **Collections principales** : `participations`, `commercants`
+- **`pb_hooks/`** : `jorapp_concours.pb.js` — JSVM (voir `pb-concours/pb_hooks/`)
+- **`pb_public/`** : `deja-participe.html` (page si déjà participé) + `merci.html` (page de remerciement après scan QR)
+- **`pb_migrations/`** : voir `pb-concours/pb_migrations/` dans ce dépôt
+
 ## Schéma de flux
 
 ```
@@ -68,7 +80,8 @@ Internet
    ├─ dashboard.jorapp.org ── statique ──→ /var/www/dashboard
    ├─ voucher.jorapp.org ──── statique ──→ /var/www/voucher
    │     (tous trois appellent ensuite api.jorapp.org)
-   │
+   │-├─ concours.jorapp.org ──── proxy ──→ 127.0.0.1:8093 ─── PocketBase (/opt/pb-concours)
+   │                                                       sert pb_public/merci.html, deja-participe.html
    └─ db.jorapp.org ──── proxy ──→ 127.0.0.1:8091 ─── PocketBase (/opt/pb-mobilier)
                                                        sert pb_public/index.html + schema.html
 ```
@@ -86,7 +99,13 @@ Internet
     ├── pb_data/               (base SQLite + uploads — JAMAIS dans git)
     ├── pb_hooks/              (versionné)
     ├── pb_migrations/         (versionné)
-    └── pb_public/             (versionné)
+    └── pb_public/ 
+└── pb-concours/               ← instance concours
+    ├── pocketbase             (binaire — pas versionné)
+    ├── pb_data/               (base SQLite + uploads — JAMAIS dans git)
+    ├── pb_hooks/              (versionné)
+    ├── pb_migrations/         (versionné)
+    └── pb_public/             (versionné)            (versionné)
 
 /var/www/
 ├── jorapp/                    ← build Flutter web (déployé depuis JorAppLab)
