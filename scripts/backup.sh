@@ -51,6 +51,7 @@ backup_instance() {
 
 backup_instance "pocketbase"  "pocketbase"          "/opt/pocketbase"
 backup_instance "pb-mobilier" "pocketbase-mobilier" "/opt/pb-mobilier"
+backup_instance "pb-concours" "pb-concours"         "/opt/pb-concours"
 
 echo ""
 echo "Sauvegardes disponibles:"
