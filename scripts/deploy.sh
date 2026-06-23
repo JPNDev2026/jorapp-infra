@@ -84,6 +84,7 @@ case "$TARGET" in
     systemd)     deploy_systemd ;;
     web)         deploy_web ;;
     pb-mobilier) deploy_pb_mobilier ;;
+    pb-concours) deploy_pb_concours ;;
     *)
         echo "Usage : $0 [all|nginx|systemd|web|pb-mobilier]"
         exit 1
