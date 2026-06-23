@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Merci &mdash; Concours PNJ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{--accent:#1f7a5a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,-apple-system,sans-serif;
+    background:#f5f4f0;color:#1a1a1a;display:flex;flex-direction:column;min-height:100vh;
+    align-items:center;justify-content:center;padding:24px;gap:16px}
+  .bon{background:#fff;border:1px solid #e3e1da;border-radius:14px;max-width:380px;width:100%;
+    padding:36px 28px;text-align:center}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:-.02em}
+  p{color:#555;line-height:1.5;margin:0 0 20px}
+  #qr{width:220px;height:220px;margin:0 auto;display:flex;align-items:center;justify-content:center;
+    border-radius:10px;border:1px solid #e3e1da;background:#fff;padding:8px}
+  #qr canvas,#qr img{width:200px!important;height:200px!important}
+  .label{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#999;margin:22px 0 8px}
+  .code{font-size:34px;font-weight:800;letter-spacing:.18em;color:var(--accent);
+    background:#f0f6f3;border:2px dashed var(--accent);border-radius:10px;padding:12px 0}
+  .hint{font-size:13px;color:#888;margin-top:18px}
+  .brand{font-size:11px;color:#bbb;margin-top:18px;text-transform:uppercase;letter-spacing:.14em}
+  .dl{max-width:380px;width:100%;padding:13px;border:0;border-radius:8px;background:var(--accent);
+    color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+  .dl:disabled{opacity:.5}
+</style>
+</head>
+<body>
+  <div class="bon" id="bon">
+    <h1>Merci pour votre participation&nbsp;!</h1>
+    <p>Pr&eacute;sentez ce bon au comptoir d'un commer&ccedil;ant partenaire&nbsp;: il scanne le QR pour lancer le tirage.</p>
+    <div id="qr"></div>
+    <div class="label">Code (secours)</div>
+    <div class="code" id="code">------</div>
+    <div class="hint">Valable une seule fois.</div>
+    <div class="brand">Parc Naturel P&eacute;riurbain du Jorat</div>
+  </div>
+  <button class="dl" id="dl">&#11015; T&eacute;l&eacute;charger le bon</button>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const code = (params.get('code') || '').toUpperCase().trim();
+  const comptoirUrl = 'https://concours.jorapp.org/comptoir?code=' + encodeURIComponent(code);
+
+  document.getElementById('code').textContent = code || '------';
+
+  // QR genere cote client : le code ne transite chez aucun tiers (nLPD)
+  if (code) {
+    new QRCode(document.getElementById('qr'), {
+      text: comptoirUrl, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+
+  // Telechargement du bon en PNG (capture de la carte stylee, QR compris)
+  document.getElementById('dl').addEventListener('click', function () {
+    const btn = this; btn.disabled = true;
+    html2canvas(document.getElementById('bon'), { backgroundColor: '#ffffff', scale: 2 })
+      .then(function (canvas) {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'bon-concours-' + (code || 'pnj') + '.png';
+        a.click();
+        btn.disabled = false;
+      })
+      .catch(function () { btn.disabled = false; alert('T\u00e9l\u00e9chargement indisponible.'); });
+  });
+</script>
+</body>
+</html>

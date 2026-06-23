@@ -1,0 +1,13 @@
+[Unit]
+Description=PocketBase Concours JorApp
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=/opt/pb-concours/pocketbase serve --http=127.0.0.1:8093
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
