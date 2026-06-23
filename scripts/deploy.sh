@@ -68,6 +68,16 @@ deploy_pb_mobilier() {
     echo "    systemctl restart pocketbase-mobilier"
 }
 
+deploy_pb_concours() {
+    echo "→ Déploiement pb-concours (hooks + public)…"
+    rsync -av --delete "$REPO_DIR/pb-concours/pb_hooks/" /opt/pb-concours/pb_hooks/ \
+        --exclude=".gitkeep" --exclude="README.md"
+    rsync -av --delete "$REPO_DIR/pb-concours/pb_public/" /opt/pb-concours/pb_public/ \
+        --exclude=".gitkeep" --exclude="README.md"
+    echo "  ✓ Redémarrer pb-concours si les hooks ont changé :"
+    echo "    systemctl restart pb-concours"
+}
+
 case "$TARGET" in
     all)         deploy_nginx; deploy_systemd; deploy_web; deploy_pb_mobilier ;;
     nginx)       deploy_nginx ;;

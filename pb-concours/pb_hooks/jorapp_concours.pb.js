@@ -37,6 +37,23 @@ routerAdd("GET", "/lieu/{loc}", (e) => {
   return e.redirect(302, url);
 });
 
+// SOURCE WEB (email, réseaux sociaux) : participation NON liée, comme un QR d'emplacement
+routerAdd("GET", "/web/{source}", (e) => {
+  const LS_SURVEY_URL = "https://survey.jorapp.org/index.php/268839";
+  const source = e.request.pathValue("source");
+  const session = $security.randomString(40);
+  const col = $app.findCollectionByNameOrId("participations");
+  const rec = new Record(col);
+  rec.set("session", session);
+  rec.set("partenaire", "");           // vide = code libre, attribué au commerçant qui valide
+  rec.set("lieu", source);             // provenance : email / instagram / facebook
+  rec.set("statut", "en_attente");
+  rec.set("scan_ms", Date.now());
+  $app.save(rec);
+  const url = LS_SURVEY_URL + "?session=" + session + "&utm_source=" + encodeURIComponent(source) + "&utm_medium=web&newtest=Y";
+  return e.redirect(302, url);
+});
+
 routerAdd("GET", "/complete", (e) => {
   const MIN_SECONDS = 25;
   const DEVICE_CHECK_ENABLED = true;          // <-- false pendant tes tests, true en prod
