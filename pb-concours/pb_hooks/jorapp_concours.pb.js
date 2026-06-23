@@ -56,7 +56,7 @@ routerAdd("GET", "/web/{source}", (e) => {
 
 routerAdd("GET", "/complete", (e) => {
   const MIN_SECONDS = 25;
-  const DEVICE_CHECK_ENABLED = true;          // <-- false pendant tes tests, true en prod
+  const DEVICE_CHECK_ENABLED = false;          // <-- false pendant tes tests, true en prod
   const PARTICIPATED_COOKIE  = "jorapp_participated";
   const COOKIE_DAYS          = 60;             // duree de vie du cookie (~ duree du concours)
   const BASE                 = "https://concours.jorapp.org";
@@ -263,7 +263,7 @@ routerAdd("GET", "/comptoir", (e) => {
 });
 
 routerAdd("POST", "/draw", (e) => {
-  const WIN_PROBABILITY = 0.30;
+  const WIN_PROBABILITY = 0.50;
   const partner = e.auth.get("partenaire");
   const code = String(e.requestInfo().body.code || "").toUpperCase().trim();
   if (!code) return e.json(400, { error: "Code requis." });
