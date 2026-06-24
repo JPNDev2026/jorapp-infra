@@ -155,7 +155,7 @@ une mise à jour majeure**, et tester l'instance mobilier en premier (moins crit
 
 ## Déployer un changement depuis le dépôt
 
-Voir `docs/deploiement.md` (à venir).
+Voir `docs/deploiement.md`.
 
 ## Diagnostic rapide « ça ne répond plus »
 

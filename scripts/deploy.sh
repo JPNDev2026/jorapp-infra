@@ -14,7 +14,7 @@
 #   - pb-mobilier/pb_public/*  → /opt/pb-mobilier/pb_public/
 #
 # Ne touche PAS:
-#   - pb_data des deux instances (données — gérées par backup/restore)
+#   - pb_data des trois instances (données — gérées par backup/restore)
 #   - les binaires PocketBase
 #   - le build Flutter (/var/www/jorapp — déployé depuis le dépôt JorAppLab)
 #   - les pb_migrations (appliquées par PocketBase au démarrage, pas synchronisées)
@@ -79,7 +79,7 @@ deploy_pb_concours() {
 }
 
 case "$TARGET" in
-    all)         deploy_nginx; deploy_systemd; deploy_web; deploy_pb_mobilier ;;
+    all)         deploy_nginx; deploy_systemd; deploy_web; deploy_pb_mobilier; deploy_pb_concours  ;;
     nginx)       deploy_nginx ;;
     systemd)     deploy_systemd ;;
     web)         deploy_web ;;
