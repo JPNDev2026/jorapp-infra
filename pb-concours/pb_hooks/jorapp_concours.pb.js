@@ -83,25 +83,18 @@ routerAdd("GET", "/partner/{slug}/logo", (e) => {
   }
 });
 
-// Liste publique des partenaires (nom, logo, localisation) — n'expose aucun champ sensible
 routerAdd("GET", "/partners", (e) => {
 
-  // GeoPoint PocketBase -> "lat,lng" pour Google Maps.
-  // Gère : objet {lat,lon|lng}, tableau [lon,lat], ou chaîne "lon lat".
   function toLatLng(v) {
     if (!v) return "";
-    if (Array.isArray(v)) {
-      if (v.length < 2) return "";
-      return v[1] + "," + v[0];            // GeoJSON = [lon, lat] -> "lat,lng"
-    }
+    if (Array.isArray(v)) { return v.length < 2 ? "" : (v[1] + "," + v[0]); }
     if (typeof v === "object") {
       const lat = v.lat;
       const lng = (v.lon !== undefined ? v.lon : v.lng);
       return (lat !== undefined && lng !== undefined) ? (lat + "," + lng) : "";
     }
     const nums = String(v).replace(/,/g, ".").match(/-?\d+\.?\d*/g);
-    if (!nums || nums.length < 2) return "";
-    return nums[1] + "," + nums[0];        // texte "lon lat" -> "lat,lng"
+    return (!nums || nums.length < 2) ? "" : (nums[1] + "," + nums[0]);
   }
 
   const recs = $app.findRecordsByFilter("commercants", "id != ''", "nom_complet", 200, 0);
@@ -115,7 +108,15 @@ routerAdd("GET", "/partners", (e) => {
       logo_url: r.get("logo") ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
     });
   }
-  return e.json(200, { partenaires: out });
+
+  // DEBUG non destructif : montre la forme brute du 1er GeoPoint, sans couper la liste
+  let dbg = null;
+  if (recs.length) {
+    const v = recs[0].get("localisation");
+    dbg = { type: typeof v, is_array: Array.isArray(v), json: JSON.stringify(v), raw: v };
+  }
+
+  return e.json(200, { partenaires: out, _debug: dbg });
 });
 
 routerAdd("GET", "/complete", (e) => {
