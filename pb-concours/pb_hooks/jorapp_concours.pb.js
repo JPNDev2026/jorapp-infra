@@ -95,6 +95,18 @@ routerAdd("GET", "/partners", (e) => {
   }
 
   const recs = $app.findRecordsByFilter("commercants", "id != ''", "nom_complet", 200, 0);
+
+  // DEBUG : à retirer après diagnostic
+  if (recs.length) {
+    const v = recs[0].get("localisation");
+    return e.json(200, {
+      raw_localisation: v,
+      type: typeof v,
+      is_array: Array.isArray(v),
+      json: JSON.stringify(v)
+    });
+  }
+
   const out = [];
   for (const r of recs) {
     const slug = r.get("partenaire");
