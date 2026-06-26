@@ -54,6 +54,36 @@ routerAdd("GET", "/web/{source}", (e) => {
   return e.redirect(302, url);
 });
 
+// Mini-API publique : nom + URL du logo d'un partenaire (n'expose RIEN d'autre de la collection)
+routerAdd("GET", "/partner/{slug}", (e) => {
+  const slug = e.request.pathValue("slug");
+  let rec;
+  try { rec = $app.findFirstRecordByFilter("commercants", "partenaire = {:p}", { p: slug }); }
+  catch (err) { return e.json(404, { message: "Partenaire inconnu." }); }
+  const hasLogo = !!rec.get("logo");
+  return e.json(200, {
+    nom_complet: rec.get("nom_complet") || "",
+    logo_url: hasLogo ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
+  });
+});
+
+// Sert le logo en lisant le fichier directement (la collection commercants reste fermée)
+routerAdd("GET", "/partner/{slug}/logo", (e) => {
+  const slug = e.request.pathValue("slug");
+  let rec;
+  try { rec = $app.findFirstRecordByFilter("commercants", "partenaire = {:p}", { p: slug }); }
+  catch (err) { return e.json(404, { message: "Partenaire inconnu." }); }
+  const filename = rec.get("logo");
+  if (!filename) return e.json(404, { message: "Pas de logo." });
+  const fsys = $app.newFilesystem();
+  try {
+    return fsys.serve(e.response, e.request, rec.baseFilesPath() + "/" + filename, filename);
+  } finally {
+    fsys.close();
+  }
+});
+
+
 routerAdd("GET", "/complete", (e) => {
   const MIN_SECONDS = 25;
   const DEVICE_CHECK_ENABLED = false;          // <-- false pendant tes tests, true en prod
@@ -64,6 +94,17 @@ routerAdd("GET", "/complete", (e) => {
   function genCode() {
     const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
     let s = ""; for (let i = 0; i < 6; i++) s += A.charAt(Math.floor(Math.random() * A.length)); return s;
+  }
+
+  // Destination de la page de merci selon l'origine du scan :
+  //   partenaire rempli (/go)        -> page partenaire (logo + nom du commercant)
+  //   partenaire vide (/lieu, /web)  -> page generale
+  function merciUrl(r) {
+    const code = encodeURIComponent(r.get("code"));
+    const partner = r.get("partenaire");
+    return partner
+      ? BASE + "/merci_partenaires.html?code=" + code + "&partner=" + encodeURIComponent(partner)
+      : BASE + "/merci.html?code=" + code;
   }
 
   const session = e.requestInfo().query["session"];
@@ -78,7 +119,7 @@ routerAdd("GET", "/complete", (e) => {
   if (statut !== "en_attente") {
     if (statut === "doublon") return e.redirect(302, BASE + "/deja-participe.html");
     // emis / gagnant / perdu : la participation a deja un code -> on reaffiche le bon
-    return e.redirect(302, BASE + "/merci.html?code=" + rec.get("code"));
+    return e.redirect(302, merciUrl(rec));
   }
 
   // Premiere completion : cap par appareil (si active)
@@ -115,7 +156,7 @@ routerAdd("GET", "/complete", (e) => {
     }));
   }
 
-  return e.redirect(302, BASE + "/merci.html?code=" + rec.get("code"));
+  return e.redirect(302, merciUrl(rec));
 });
 
 routerAdd("GET", "/comptoir", (e) => {
