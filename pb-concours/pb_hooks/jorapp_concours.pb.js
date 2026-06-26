@@ -85,6 +85,15 @@ routerAdd("GET", "/partner/{slug}/logo", (e) => {
 
 // Liste publique des partenaires (nom, logo, localisation) — n'expose aucun champ sensible
 routerAdd("GET", "/partners", (e) => {
+
+  // GeoPoint PocketBase -> "lat,lng" pour Google Maps (gère les clés lon ou lng)
+  function toLatLng(v) {
+    if (!v || typeof v !== "object") return "";
+    const lat = v.lat;
+    const lng = (v.lon !== undefined ? v.lon : v.lng);
+    return (lat !== undefined && lng !== undefined) ? (lat + "," + lng) : "";
+  }
+
   const recs = $app.findRecordsByFilter("commercants", "id != ''", "nom_complet", 200, 0);
   const out = [];
   for (const r of recs) {
@@ -92,7 +101,7 @@ routerAdd("GET", "/partners", (e) => {
     out.push({
       slug: slug,
       nom_complet: r.get("nom_complet") || "",
-      localisation: r.get("Localisation") || "",
+      localisation: toLatLng(r.get("localisation")),
       logo_url: r.get("logo") ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
     });
   }
