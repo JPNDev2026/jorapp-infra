@@ -83,8 +83,10 @@ routerAdd("GET", "/partner/{slug}/logo", (e) => {
   }
 });
 
+// Liste publique des partenaires (nom, logo, localisation) — n'expose aucun champ sensible
 routerAdd("GET", "/partners", (e) => {
 
+  // GeoPoint PocketBase -> "lat,lng" pour Google Maps (objet, tableau ou chaîne)
   function toLatLng(v) {
     if (!v) return "";
     if (Array.isArray(v)) { return v.length < 2 ? "" : (v[1] + "," + v[0]); }
@@ -104,18 +106,11 @@ routerAdd("GET", "/partners", (e) => {
     out.push({
       slug: slug,
       nom_complet: r.get("nom_complet") || "",
-      localisation: toLatLng(r.get("localisation")),
+      localisation: toLatLng(r.get("Location")),    // <-- champ "Location" (majuscule)
       logo_url: r.get("logo") ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
     });
   }
-
-  // DEBUG : montre la localisation brute de CHAQUE partenaire
-  const dbg = recs.map(function (r) {
-    const v = r.get("localisation");
-    return { nom: r.get("nom_complet"), json: JSON.stringify(v), is_array: Array.isArray(v) };
-  });
-
-  return e.json(200, { partenaires: out, _debug: dbg });
+  return e.json(200, { partenaires: out });
 });
 
 routerAdd("GET", "/complete", (e) => {
