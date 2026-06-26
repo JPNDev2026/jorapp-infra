@@ -105,6 +105,14 @@ routerAdd("GET", "/partners", (e) => {
       logo_url: r.get("logo") ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
     });
   }
+  // DEBUG : à retirer après diagnostic
+  if (recs.length) {
+    return e.json(200, {
+      raw_localisation: recs[0].get("localisation"),
+      type: typeof recs[0].get("localisation"),
+      json: JSON.stringify(recs[0].get("localisation"))
+    });
+  }
   return e.json(200, { partenaires: out });
 });
 
