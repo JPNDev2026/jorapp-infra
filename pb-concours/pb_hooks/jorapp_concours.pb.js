@@ -86,27 +86,25 @@ routerAdd("GET", "/partner/{slug}/logo", (e) => {
 // Liste publique des partenaires (nom, logo, localisation) — n'expose aucun champ sensible
 routerAdd("GET", "/partners", (e) => {
 
-  // GeoPoint PocketBase -> "lat,lng" pour Google Maps (gère les clés lon ou lng)
+  // GeoPoint PocketBase -> "lat,lng" pour Google Maps.
+  // Gère : objet {lat,lon|lng}, tableau [lon,lat], ou chaîne "lon lat".
   function toLatLng(v) {
-    if (!v || typeof v !== "object") return "";
-    const lat = v.lat;
-    const lng = (v.lon !== undefined ? v.lon : v.lng);
-    return (lat !== undefined && lng !== undefined) ? (lat + "," + lng) : "";
+    if (!v) return "";
+    if (Array.isArray(v)) {
+      if (v.length < 2) return "";
+      return v[1] + "," + v[0];            // GeoJSON = [lon, lat] -> "lat,lng"
+    }
+    if (typeof v === "object") {
+      const lat = v.lat;
+      const lng = (v.lon !== undefined ? v.lon : v.lng);
+      return (lat !== undefined && lng !== undefined) ? (lat + "," + lng) : "";
+    }
+    const nums = String(v).replace(/,/g, ".").match(/-?\d+\.?\d*/g);
+    if (!nums || nums.length < 2) return "";
+    return nums[1] + "," + nums[0];        // texte "lon lat" -> "lat,lng"
   }
 
   const recs = $app.findRecordsByFilter("commercants", "id != ''", "nom_complet", 200, 0);
-
-  // DEBUG : à retirer après diagnostic
-  if (recs.length) {
-    const v = recs[0].get("localisation");
-    return e.json(200, {
-      raw_localisation: v,
-      type: typeof v,
-      is_array: Array.isArray(v),
-      json: JSON.stringify(v)
-    });
-  }
-
   const out = [];
   for (const r of recs) {
     const slug = r.get("partenaire");
