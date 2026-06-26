@@ -92,7 +92,7 @@ routerAdd("GET", "/partners", (e) => {
     out.push({
       slug: slug,
       nom_complet: r.get("nom_complet") || "",
-      localisation: r.get("localisation") || "",
+      localisation: r.get("Localisation") || "",
       logo_url: r.get("logo") ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
     });
   }
