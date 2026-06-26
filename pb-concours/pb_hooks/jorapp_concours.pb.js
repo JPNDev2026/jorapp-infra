@@ -86,14 +86,14 @@ routerAdd("GET", "/partner/{slug}/logo", (e) => {
 // Liste publique des partenaires (nom, logo, localisation) — n'expose aucun champ sensible
 routerAdd("GET", "/partners", (e) => {
 
-  // GeoPoint PocketBase -> "lat,lng" pour Google Maps (objet, tableau ou chaîne)
+  // GeoPoint PocketBase -> "lat,lng" pour Google Maps
   function toLatLng(v) {
     if (!v) return "";
-    if (Array.isArray(v)) { return v.length < 2 ? "" : (v[1] + "," + v[0]); }
+    if (Array.isArray(v)) return v.length < 2 ? "" : (v[1] + "," + v[0]);
     if (typeof v === "object") {
-      const lat = v.lat;
-      const lng = (v.lon !== undefined ? v.lon : v.lng);
-      return (lat !== undefined && lng !== undefined) ? (lat + "," + lng) : "";
+      const lat = (v.lat !== undefined ? v.lat : (v.latitude !== undefined ? v.latitude : v.Latitude));
+      const lng = (v.lon !== undefined ? v.lon : (v.lng !== undefined ? v.lng : (v.longitude !== undefined ? v.longitude : v.Longitude)));
+      return (lat !== undefined && lat !== null && lng !== undefined && lng !== null) ? (lat + "," + lng) : "";
     }
     const nums = String(v).replace(/,/g, ".").match(/-?\d+\.?\d*/g);
     return (!nums || nums.length < 2) ? "" : (nums[1] + "," + nums[0]);
@@ -106,7 +106,7 @@ routerAdd("GET", "/partners", (e) => {
     out.push({
       slug: slug,
       nom_complet: r.get("nom_complet") || "",
-      localisation: toLatLng(r.get("Location")),    // <-- champ "Location" (majuscule)
+      localisation: toLatLng(r.get("Localisation")),   // <-- champ "Localisation"
       logo_url: r.get("logo") ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
     });
   }
