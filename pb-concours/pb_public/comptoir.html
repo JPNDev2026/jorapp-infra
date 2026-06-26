@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Espace commer&ccedil;ant &mdash; Concours PNJ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
+
+  :root {
+    --teal: #1F6481;
+    --teal-deep: #16475c;
+    --lime: #D7E337;
+    --encre: #142228;
+    --parchemin: #EDE0BC;
+    --blanc: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0 }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: var(--teal);
+    color: var(--encre);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px;
+    gap: 18px;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(215,227,55,.10) 0%, transparent 45%),
+      linear-gradient(180deg, transparent 60%, rgba(20,34,40,.18) 100%);
+    pointer-events: none;
+  }
+
+  .logo-chip {
+    background: var(--blanc);
+    border-radius: 12px;
+    padding: 12px 18px;
+    box-shadow: 0 4px 16px rgba(20,34,40,.25);
+    max-width: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-chip img { max-height: 54px; max-width: 204px; width: auto; height: auto; display: block }
+
+  .card {
+    background: var(--blanc);
+    border-radius: 16px;
+    max-width: 360px;
+    width: 100%;
+    padding: 30px 28px;
+    box-shadow: 0 8px 30px rgba(20,34,40,.25);
+  }
+
+  h1 { font-size: 19px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 6px }
+  .card .sub { font-size: 13px; color: var(--teal-deep); opacity: .75; margin-bottom: 18px }
+
+  label {
+    display: block;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--teal);
+    font-weight: 700;
+    margin: 14px 0 6px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid rgba(31,100,129,.22);
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--encre);
+  }
+  input:focus { outline: none; border-color: var(--teal) }
+
+  .btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    background: var(--lime);
+    color: var(--encre);
+    transition: transform .1s, filter .15s;
+  }
+  .btn:active { transform: scale(.985) }
+  .btn:disabled { opacity: .45; cursor: default }
+  .btn:hover:not(:disabled) { filter: brightness(.96) }
+
+  .msg { font-size: 13px; color: #b23b3b; text-align: center; min-height: 18px; margin-top: 12px }
+
+  .footer {
+    font-size: 10.5px;
+    color: rgba(255,255,255,.5);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+  }
+</style>
+</head>
+<body>
+
+  <div class="logo-chip">
+    <img src="/assets/Logo_feuille.png" alt="Parc naturel du Jorat">
+  </div>
+
+  <div class="card">
+    <h1>Espace commer&ccedil;ant</h1>
+    <p class="sub">Connectez-vous pour valider les codes du concours.</p>
+    <label>E-mail</label>
+    <input id="email" type="email" autocomplete="username">
+    <label>Mot de passe</label>
+    <input id="pass" type="password" autocomplete="current-password">
+    <button class="btn" id="loginbtn">Se connecter</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="footer">Parc naturel p&eacute;riurbain du Jorat</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code') || '';
+
+  function gotoScan() {
+    location.href = '/scan.html' + (code ? ('?code=' + encodeURIComponent(code)) : '');
+  }
+
+  // Déjà connecté → on saute directement à l'interface de scan
+  if (localStorage.getItem('cmp_token')) gotoScan();
+
+  async function login() {
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('loginbtn');
+    msg.textContent = '\u2026'; btn.disabled = true;
+    try {
+      const r = await fetch('/api/collections/commercants/auth-with-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identity: document.getElementById('email').value,
+          password: document.getElementById('pass').value
+        })
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.message || 'Échec de connexion');
+      localStorage.setItem('cmp_token', d.token);
+      localStorage.setItem('cmp_slug', (d.record && d.record.partenaire) || '');
+      localStorage.setItem('cmp_nom', (d.record && d.record.nom_complet) || '');
+      gotoScan();
+    } catch (err) {
+      msg.textContent = err.message; btn.disabled = false;
+    }
+  }
+
+  document.getElementById('loginbtn').addEventListener('click', login);
+  document.getElementById('pass').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') login();
+  });
+</script>
+</body>
+</html>

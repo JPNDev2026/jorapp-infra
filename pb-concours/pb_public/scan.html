@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Valider un code &mdash; Concours PNJ</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
+
+  :root {
+    --teal: #1F6481;
+    --teal-deep: #16475c;
+    --lime: #D7E337;
+    --encre: #142228;
+    --parchemin: #EDE0BC;
+    --blanc: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0 }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: var(--teal);
+    color: var(--encre);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px;
+    gap: 16px;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(215,227,55,.10) 0%, transparent 45%),
+      linear-gradient(180deg, transparent 60%, rgba(20,34,40,.18) 100%);
+    pointer-events: none;
+  }
+
+  .logo-chip {
+    background: var(--blanc);
+    border-radius: 12px;
+    padding: 10px 16px;
+    box-shadow: 0 4px 16px rgba(20,34,40,.25);
+    max-width: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-chip img { max-height: 44px; max-width: 188px; width: auto; height: auto; display: block }
+
+  .nom {
+    color: var(--blanc);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    text-align: center;
+    min-height: 18px;
+  }
+
+  .card {
+    background: var(--blanc);
+    border-radius: 16px;
+    max-width: 360px;
+    width: 100%;
+    padding: 26px 24px;
+    box-shadow: 0 8px 30px rgba(20,34,40,.25);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform .1s, filter .15s;
+  }
+  .btn:active { transform: scale(.985) }
+  .btn:disabled { opacity: .45; cursor: default }
+  .btn:hover:not(:disabled) { filter: brightness(.96) }
+
+  .btn-teal { background: var(--teal); color: var(--blanc) }
+  .btn-lime { background: var(--lime); color: var(--encre); margin-top: 12px }
+  .btn-ghost {
+    background: transparent;
+    color: var(--blanc);
+    border: 1.5px solid rgba(255,255,255,.35);
+    max-width: 360px;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,.1) }
+
+  #reader { margin-top: 14px; border-radius: 12px; overflow: hidden }
+
+  .sep {
+    margin: 16px 0 12px;
+    text-align: center;
+    font-size: 11px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+  }
+
+  input#code {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1.5px solid rgba(31,100,129,.22);
+    border-radius: 10px;
+    font-size: 22px;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    font-weight: 700;
+    text-align: center;
+    color: var(--teal);
+  }
+  input#code:focus { outline: none; border-color: var(--teal) }
+
+  .msg { font-size: 13px; color: var(--teal-deep); text-align: center; min-height: 18px; margin-top: 12px }
+
+  .result { text-align: center; padding: 22px 0 4px }
+  .result .big { font-size: 38px; font-weight: 700; letter-spacing: -.02em }
+  .result .big.win { color: var(--teal) }
+  .result .big.lose { color: #9a9a9a }
+  .result .note { font-size: 13.5px; color: var(--teal-deep); margin-top: 8px }
+
+  .hide { display: none }
+</style>
+</head>
+<body>
+
+  <div class="logo-chip">
+    <img id="logo" src="/assets/Logo_feuille.png" alt="">
+  </div>
+  <div class="nom" id="nom"></div>
+
+  <div class="card">
+    <button class="btn btn-teal" id="scanbtn">&#128247; Scanner un code</button>
+    <div id="reader"></div>
+    <div class="sep">ou saisie manuelle</div>
+    <input id="code" maxlength="6" placeholder="CODE" autocomplete="off" autocapitalize="characters">
+    <button class="btn btn-lime" id="drawbtn">Lancer le tirage</button>
+    <div class="msg" id="msg"></div>
+    <div id="result" class="result hide"></div>
+  </div>
+
+  <button class="btn btn-ghost" id="logout">Se d&eacute;connecter</button>
+
+<script>
+  const token = localStorage.getItem('cmp_token') || '';
+  const slug  = localStorage.getItem('cmp_slug') || '';
+  const nom   = localStorage.getItem('cmp_nom') || '';
+  const params = new URLSearchParams(location.search);
+  const pendingCode = (params.get('code') || '').toUpperCase().trim();
+
+  // Pas connecté → retour au login (en gardant le code à valider)
+  if (!token) {
+    location.href = '/comptoir.html' + (pendingCode ? ('?code=' + encodeURIComponent(pendingCode)) : '');
+  }
+
+  // Logo + nom du commerçant connecté
+  if (slug) {
+    const img = document.getElementById('logo');
+    img.onerror = function () { img.src = '/assets/Logo_feuille.png'; };
+    img.src = '/partner/' + encodeURIComponent(slug) + '/logo';
+  }
+  if (nom) document.getElementById('nom').textContent = nom;
+
+  let scanner = null, scanning = false;
+
+  function extractCode(text) {
+    try { const u = new URL(text); const c = u.searchParams.get('code'); if (c) return c.toUpperCase().trim(); } catch (e) {}
+    return String(text).toUpperCase().trim();
+  }
+  function toggleScan() { scanning ? stopScan() : startScan(); }
+  function startScan() {
+    if (typeof Html5Qrcode === 'undefined') { document.getElementById('msg').textContent = 'Scanner indisponible.'; return; }
+    scanner = new Html5Qrcode('reader');
+    scanning = true;
+    document.getElementById('scanbtn').textContent = '\u2715 Fermer la caméra';
+    scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 },
+      function (decoded) {
+        document.getElementById('code').value = extractCode(decoded);
+        stopScan();
+        draw();
+      },
+      function () {}
+    ).catch(function () {
+      scanning = false;
+      document.getElementById('msg').textContent = 'Accès caméra refusé ou indisponible.';
+      document.getElementById('scanbtn').textContent = '\uD83D\uDCF7 Scanner un code';
+    });
+  }
+  function stopScan() {
+    document.getElementById('scanbtn').textContent = '\uD83D\uDCF7 Scanner un code';
+    if (scanner && scanning) { scanner.stop().then(function () { try { scanner.clear(); } catch (e) {} }).catch(function () {}); }
+    scanning = false;
+  }
+
+  async function draw() {
+    const btn = document.getElementById('drawbtn'),
+          msg = document.getElementById('msg'),
+          res = document.getElementById('result'),
+          code = document.getElementById('code').value.trim();
+    if (!code) return;
+    btn.disabled = true; msg.textContent = 'Tirage en cours\u2026'; res.classList.add('hide');
+    try {
+      const r = await fetch('/draw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': token },
+        body: JSON.stringify({ code: code })
+      });
+      if (r.status === 401) { msg.textContent = 'Session expirée, reconnectez-vous.'; logout(); return; }
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.message || 'Erreur');
+      setTimeout(function () {
+        msg.textContent = '';
+        res.className = 'result';
+        res.innerHTML = d.resultat === 'gagnant'
+          ? '<div class="big win">GAGN&Eacute; \uD83C\uDF89</div><div class="note">Remettez la récompense convenue.</div>'
+          : '<div class="big lose">Perdu</div><div class="note">Pas de gain cette fois.</div>';
+        document.getElementById('code').value = '';
+        btn.disabled = false;
+      }, 700);
+    } catch (err) { msg.textContent = err.message; btn.disabled = false; }
+  }
+
+  function logout() {
+    stopScan();
+    localStorage.removeItem('cmp_token');
+    localStorage.removeItem('cmp_slug');
+    localStorage.removeItem('cmp_nom');
+    location.href = '/comptoir.html';
+  }
+
+  document.getElementById('scanbtn').addEventListener('click', toggleScan);
+  document.getElementById('drawbtn').addEventListener('click', draw);
+  document.getElementById('logout').addEventListener('click', logout);
+
+  // Code reçu via QR (/comptoir?code=…) → pré-rempli et tiré automatiquement
+  if (pendingCode) {
+    document.getElementById('code').value = pendingCode;
+    draw();
+  }
+</script>
+</body>
+</html>
