@@ -83,6 +83,21 @@ routerAdd("GET", "/partner/{slug}/logo", (e) => {
   }
 });
 
+// Liste publique des partenaires (nom, logo, localisation) — n'expose aucun champ sensible
+routerAdd("GET", "/partners", (e) => {
+  const recs = $app.findRecordsByFilter("commercants", "id != ''", "nom_complet", 200, 0);
+  const out = [];
+  for (const r of recs) {
+    const slug = r.get("partenaire");
+    out.push({
+      slug: slug,
+      nom_complet: r.get("nom_complet") || "",
+      localisation: r.get("localisation") || "",
+      logo_url: r.get("logo") ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
+    });
+  }
+  return e.json(200, { partenaires: out });
+});
 
 routerAdd("GET", "/complete", (e) => {
   const MIN_SECONDS = 25;
