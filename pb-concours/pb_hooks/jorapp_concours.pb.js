@@ -109,12 +109,11 @@ routerAdd("GET", "/partners", (e) => {
     });
   }
 
-  // DEBUG non destructif : montre la forme brute du 1er GeoPoint, sans couper la liste
-  let dbg = null;
-  if (recs.length) {
-    const v = recs[0].get("localisation");
-    dbg = { type: typeof v, is_array: Array.isArray(v), json: JSON.stringify(v), raw: v };
-  }
+  // DEBUG : montre la localisation brute de CHAQUE partenaire
+  const dbg = recs.map(function (r) {
+    const v = r.get("localisation");
+    return { nom: r.get("nom_complet"), json: JSON.stringify(v), is_array: Array.isArray(v) };
+  });
 
   return e.json(200, { partenaires: out, _debug: dbg });
 });
