@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Un seul droplet DigitalOcean (Ubuntu 24.04, fra1, 1 vCPU / 512 Mo) héberge **deux instances PocketBase indépendantes** et **plusieurs fronts**. nginx joue le rôle de reverse proxy et serveur statique. Certbot gère les certificats Let's Encrypt.
+Un seul droplet DigitalOcean (Ubuntu 24.04, fra1, 1 vCPU / 512 Mo) héberge **trois instances PocketBase indépendantes** et **plusieurs fronts**. nginx joue le rôle de reverse proxy et serveur statique. Certbot gère les certificats Let's Encrypt.
 
 - **Droplet** : `46.101.242.21` (FRA1)
 - **OS** : Ubuntu 24.04
@@ -25,7 +25,7 @@ Un seul droplet DigitalOcean (Ubuntu 24.04, fra1, 1 vCPU / 512 Mo) héberge **de
 ### Points à connaître
 
 - **`jorapp.org` fait deux choses à la fois** : il sert un site statique (le build Flutter web depuis `/var/www/jorapp`) **et** proxifie les routes `/api/` et `/_/` vers la première instance PocketBase. C'est le seul domaine dans ce cas.
-- **`db.jorapp.org` est le seul cas où PocketBase sert lui-même du HTML** (via `pb_public/`). Les autres fronts statiques sont servis par nginx.
+- **`db.jorapp.org` est le seul cas où PocketBase sert lui-même du HTML** (via `pb_public/`). Les autres fronts statiques sont servis par nginx via /var/wwww.
 - **`api.jorapp.org` et `jorapp.org/api/` pointent vers le même backend** (`127.0.0.1:8090`). C'est un doublon historique — voir `TODO.md`.
 
 ## Instances PocketBase
@@ -46,7 +46,7 @@ Un seul droplet DigitalOcean (Ubuntu 24.04, fra1, 1 vCPU / 512 Mo) héberge **de
 - **Chemin sur le serveur** : `/opt/pb-mobilier/`
 - **Port** : `127.0.0.1:8091`
 - **Service systemd** : `pocketbase-mobilier.service`
-- **Utilisée par** : prototype de plateforme de mobilier public en bois suisse
+- **Utilisée par** : prototype de plateforme de mobilier public en bois suisse - catalogue d'objet et visualisation des tables, relations et variables
 - **Collections principales** : `Plans`, `Modules`, `Licences`, `Essences`, `Familles`, `Acteurs`, `Équipements`, `Collectivites`, `Projets`, `Affectations`, `Coalitions`, `Realisation`, `metadonee`
 - **`pb_hooks/`** : `data.pb.js`, `schema_doc.pb.js` — JSVM (voir `pb-mobilier/pb_hooks/`)
 - **`pb_public/`** : `index.html` (navigateur relationnel) + `schema.html` (visualiseur ER)
@@ -57,7 +57,7 @@ Un seul droplet DigitalOcean (Ubuntu 24.04, fra1, 1 vCPU / 512 Mo) héberge **de
 - **Chemin sur le serveur** : `/opt/pb-concours/`
 - **Port** : `127.0.0.1:8093`
 - **Service systemd** : `pb-concours.service`
-- **Utilisée par** : sondage / concours QR-code du PNJ (`concours.jorapp.org`)
+- **Utilisée par** : sondage / concours QR-code du PNJ (`concours.jorapp.org`). Permet de gérer l'origine des sondages, de collecter les réponses et d'organiser la facturation des rewards par partenaire
 - **Collections principales** : `participations`, `commercants`
 - **`pb_hooks/`** : `jorapp_concours.pb.js` — JSVM (voir `pb-concours/pb_hooks/`)
 - **`pb_public/`** : `deja-participe.html` (page si déjà participé) + `merci.html` (page de remerciement après scan QR)
