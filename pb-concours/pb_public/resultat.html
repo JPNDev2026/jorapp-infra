@@ -24,6 +24,11 @@
       linear-gradient(180deg, transparent 60%, rgba(20,34,40,.18) 100%);
     pointer-events:none;
   }
+
+  /* Panneaux exclusifs : masqués par défaut, affichés via .on */
+  .pane { display:none; flex-direction:column; align-items:center; gap:18px; width:100%; }
+  .pane.on { display:flex }
+
   .logo-chip { background:var(--blanc); border-radius:12px; padding:10px 16px; box-shadow:0 4px 16px rgba(20,34,40,.25); max-width:240px; display:flex; align-items:center; justify-content:center; }
   .logo-chip img { max-height:48px; max-width:208px; width:auto; height:auto; display:block }
 
@@ -57,8 +62,8 @@
   .btn-ghost:hover { background:rgba(255,255,255,.1) }
 
   .footer { font-size:10.5px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.14em; margin-top:2px }
-  .hide { display:none }
   .loading { color:var(--blanc); font-size:14px; opacity:.85 }
+  .hide { display:none }
 </style>
 </head>
 <body>
@@ -66,10 +71,8 @@
   <div id="loading" class="loading">Chargement du r&eacute;sultat&hellip;</div>
 
   <!-- GAGNANT -->
-  <div id="win" class="hide" style="display:contents">
-    <div class="logo-chip">
-      <img id="logoWin" src="/assets/feuille_unique.png" alt="">
-    </div>
+  <div id="win" class="pane">
+    <div class="logo-chip"><img id="logoWin" alt=""></div>
     <div class="bon" id="bon">
       <div class="bon-head">
         <div class="kicker">Bravo</div>
@@ -89,7 +92,7 @@
   </div>
 
   <!-- PERDU -->
-  <div id="lose" class="hide" style="display:contents">
+  <div id="lose" class="pane">
     <div class="lost">
       <div class="leaf">&#127811;</div>
       <h1>Merci d&rsquo;avoir particip&eacute;&nbsp;!</h1>
@@ -105,20 +108,22 @@
 
   function show(id) {
     document.getElementById('loading').classList.add('hide');
-    document.getElementById(id).classList.remove('hide');
+    document.getElementById('win').classList.remove('on');
+    document.getElementById('lose').classList.remove('on');
+    document.getElementById(id).classList.add('on');
   }
 
   function renderWin(d) {
     const code = d.code || '';
     document.getElementById('code').textContent = code || '------';
-    if (d.partenaire && d.partenaire.nom_complet) document.getElementById('partnerName').textContent = d.partenaire.nom_complet;
-    if (d.partenaire && d.partenaire.gain) document.getElementById('gainText').textContent = d.partenaire.gain;
-    if (d.partenaire && d.partenaire.logo_url) {
-      const img = document.getElementById('logoWin');
-      img.onerror = function () { img.src = '/assets/feuille_unique.png'; };
-      img.src = d.partenaire.logo_url;
-      img.alt = d.partenaire.nom_complet || '';
-    }
+    const p = d.partenaire || {};
+    if (p.nom_complet) document.getElementById('partnerName').textContent = p.nom_complet;
+    if (p.gain) document.getElementById('gainText').textContent = p.gain;
+
+    const img = document.getElementById('logoWin');
+    img.onerror = function () { const chip = img.closest('.logo-chip'); if (chip) chip.style.display = 'none'; };
+    img.src = p.logo_url ? p.logo_url : '/assets/Logo_feuille.png';
+
     if (code) {
       new QRCode(document.getElementById('qr'), {
         text: 'https://concours.jorapp.org/comptoir?code=' + encodeURIComponent(code),
