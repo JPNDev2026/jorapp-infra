@@ -117,7 +117,7 @@ routerAdd("GET", "/partners", (e) => {
 //   - /lieu, /web : si gain -> attribution d'un partenaire au hasard parmi ceux qui ont un "gain"
 routerAdd("GET", "/complete", (e) => {
   const MIN_SECONDS = 25;
-  const WIN_PROBABILITY = 0.50;
+  const WIN_PROBABILITY = 1;
   const DEVICE_CHECK_ENABLED = false;
   const PARTICIPATED_COOKIE  = "jorapp_participated";
   const COOKIE_DAYS          = 60;
