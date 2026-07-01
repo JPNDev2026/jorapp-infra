@@ -1,6 +1,6 @@
 /// <reference path="../pb_data/types.d.ts" />
 //
-// JorApp - Concours partenaires (preuve de concept)
+// JorApp - Concours partenaires
 // PIEGE JSVM : config + fonctions definies DANS chaque handler. Cible : PocketBase v0.23+ (v0.39).
 
 routerAdd("GET", "/go/{partner}", (e) => {
@@ -20,7 +20,6 @@ routerAdd("GET", "/go/{partner}", (e) => {
   return e.redirect(302, url);
 });
 
-// QR d'EMPLACEMENT (hors commercant) : participation NON liee, jouable chez n'importe quel partenaire
 routerAdd("GET", "/lieu/{loc}", (e) => {
   const LS_SURVEY_URL = "https://survey.jorapp.org/index.php/268839";
   const loc = e.request.pathValue("loc");
@@ -28,7 +27,7 @@ routerAdd("GET", "/lieu/{loc}", (e) => {
   const col = $app.findCollectionByNameOrId("participations");
   const rec = new Record(col);
   rec.set("session", session);
-  rec.set("partenaire", "");   // vide = code libre, attribue au commercant qui le validera
+  rec.set("partenaire", "");
   rec.set("lieu", loc);
   rec.set("statut", "en_attente");
   rec.set("scan_ms", Date.now());
@@ -37,7 +36,6 @@ routerAdd("GET", "/lieu/{loc}", (e) => {
   return e.redirect(302, url);
 });
 
-// SOURCE WEB (email, réseaux sociaux) : participation NON liée, comme un QR d'emplacement
 routerAdd("GET", "/web/{source}", (e) => {
   const LS_SURVEY_URL = "https://survey.jorapp.org/index.php/268839";
   const source = e.request.pathValue("source");
@@ -45,8 +43,8 @@ routerAdd("GET", "/web/{source}", (e) => {
   const col = $app.findCollectionByNameOrId("participations");
   const rec = new Record(col);
   rec.set("session", session);
-  rec.set("partenaire", "");           // vide = code libre, attribué au commerçant qui valide
-  rec.set("lieu", source);             // provenance : email / instagram / facebook
+  rec.set("partenaire", "");
+  rec.set("lieu", source);
   rec.set("statut", "en_attente");
   rec.set("scan_ms", Date.now());
   $app.save(rec);
@@ -54,7 +52,7 @@ routerAdd("GET", "/web/{source}", (e) => {
   return e.redirect(302, url);
 });
 
-// Mini-API publique : nom + URL du logo d'un partenaire (n'expose RIEN d'autre de la collection)
+// Mini-API publique : nom + logo + gain d'un partenaire
 routerAdd("GET", "/partner/{slug}", (e) => {
   const slug = e.request.pathValue("slug");
   let rec;
@@ -63,11 +61,11 @@ routerAdd("GET", "/partner/{slug}", (e) => {
   const hasLogo = !!rec.get("logo");
   return e.json(200, {
     nom_complet: rec.get("nom_complet") || "",
+    gain: rec.get("gain") || "",
     logo_url: hasLogo ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
   });
 });
 
-// Sert le logo en lisant le fichier directement (la collection commercants reste fermée)
 routerAdd("GET", "/partner/{slug}/logo", (e) => {
   const slug = e.request.pathValue("slug");
   let rec;
@@ -83,10 +81,9 @@ routerAdd("GET", "/partner/{slug}/logo", (e) => {
   }
 });
 
-// Liste publique des partenaires (nom, logo, localisation) — n'expose aucun champ sensible
+// Liste publique (nom, logo, coordonnees)
 routerAdd("GET", "/partners", (e) => {
 
-  // GeoPoint PocketBase -> "lat,lng" pour Google Maps
   function toLatLng(v) {
     if (!v) return "";
     if (Array.isArray(v)) return v.length < 2 ? "" : (v[1] + "," + v[0]);
@@ -106,18 +103,24 @@ routerAdd("GET", "/partners", (e) => {
     out.push({
       slug: slug,
       nom_complet: r.get("nom_complet") || "",
-      localisation: toLatLng(r.get("Localisation")),   // <-- champ "Localisation"
+      localisation: toLatLng(r.get("Localisation")),
       logo_url: r.get("logo") ? ("/partner/" + encodeURIComponent(slug) + "/logo") : ""
     });
   }
   return e.json(200, { partenaires: out });
 });
 
+
+// /complete : tirage IMMEDIAT
+//   - garde-fou temps mord AVANT Math.random
+//   - /go : le partenaire est fixe (le commercant scanne le bon)
+//   - /lieu, /web : si gain -> attribution d'un partenaire au hasard parmi ceux qui ont un "gain"
 routerAdd("GET", "/complete", (e) => {
   const MIN_SECONDS = 25;
-  const DEVICE_CHECK_ENABLED = false;          // <-- false pendant tes tests, true en prod
+  const WIN_PROBABILITY = 0.50;
+  const DEVICE_CHECK_ENABLED = false;
   const PARTICIPATED_COOKIE  = "jorapp_participated";
-  const COOKIE_DAYS          = 60;             // duree de vie du cookie (~ duree du concours)
+  const COOKIE_DAYS          = 60;
   const BASE                 = "https://concours.jorapp.org";
 
   function genCode() {
@@ -125,15 +128,10 @@ routerAdd("GET", "/complete", (e) => {
     let s = ""; for (let i = 0; i < 6; i++) s += A.charAt(Math.floor(Math.random() * A.length)); return s;
   }
 
-  // Destination de la page de merci selon l'origine du scan :
-  //   partenaire rempli (/go)        -> page partenaire (logo + nom du commercant)
-  //   partenaire vide (/lieu, /web)  -> page generale
-  function merciUrl(r) {
-    const code = encodeURIComponent(r.get("code"));
-    const partner = r.get("partenaire");
-    return partner
-      ? BASE + "/merci_partenaires.html?code=" + code + "&partner=" + encodeURIComponent(partner)
-      : BASE + "/merci.html?code=" + code;
+  function randomPartner() {
+    const pool = $app.findRecordsByFilter("commercants", "gain != ''", "", 500, 0);
+    if (!pool.length) return "";
+    return pool[Math.floor(Math.random() * pool.length)].get("partenaire") || "";
   }
 
   const session = e.requestInfo().query["session"];
@@ -144,82 +142,134 @@ routerAdd("GET", "/complete", (e) => {
 
   const statut = rec.get("statut");
 
-  // Sessions deja traitees : renvoi idempotent, sans toucher au cookie (rechargement legitime)
+  // Idempotence : session deja traitee -> retour au sas merci selon ORIGINE
   if (statut !== "en_attente") {
     if (statut === "doublon") return e.redirect(302, BASE + "/deja-participe.html");
-    // emis / gagnant / perdu : la participation a deja un code -> on reaffiche le bon
-    return e.redirect(302, merciUrl(rec));
+    const origine = rec.get("origine_partenaire") || "";
+    return e.redirect(302, origine
+      ? BASE + "/merci_partenaires.html?session=" + encodeURIComponent(session) + "&partner=" + encodeURIComponent(origine)
+      : BASE + "/merci.html?session=" + encodeURIComponent(session));
   }
 
-  // Premiere completion : cap par appareil (si active)
+  // Cap par appareil
   if (DEVICE_CHECK_ENABLED) {
     let dejaParticipe = false;
     try {
-      const c = e.request.cookie(PARTICIPATED_COOKIE);   // jette une exception si absent
+      const c = e.request.cookie(PARTICIPATED_COOKIE);
       if (c && c.value) dejaParticipe = true;
     } catch (_) { dejaParticipe = false; }
-
     if (dejaParticipe) {
-      // doublon : on marque pour les stats, AUCUN code genere -> n'atteint jamais /draw
       rec.set("statut", "doublon");
       $app.save(rec);
       return e.redirect(302, BASE + "/deja-participe.html");
     }
   }
 
-  // Generation du code
+  // Tirage immediat
   const elapsed = Math.round((Date.now() - rec.get("scan_ms")) / 1000);
-  rec.set("code", genCode());
   rec.set("completed_ms", Date.now());
   rec.set("elapsed_s", elapsed);
   rec.set("time_flag", elapsed < MIN_SECONDS);
-  rec.set("statut", "emis");
+
+  // Origine memorisee AVANT toute reattribution (permet le bon sas au rechargement)
+  const origineLiee = !!rec.get("partenaire");
+  rec.set("origine_partenaire", origineLiee ? rec.get("partenaire") : "");
+
+  let gagne = false;
+  if (!rec.get("time_flag")) gagne = Math.random() < WIN_PROBABILITY;
+
+  if (gagne && !origineLiee) {
+    const p = randomPartner();
+    if (p) rec.set("partenaire", p); else gagne = false; // aucun lot dispo -> pas de gagnant
+  }
+
+  if (gagne) {
+    rec.set("code", genCode());
+    rec.set("statut", "gagnant");
+  } else {
+    rec.set("statut", "perdu");
+  }
+  rec.set("drawn_ms", Date.now());
   $app.save(rec);
 
-  // Poser le cookie AVANT la redirection (sinon l'en-tete arrive apres la reponse)
   if (DEVICE_CHECK_ENABLED) {
     e.setCookie(new Cookie({
       name: PARTICIPATED_COOKIE, value: "1", path: "/",
       maxAge: COOKIE_DAYS * 24 * 60 * 60,
-      secure: true, httpOnly: true, sameSite: 2,   // 2 = Lax (passe sur la navigation top-level depuis le sondage)
+      secure: true, httpOnly: true, sameSite: 2,
     }));
   }
 
-  return e.redirect(302, merciUrl(rec));
+  return e.redirect(302, origineLiee
+    ? BASE + "/merci_partenaires.html?session=" + encodeURIComponent(session) + "&partner=" + encodeURIComponent(rec.get("origine_partenaire"))
+    : BASE + "/merci.html?session=" + encodeURIComponent(session));
 });
 
-// La page comptoir est désormais statique (comptoir.html). On garde juste la redirection
-// pour que le QR du bon (/comptoir?code=XXX) continue de fonctionner.
+
+// Verdict pour resultat.html (public, lecture seule via session)
+routerAdd("GET", "/resultat", (e) => {
+  const session = e.requestInfo().query["session"];
+  if (!session) return e.json(400, { message: "Session manquante." });
+  let rec;
+  try { rec = $app.findFirstRecordByFilter("participations", "session = {:s}", { s: session }); }
+  catch (err) { return e.json(404, { message: "Participation introuvable." }); }
+  const statut = rec.get("statut");
+  if (statut === "en_attente" || statut === "doublon") return e.json(200, { issue: "en_attente" });
+  if (statut === "perdu") return e.json(200, { issue: "perdu" });
+  const slug = rec.get("partenaire");
+  let nom = "", gain = "", logo_url = "";
+  if (slug) {
+    try {
+      const p = $app.findFirstRecordByFilter("commercants", "partenaire = {:p}", { p: slug });
+      nom = p.get("nom_complet") || "";
+      gain = p.get("gain") || "";
+      if (p.get("logo")) logo_url = "/partner/" + encodeURIComponent(slug) + "/logo";
+    } catch (_) {}
+  }
+  return e.json(200, {
+    issue: statut,   // "gagnant" ou "encaisse"
+    code: rec.get("code") || "",
+    partenaire: { slug: slug, nom_complet: nom, gain: gain, logo_url: logo_url }
+  });
+});
+
+
+// Validation d'un bon par le commercant : gagnant -> encaisse (transaction atomique)
+routerAdd("POST", "/validate", (e) => {
+  const auth = e.auth.get("partenaire");
+  const code = String(e.requestInfo().body.code || "").toUpperCase().trim();
+  if (!code) return e.json(400, { message: "Code requis." });
+  let out = { code: code, nom_complet: "", gain: "" };
+  $app.runInTransaction((tx) => {
+    let rec;
+    try { rec = tx.findFirstRecordByFilter("participations", "code = {:c}", { c: code }); }
+    catch (err) { throw new BadRequestError("Code inconnu."); }
+    const s = rec.get("statut");
+    if (s === "perdu")     throw new BadRequestError("Ce bon est perdant.");
+    if (s === "encaisse")  throw new BadRequestError("Bon deja encaisse.");
+    if (s !== "gagnant")   throw new BadRequestError("Bon non valable.");
+    if (rec.get("partenaire") !== auth) throw new BadRequestError("Ce bon ne depend pas de votre commerce.");
+    rec.set("statut", "encaisse");
+    rec.set("encaisse_ms", Date.now());
+    tx.save(rec);
+  });
+  try {
+    const p = $app.findFirstRecordByFilter("commercants", "partenaire = {:p}", { p: auth });
+    out.nom_complet = p.get("nom_complet") || "";
+    out.gain = p.get("gain") || "";
+  } catch (_) {}
+  return e.json(200, out);
+}, $apis.requireAuth("commercants"));
+
+
 routerAdd("GET", "/comptoir", (e) => {
   const code = e.requestInfo().query["code"] || "";
   return e.redirect(302, code ? ("/comptoir.html?code=" + encodeURIComponent(code)) : "/comptoir.html");
 });
 
-routerAdd("POST", "/draw", (e) => {
-  const WIN_PROBABILITY = 0.50;
-  const partner = e.auth.get("partenaire");
-  const code = String(e.requestInfo().body.code || "").toUpperCase().trim();
-  if (!code) return e.json(400, { error: "Code requis." });
-  let gagne = false;
-  $app.runInTransaction((tx) => {
-    let rec;
-    try { rec = tx.findFirstRecordByFilter("participations", "code = {:c}", { c: code }); }
-    catch (err) { throw new BadRequestError("Code inconnu."); }
-    if (rec.get("statut") !== "emis")      throw new BadRequestError("Code deja utilise.");
-    const lie = rec.get("partenaire"); // vide = QR d'emplacement, jouable partout
-    if (lie && lie !== partner) throw new BadRequestError("Ce code ne depend pas de votre commerce.");
-    if (!lie) rec.set("partenaire", partner); // attribution au commercant qui valide
-    gagne = Math.random() < WIN_PROBABILITY;
-    if (rec.get("time_flag")) gagne = false;
-    rec.set("statut", gagne ? "gagnant" : "perdu");
-    rec.set("drawn_ms", Date.now());
-    tx.save(rec);
-  });
-  return e.json(200, { resultat: gagne ? "gagnant" : "perdu" });
-}, $apis.requireAuth("commercants"));
 
 routerAdd("GET", "/recap", (e) => {
-  const gagnants = $app.findRecordsByFilter("participations", "statut = 'gagnant'", "-drawn_ms", 500, 0);
+  const gagnants = $app.findRecordsByFilter("participations", "statut = 'gagnant' || statut = 'encaisse'", "-drawn_ms", 500, 0);
   const parPartenaire = {};
   for (const r of gagnants) { const p = r.get("partenaire"); parPartenaire[p] = (parPartenaire[p] || 0) + 1; }
   return e.json(200, { gagnants_par_partenaire: parPartenaire, total_gagnants: gagnants.length });

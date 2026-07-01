@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>R&eacute;sultat &mdash; Concours PNJ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
+  :root { --teal:#1F6481; --teal-deep:#16475c; --lime:#D7E337; --encre:#142228; --parchemin:#EDE0BC; --blanc:#ffffff; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body {
+    font-family:'DM Sans',system-ui,-apple-system,sans-serif;
+    background:var(--teal); color:var(--encre);
+    display:flex; flex-direction:column; min-height:100vh;
+    align-items:center; justify-content:center; padding:28px 24px; gap:18px;
+    position:relative;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(215,227,55,.10) 0%, transparent 45%),
+      linear-gradient(180deg, transparent 60%, rgba(20,34,40,.18) 100%);
+    pointer-events:none;
+  }
+  .logo-chip { background:var(--blanc); border-radius:12px; padding:10px 16px; box-shadow:0 4px 16px rgba(20,34,40,.25); max-width:240px; display:flex; align-items:center; justify-content:center; }
+  .logo-chip img { max-height:48px; max-width:208px; width:auto; height:auto; display:block }
+
+  .bon { background:var(--blanc); border-radius:16px; max-width:360px; width:100%; padding:0 0 28px; text-align:center; box-shadow:0 8px 30px rgba(20,34,40,.25); overflow:hidden; }
+  .bon-head { background:var(--encre); color:var(--blanc); padding:26px 28px 22px }
+  .bon-head .kicker { font-size:11px; text-transform:uppercase; letter-spacing:.18em; color:var(--lime); font-weight:700; margin-bottom:6px }
+  .bon-head h1 { font-size:22px; font-weight:700; letter-spacing:-.01em; line-height:1.25; margin-bottom:10px }
+  .bon-head .gain { font-size:14.5px; line-height:1.55; color:rgba(255,255,255,.85) }
+  .bon-head .gain strong { color:var(--lime); font-weight:700 }
+  .lime-rule { height:4px; background:var(--lime) }
+  .bon-body { padding:26px 28px 0 }
+
+  #qr { width:208px; height:208px; margin:0 auto; display:flex; align-items:center; justify-content:center; border-radius:12px; border:2px solid rgba(31,100,129,.18); background:var(--blanc); padding:5px }
+  #qr canvas, #qr img { width:194px !important; height:194px !important }
+
+  .label { font-size:10.5px; text-transform:uppercase; letter-spacing:.16em; color:var(--teal); margin:22px 0 7px; font-weight:700 }
+  .code { font-size:31px; font-weight:700; letter-spacing:.2em; color:var(--teal); background:var(--parchemin); border-radius:9px; padding:12px 0; text-indent:.2em }
+  .hint { font-size:12px; color:var(--teal-deep); opacity:.7; margin-top:16px }
+
+  .lost { background:var(--blanc); border-radius:16px; max-width:360px; width:100%; padding:44px 28px; text-align:center; box-shadow:0 8px 30px rgba(20,34,40,.25); }
+  .lost .leaf { font-size:48px; margin-bottom:14px; opacity:.85 }
+  .lost h1 { font-size:22px; font-weight:700; letter-spacing:-.01em; margin-bottom:10px; color:var(--teal) }
+  .lost p { font-size:14.5px; color:var(--teal-deep); line-height:1.6; opacity:.9 }
+
+  .btn { max-width:360px; width:100%; padding:14px; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:transform .1s, filter .15s }
+  .btn:active { transform:scale(.985) }
+  .btn:disabled { opacity:.45; cursor:default }
+  .btn-primary { background:var(--lime); color:var(--encre) }
+  .btn-primary:hover:not(:disabled) { filter:brightness(.96) }
+  .btn-ghost { background:transparent; color:var(--blanc); border:1.5px solid rgba(255,255,255,.35) }
+  .btn-ghost:hover { background:rgba(255,255,255,.1) }
+
+  .footer { font-size:10.5px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.14em; margin-top:2px }
+  .hide { display:none }
+  .loading { color:var(--blanc); font-size:14px; opacity:.85 }
+</style>
+</head>
+<body>
+
+  <div id="loading" class="loading">Chargement du r&eacute;sultat&hellip;</div>
+
+  <!-- GAGNANT -->
+  <div id="win" class="hide" style="display:contents">
+    <div class="logo-chip">
+      <img id="logoWin" src="/assets/feuille_unique.png" alt="">
+    </div>
+    <div class="bon" id="bon">
+      <div class="bon-head">
+        <div class="kicker">Bravo</div>
+        <h1>Vous avez gagn&eacute;&nbsp;!</h1>
+        <div class="gain">Votre lot&nbsp;: <strong id="gainText">&mdash;</strong><br>
+          &agrave; retirer chez <strong id="partnerName">votre commer&ccedil;ant partenaire</strong>.</div>
+      </div>
+      <div class="lime-rule"></div>
+      <div class="bon-body">
+        <div id="qr"></div>
+        <div class="label">Code (secours)</div>
+        <div class="code" id="code">------</div>
+        <div class="hint">Pr&eacute;sentez ce bon au comptoir. Valable une seule fois.</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="dl">&#11015; T&eacute;l&eacute;charger le bon</button>
+  </div>
+
+  <!-- PERDU -->
+  <div id="lose" class="hide" style="display:contents">
+    <div class="lost">
+      <div class="leaf">&#127811;</div>
+      <h1>Merci d&rsquo;avoir particip&eacute;&nbsp;!</h1>
+      <p>Pas de chance cette fois-ci, mais votre r&eacute;ponse compte beaucoup pour l&rsquo;avenir du parc. &Agrave; bient&ocirc;t sur les sentiers&nbsp;!</p>
+    </div>
+  </div>
+
+  <button class="btn btn-ghost" id="partenaires">Commer&ccedil;ants partenaires</button>
+  <div class="footer">Parc naturel p&eacute;riurbain du Jorat</div>
+
+<script>
+  const session = new URLSearchParams(location.search).get('session') || '';
+
+  function show(id) {
+    document.getElementById('loading').classList.add('hide');
+    document.getElementById(id).classList.remove('hide');
+  }
+
+  function renderWin(d) {
+    const code = d.code || '';
+    document.getElementById('code').textContent = code || '------';
+    if (d.partenaire && d.partenaire.nom_complet) document.getElementById('partnerName').textContent = d.partenaire.nom_complet;
+    if (d.partenaire && d.partenaire.gain) document.getElementById('gainText').textContent = d.partenaire.gain;
+    if (d.partenaire && d.partenaire.logo_url) {
+      const img = document.getElementById('logoWin');
+      img.onerror = function () { img.src = '/assets/feuille_unique.png'; };
+      img.src = d.partenaire.logo_url;
+      img.alt = d.partenaire.nom_complet || '';
+    }
+    if (code) {
+      new QRCode(document.getElementById('qr'), {
+        text: 'https://concours.jorapp.org/comptoir?code=' + encodeURIComponent(code),
+        width: 194, height: 194, correctLevel: QRCode.CorrectLevel.M,
+        colorDark: '#142228', colorLight: '#ffffff'
+      });
+    }
+    show('win');
+  }
+
+  fetch('/resultat?session=' + encodeURIComponent(session))
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (!d) { show('lose'); return; }
+      if (d.issue === 'gagnant' || d.issue === 'encaisse') renderWin(d);
+      else show('lose');
+    })
+    .catch(function () { show('lose'); });
+
+  document.getElementById('dl').addEventListener('click', function () {
+    const btn = this; btn.disabled = true;
+    html2canvas(document.getElementById('bon'), { backgroundColor: '#ffffff', scale: 2 })
+      .then(function (canvas) {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'bon-concours-' + (document.getElementById('code').textContent || 'pnj') + '.png';
+        a.click();
+        btn.disabled = false;
+      })
+      .catch(function () { btn.disabled = false; alert('Téléchargement indisponible.'); });
+  });
+
+  document.getElementById('partenaires').addEventListener('click', function () {
+    location.href = '/partenaires.html';
+  });
+</script>
+</body>
+</html>
