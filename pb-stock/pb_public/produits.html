@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock PNJ — Produits</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/theme.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/print.css" media="print">
+</head>
+<body>
+  <div id="nav-container"></div>
+
+  <main class="container mt-lg mb-xl">
+    <div class="flex flex-between mb-lg">
+      <h1>Produits</h1>
+      <button type="button" class="btn btn-primary" id="add-product-btn">+ Ajouter un produit</button>
+    </div>
+
+    <div class="form-group search-bar">
+      <label for="search-input" class="visually-hidden">Rechercher un produit</label>
+      <input type="search" id="search-input" class="input" placeholder="Rechercher un produit…">
+    </div>
+
+    <div class="filters-bar mb-md" id="category-filters"></div>
+
+    <div id="products-table-container"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/cart.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    (function () {
+      StockAuth.checkAuth();
+      StockUI.renderNav('produits');
+
+      var allProducts = [];
+      var allCategories = [];
+      var filteredCategoryId = null;
+      var searchTerm = '';
+      var editingId = null;
+      var addModalOverlay = null;
+
+      function isDateProche(dateLimite) {
+        if (!dateLimite) {
+          return false;
+        }
+        var diffDays = (new Date(dateLimite) - new Date()) / 86400000;
+        return diffDays <= 30;
+      }
+
+      function matchesFilters(produit) {
+        var matchesCategory = !filteredCategoryId || produit.categorie === filteredCategoryId;
+        var matchesSearch = !searchTerm || produit.nom.toLowerCase().indexOf(searchTerm) !== -1;
+        return matchesCategory && matchesSearch;
+      }
+
+      // ---- Tableau des produits -------------------------------------------------------------
+
+      function renderProductRow(produit) {
+        var categorie = produit.expand && produit.expand.categorie;
+
+        var thumbHtml = produit.image
+          ? '<img class="product-thumb" src="' + StockAPI.pb.files.getUrl(produit, produit.image, { thumb: '80x80' }) + '" alt="">'
+          : '<span class="product-thumb">' + (categorie && categorie.icone ? StockUI.escapeHtml(categorie.icone) : '📦') + '</span>';
+
+        var badgeHtml = '—';
+        if (categorie) {
+          var couleur = categorie.couleur ? StockUI.escapeHtml(categorie.couleur) : '';
+          var badgeStyle = couleur
+            ? ' style="background:' + couleur + '22; border-color:' + couleur + '; color:' + couleur + ';"'
+            : '';
+          badgeHtml = '<span class="badge"' + badgeStyle + '>' + (categorie.icone ? StockUI.escapeHtml(categorie.icone) + ' ' : '') + StockUI.escapeHtml(categorie.nom) + '</span>';
+        }
+
+        var prixHtml = produit.prix ? StockUI.formatCHF(produit.prix) : '—';
+        var fournisseurHtml = produit.fournisseur ? StockUI.escapeHtml(produit.fournisseur) : '—';
+
+        var qtyHtml = editingId === produit.id
+          ? '<div class="qty-inline">' +
+              '<input type="number" min="0" class="input" id="qty-edit-input" value="' + produit.quantite + '">' +
+              '<button type="button" class="btn btn-primary btn-sm" data-action="save-qty">✓</button>' +
+            '</div>'
+          : '<div class="qty-display" data-action="edit-qty" role="button" tabindex="0">' +
+              StockUI.renderStockBar(produit.quantite) +
+              '<span class="text-sm">' + produit.quantite + '</span>' +
+            '</div>';
+
+        var dateHtml = '—';
+        if (produit.date_limite) {
+          dateHtml = isDateProche(produit.date_limite)
+            ? '<span class="badge alert-warning">' + StockUI.formatDate(produit.date_limite) + '</span>'
+            : StockUI.formatDate(produit.date_limite);
+        }
+
+        var statutClass = produit.actif ? 'btn-secondary' : 'btn-outline';
+        var statutLabel = produit.actif ? 'Actif' : 'Inactif';
+
+        return (
+          '<tr data-produit-id="' + produit.id + '">' +
+            '<td data-label="Image">' + thumbHtml + '</td>' +
+            '<td data-label="Nom">' + StockUI.escapeHtml(produit.nom) + '</td>' +
+            '<td data-label="Catégorie">' + badgeHtml + '</td>' +
+            '<td data-label="Prix">' + prixHtml + '</td>' +
+            '<td data-label="Fournisseur">' + fournisseurHtml + '</td>' +
+            '<td data-label="Stock">' + qtyHtml + '</td>' +
+            '<td data-label="Date limite">' + dateHtml + '</td>' +
+            '<td data-label="Statut"><button type="button" class="btn btn-sm ' + statutClass + '" data-action="toggle-actif">' + statutLabel + '</button></td>' +
+          '</tr>'
+        );
+      }
+
+      function renderTable() {
+        var container = document.getElementById('products-table-container');
+        var filtered = allProducts.filter(matchesFilters);
+
+        if (!filtered.length) {
+          container.innerHTML = StockUI.renderEmptyState('Aucun produit ne correspond à ce filtre.');
+          return;
+        }
+
+        container.innerHTML =
+          '<table class="table table-responsive">' +
+            '<thead><tr><th>Image</th><th>Nom</th><th>Catégorie</th><th>Prix</th><th>Fournisseur</th><th>Stock</th><th>Date limite</th><th>Statut</th></tr></thead>' +
+            '<tbody>' + filtered.map(renderProductRow).join('') + '</tbody>' +
+          '</table>';
+      }
+
+      document.getElementById('products-table-container').addEventListener('click', function (e) {
+        var target = e.target.closest('[data-action]');
+        if (!target) {
+          return;
+        }
+        var row = target.closest('tr[data-produit-id]');
+        if (!row) {
+          return;
+        }
+        var produitId = row.getAttribute('data-produit-id');
+        var produit = allProducts.find(function (p) { return p.id === produitId; });
+        var action = target.getAttribute('data-action');
+
+        if (action === 'edit-qty') {
+          editingId = produitId;
+          renderTable();
+          var input = document.getElementById('qty-edit-input');
+          if (input) {
+            input.focus();
+          }
+        } else if (action === 'save-qty') {
+          var input2 = document.getElementById('qty-edit-input');
+          var newQty = parseInt(input2.value, 10);
+          if (isNaN(newQty) || newQty < 0) {
+            return;
+          }
+          StockAPI.updateProduct(produitId, { quantite: newQty }).then(function (updated) {
+            produit.quantite = updated.quantite;
+            editingId = null;
+            StockUI.showToast('Stock mis à jour.');
+            renderTable();
+          });
+        } else if (action === 'toggle-actif') {
+          StockAPI.updateProduct(produitId, { actif: !produit.actif }).then(function (updated) {
+            produit.actif = updated.actif;
+            StockUI.showToast(produit.actif ? 'Produit réactivé.' : 'Produit désactivé.');
+            renderTable();
+          });
+        }
+      });
+
+      document.getElementById('search-input').addEventListener('input', function (e) {
+        searchTerm = e.target.value.trim().toLowerCase();
+        renderTable();
+      });
+
+      // ---- Modale d'ajout de produit -------------------------------------------------------------
+
+      function loadCategoriesIntoSelect(selectEl) {
+        selectEl.innerHTML = '<option value="">Sélectionner…</option>' +
+          allCategories.map(function (c) {
+            return '<option value="' + c.id + '">' + (c.icone ? StockUI.escapeHtml(c.icone) + ' ' : '') + StockUI.escapeHtml(c.nom) + '</option>';
+          }).join('');
+      }
+
+      function openAddModal() {
+        closeAddModal();
+
+        addModalOverlay = document.createElement('div');
+        addModalOverlay.className = 'modal-overlay';
+        addModalOverlay.innerHTML =
+          '<div class="modal">' +
+            '<div class="modal-header"><h3>Ajouter un produit</h3></div>' +
+            '<form id="product-form">' +
+              '<div class="form-group">' +
+                '<label for="p-nom">Nom</label>' +
+                '<input type="text" id="p-nom" class="input" required>' +
+              '</div>' +
+              '<div class="form-group">' +
+                '<label for="p-categorie">Catégorie</label>' +
+                '<select id="p-categorie" class="select" required></select>' +
+              '</div>' +
+              '<div class="form-group">' +
+                '<label for="p-quantite">Quantité initiale</label>' +
+                '<input type="number" id="p-quantite" class="input" min="0" required>' +
+              '</div>' +
+              '<div class="form-group">' +
+                '<label for="p-prix">Prix (CHF)</label>' +
+                '<input type="number" id="p-prix" class="input" min="0" step="0.05">' +
+              '</div>' +
+              '<div class="form-group">' +
+                '<label for="p-date-limite">Date limite</label>' +
+                '<input type="date" id="p-date-limite" class="input">' +
+              '</div>' +
+              '<div class="form-group">' +
+                '<label for="p-fournisseur">Fournisseur</label>' +
+                '<input type="text" id="p-fournisseur" class="input">' +
+              '</div>' +
+              '<div class="form-group">' +
+                '<label for="p-image">Image</label>' +
+                '<input type="file" id="p-image" class="input" accept="image/*">' +
+              '</div>' +
+              '<p id="product-form-error" class="alert alert-danger" hidden></p>' +
+              '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-outline" id="product-cancel">Annuler</button>' +
+                '<button type="submit" class="btn btn-primary">Enregistrer</button>' +
+              '</div>' +
+            '</form>' +
+          '</div>';
+
+        document.body.appendChild(addModalOverlay);
+        loadCategoriesIntoSelect(document.getElementById('p-categorie'));
+
+        document.getElementById('product-cancel').addEventListener('click', closeAddModal);
+        addModalOverlay.addEventListener('click', function (e) {
+          if (e.target === addModalOverlay) {
+            closeAddModal();
+          }
+        });
+        document.getElementById('product-form').addEventListener('submit', onSubmitProduct);
+      }
+
+      function closeAddModal() {
+        if (addModalOverlay && addModalOverlay.parentNode) {
+          addModalOverlay.parentNode.removeChild(addModalOverlay);
+        }
+        addModalOverlay = null;
+      }
+
+      function onSubmitProduct(e) {
+        e.preventDefault();
+        var errorEl = document.getElementById('product-form-error');
+        errorEl.hidden = true;
+
+        var formData = new FormData();
+        formData.append('nom', document.getElementById('p-nom').value.trim());
+        formData.append('categorie', document.getElementById('p-categorie').value);
+        formData.append('quantite', document.getElementById('p-quantite').value);
+        formData.append('actif', 'true');
+
+        var prix = document.getElementById('p-prix').value;
+        if (prix) {
+          formData.append('prix', prix);
+        }
+
+        var dateLimite = document.getElementById('p-date-limite').value;
+        if (dateLimite) {
+          formData.append('date_limite', dateLimite);
+        }
+
+        var fournisseur = document.getElementById('p-fournisseur').value.trim();
+        if (fournisseur) {
+          formData.append('fournisseur', fournisseur);
+        }
+
+        var imageFile = document.getElementById('p-image').files[0];
+        if (imageFile) {
+          formData.append('image', imageFile);
+        }
+
+        StockAPI.createProduct(formData)
+          .then(function () {
+            closeAddModal();
+            StockUI.showToast('Produit ajouté avec succès.');
+            loadProducts();
+          })
+          .catch(function (err) {
+            var message = (err && err.data && err.data.message) || (err && err.message) || 'Erreur lors de l\'ajout du produit.';
+            errorEl.textContent = message;
+            errorEl.hidden = false;
+          });
+      }
+
+      document.getElementById('add-product-btn').addEventListener('click', openAddModal);
+
+      // ---- Chargement initial -------------------------------------------------------------
+
+      function loadProducts() {
+        return StockAPI.getAllProducts().then(function (products) {
+          allProducts = products;
+          renderTable();
+        });
+      }
+
+      StockAPI.getCategories().then(function (categories) {
+        allCategories = categories;
+        StockUI.renderCategoryFilters(categories, function (categorieId) {
+          filteredCategoryId = categorieId;
+          renderTable();
+        });
+      });
+
+      loadProducts();
+    })();
+  </script>
+</body>
+</html>

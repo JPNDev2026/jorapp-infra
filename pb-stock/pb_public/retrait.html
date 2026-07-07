@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock PNJ — Retrait</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/theme.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/print.css" media="print">
+</head>
+<body>
+  <div id="nav-container"></div>
+
+  <main class="container mt-lg mb-xl">
+    <div class="form-group search-bar">
+      <label for="search-input" class="visually-hidden">Rechercher un produit</label>
+      <input type="search" id="search-input" class="input" placeholder="Rechercher un produit…">
+    </div>
+
+    <div class="filters-bar mb-md" id="category-filters"></div>
+
+    <div class="product-grid" id="product-grid"></div>
+  </main>
+
+  <div class="floating-bar" id="floating-bar" hidden>
+    <span id="floating-bar-count"></span>
+    <button type="button" class="btn btn-primary btn-sm" id="floating-bar-link">Voir le panier →</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/cart.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    (function () {
+      StockAuth.checkAuth();
+      StockUI.renderNav('retrait');
+
+      var allProducts = [];
+      var selection = {};
+      var filteredCategoryId = null;
+      var searchTerm = '';
+
+      function getCartMap() {
+        var map = {};
+        StockCart.getItems().forEach(function (item) { map[item.produit_id] = item; });
+        return map;
+      }
+
+      function matchesFilters(produit) {
+        var matchesCategory = !filteredCategoryId || produit.categorie === filteredCategoryId;
+        var matchesSearch = !searchTerm || produit.nom.toLowerCase().indexOf(searchTerm) !== -1;
+        return matchesCategory && matchesSearch;
+      }
+
+      function renderProductCard(produit, cartMap) {
+        var categorie = produit.expand && produit.expand.categorie;
+        var qty = selection[produit.id] || 0;
+        var cartItem = cartMap[produit.id];
+        var inCartQty = cartItem ? cartItem.quantite : 0;
+
+        var imageHtml = produit.image
+          ? '<img src="' + StockAPI.pb.files.getUrl(produit, produit.image, { thumb: '300x200' }) + '" alt="' + StockUI.escapeHtml(produit.nom) + '">'
+          : '<span class="product-image-placeholder">' + (categorie && categorie.icone ? StockUI.escapeHtml(categorie.icone) : '📦') + '</span>';
+
+        var badgeHtml = categorie
+          ? '<span class="badge">' + (categorie.icone ? StockUI.escapeHtml(categorie.icone) + ' ' : '') + StockUI.escapeHtml(categorie.nom) + '</span>'
+          : '';
+
+        var cartNoteHtml = inCartQty > 0
+          ? '<p class="text-sm text-muted">🛒 ' + inCartQty + ' déjà dans le panier</p>'
+          : '';
+
+        var addDisabled = qty === 0 ? ' disabled' : '';
+        var minusDisabled = qty === 0 ? ' disabled' : '';
+        var plusDisabled = qty >= produit.quantite ? ' disabled' : '';
+
+        return (
+          '<div class="card product-card" data-produit-id="' + produit.id + '">' +
+            '<div class="product-image">' + imageHtml + '</div>' +
+            '<div class="product-card-row">' +
+              '<span class="product-card-name">' + StockUI.escapeHtml(produit.nom) + '</span>' +
+              badgeHtml +
+            '</div>' +
+            '<p class="text-sm text-muted">' + produit.quantite + ' disponible(s)</p>' +
+            cartNoteHtml +
+            '<div class="product-card-row">' +
+              '<div class="qty-selector">' +
+                '<button type="button" data-action="minus"' + minusDisabled + '>−</button>' +
+                '<span class="qty-value">' + qty + '</span>' +
+                '<button type="button" data-action="plus"' + plusDisabled + '>+</button>' +
+              '</div>' +
+              '<button type="button" class="btn btn-primary btn-sm" data-action="add"' + addDisabled + '>Ajouter</button>' +
+            '</div>' +
+          '</div>'
+        );
+      }
+
+      function renderGrid() {
+        var grid = document.getElementById('product-grid');
+        var cartMap = getCartMap();
+        var filtered = allProducts.filter(matchesFilters);
+
+        if (!filtered.length) {
+          grid.innerHTML = StockUI.renderEmptyState('Aucun produit ne correspond à votre recherche.');
+          return;
+        }
+
+        grid.innerHTML = filtered.map(function (produit) {
+          return renderProductCard(produit, cartMap);
+        }).join('');
+      }
+
+      function updateFloatingBar() {
+        var bar = document.getElementById('floating-bar');
+        var count = StockCart.getCount();
+        if (count > 0) {
+          bar.hidden = false;
+          document.getElementById('floating-bar-count').textContent =
+            count + ' article' + (count > 1 ? 's' : '') + ' dans le panier';
+        } else {
+          bar.hidden = true;
+        }
+      }
+
+      document.getElementById('search-input').addEventListener('input', function (e) {
+        searchTerm = e.target.value.trim().toLowerCase();
+        renderGrid();
+      });
+
+      document.getElementById('product-grid').addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-action]');
+        if (!btn) {
+          return;
+        }
+        var card = btn.closest('.product-card');
+        var produitId = card.getAttribute('data-produit-id');
+        var produit = allProducts.find(function (p) { return p.id === produitId; });
+        var action = btn.getAttribute('data-action');
+
+        if (action === 'minus') {
+          selection[produitId] = Math.max(0, (selection[produitId] || 0) - 1);
+          renderGrid();
+        } else if (action === 'plus') {
+          selection[produitId] = Math.min(produit.quantite, (selection[produitId] || 0) + 1);
+          renderGrid();
+        } else if (action === 'add') {
+          var qty = selection[produitId] || 0;
+          if (qty > 0) {
+            StockCart.addItem(produit, qty);
+            selection[produitId] = 0;
+            StockUI.showToast(produit.nom + ' ajouté au panier');
+            renderGrid();
+          }
+        }
+      });
+
+      document.getElementById('floating-bar-link').addEventListener('click', function () {
+        window.location.href = '/panier.html';
+      });
+
+      window.addEventListener('cart-updated', updateFloatingBar);
+
+      Promise.all([StockAPI.getCategories(), StockAPI.getProducts()])
+        .then(function (results) {
+          var categories = results[0];
+          allProducts = results[1];
+
+          StockUI.renderCategoryFilters(categories, function (categorieId) {
+            filteredCategoryId = categorieId;
+            renderGrid();
+          });
+          renderGrid();
+          updateFloatingBar();
+        });
+    })();
+  </script>
+</body>
+</html>

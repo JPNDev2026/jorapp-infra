@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock PNJ — Commandes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/theme.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/print.css" media="print">
+</head>
+<body>
+  <div id="nav-container"></div>
+
+  <main class="container mt-lg mb-xl">
+    <h1 class="mb-lg">Commandes</h1>
+
+    <div class="form-group search-bar">
+      <label for="search-input" class="visually-hidden">Rechercher une commande</label>
+      <input type="search" id="search-input" class="input" placeholder="Rechercher par numéro ou description…">
+    </div>
+
+    <div id="commandes-content" class="mt-md"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/cart.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    (function () {
+      StockAuth.checkAuth();
+      StockUI.renderNav('commandes');
+
+      var PER_PAGE = 20;
+      var allCommandes = [];
+      var searchTerm = '';
+      var currentPage = 1;
+
+      function matchesSearch(commande) {
+        if (!searchTerm) {
+          return true;
+        }
+        var numero = (commande.numero || '').toLowerCase();
+        var description = (commande.description || '').toLowerCase();
+        return numero.indexOf(searchTerm) !== -1 || description.indexOf(searchTerm) !== -1;
+      }
+
+      function renderRow(commande) {
+        var collaborateur = (commande.expand && commande.expand.collaborateur) ? StockUI.escapeHtml(commande.expand.collaborateur.nom) : '—';
+        var description = commande.description ? StockUI.escapeHtml(commande.description) : '—';
+        var items = (commande.expand && commande.expand.commande_items_via_commande) || [];
+
+        return (
+          '<tr>' +
+            '<td data-label="Numéro">' + StockUI.escapeHtml(commande.numero) + '</td>' +
+            '<td data-label="Date">' + StockUI.formatDate(commande.date_commande) + '</td>' +
+            '<td data-label="Description">' + description + '</td>' +
+            '<td data-label="Collaborateur">' + collaborateur + '</td>' +
+            '<td data-label="Articles">' + items.length + '</td>' +
+            '<td><a href="/commande_details.html?id=' + commande.id + '">Détail →</a></td>' +
+          '</tr>'
+        );
+      }
+
+      function renderPager(totalPages) {
+        if (totalPages <= 1) {
+          return '';
+        }
+        return (
+          '<div class="flex flex-between mt-md">' +
+            '<button type="button" class="btn btn-outline btn-sm" id="page-prev"' + (currentPage <= 1 ? ' disabled' : '') + '>← Précédent</button>' +
+            '<span class="text-sm text-muted">Page ' + currentPage + ' / ' + totalPages + '</span>' +
+            '<button type="button" class="btn btn-outline btn-sm" id="page-next"' + (currentPage >= totalPages ? ' disabled' : '') + '>Suivant →</button>' +
+          '</div>'
+        );
+      }
+
+      function render() {
+        var container = document.getElementById('commandes-content');
+        var filtered = allCommandes.filter(matchesSearch);
+
+        if (!filtered.length) {
+          container.innerHTML = StockUI.renderEmptyState('Aucune commande trouvée.');
+          return;
+        }
+
+        var totalPages = Math.ceil(filtered.length / PER_PAGE);
+        if (currentPage > totalPages) {
+          currentPage = totalPages;
+        }
+        var start = (currentPage - 1) * PER_PAGE;
+        var pageItems = filtered.slice(start, start + PER_PAGE);
+
+        container.innerHTML =
+          '<table class="table table-responsive">' +
+            '<thead><tr><th>Numéro</th><th>Date</th><th>Description</th><th>Collaborateur</th><th>Articles</th><th></th></tr></thead>' +
+            '<tbody>' + pageItems.map(renderRow).join('') + '</tbody>' +
+          '</table>' +
+          renderPager(totalPages);
+
+        var prevBtn = document.getElementById('page-prev');
+        var nextBtn = document.getElementById('page-next');
+        if (prevBtn) {
+          prevBtn.addEventListener('click', function () { currentPage--; render(); });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener('click', function () { currentPage++; render(); });
+        }
+      }
+
+      document.getElementById('search-input').addEventListener('input', function (e) {
+        searchTerm = e.target.value.trim().toLowerCase();
+        currentPage = 1;
+        render();
+      });
+
+      StockAPI.getCommandes(1, 500).then(function (result) {
+        allCommandes = result.items;
+        render();
+      });
+    })();
+  </script>
+</body>
+</html>

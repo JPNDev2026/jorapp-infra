@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock PNJ — Détail commande</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/theme.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/print.css" media="print">
+</head>
+<body>
+  <div id="nav-container"></div>
+
+  <main class="container mt-lg mb-xl">
+    <div id="commande-content"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/cart.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    (function () {
+      StockAuth.checkAuth();
+      // Sous-page : aucun item de nav actif
+      StockUI.renderNav('');
+
+      var container = document.getElementById('commande-content');
+      var params = new URLSearchParams(window.location.search);
+      var commandeId = params.get('id');
+
+      function renderCommande(commande) {
+        var collaborateur = (commande.expand && commande.expand.collaborateur) ? StockUI.escapeHtml(commande.expand.collaborateur.nom) : '—';
+        var description = commande.description ? StockUI.escapeHtml(commande.description) : '—';
+        var items = (commande.expand && commande.expand.commande_items_via_commande) || [];
+        var hasPrices = items.some(function (item) { return item.prix_unitaire; });
+
+        var rowsHtml = items.map(function (item) {
+          var produitNom = (item.expand && item.expand.produit) ? StockUI.escapeHtml(item.expand.produit.nom) : '—';
+          var prixHtml = item.prix_unitaire ? StockUI.formatCHF(item.prix_unitaire) : '—';
+          var subtotalHtml = item.prix_unitaire ? StockUI.formatCHF(item.prix_unitaire * item.quantite) : '—';
+
+          return (
+            '<tr>' +
+              '<td data-label="Produit">' + produitNom + '</td>' +
+              '<td data-label="Quantité">' + item.quantite + '</td>' +
+              '<td data-label="Prix unitaire">' + prixHtml + '</td>' +
+              '<td data-label="Sous-total">' + subtotalHtml + '</td>' +
+            '</tr>'
+          );
+        }).join('');
+
+        var total = items.reduce(function (sum, item) {
+          return sum + (item.prix_unitaire || 0) * item.quantite;
+        }, 0);
+
+        var totalHtml = hasPrices
+          ? '<div class="cart-total-row"><span>Total</span><span>' + StockUI.formatCHF(total) + '</span></div>'
+          : '';
+
+        container.innerHTML =
+          '<div class="card mb-lg">' +
+            '<div class="product-card-row mb-sm">' +
+              '<h2>' + StockUI.escapeHtml(commande.numero) + '</h2>' +
+              '<span class="text-muted">' + StockUI.formatDate(commande.date_commande) + '</span>' +
+            '</div>' +
+            '<p><strong>Événement :</strong> ' + description + '</p>' +
+            '<p><strong>Collaborateur :</strong> ' + collaborateur + '</p>' +
+          '</div>' +
+          '<div class="card mb-lg">' +
+            '<table class="table table-responsive">' +
+              '<thead><tr><th>Produit</th><th>Quantité</th><th>Prix unitaire</th><th>Sous-total</th></tr></thead>' +
+              '<tbody>' + rowsHtml + '</tbody>' +
+            '</table>' +
+            totalHtml +
+          '</div>' +
+          '<div class="flex mb-xl">' +
+            '<button type="button" class="btn btn-primary" id="print-btn">Imprimer</button>' +
+            '<a href="/commandes.html" class="btn btn-outline">Retour aux commandes</a>' +
+          '</div>';
+
+        document.getElementById('print-btn').addEventListener('click', function () {
+          window.print();
+        });
+      }
+
+      if (!commandeId) {
+        container.innerHTML = StockUI.renderEmptyState('Commande introuvable.');
+      } else {
+        StockAPI.getCommande(commandeId)
+          .then(renderCommande)
+          .catch(function () {
+            container.innerHTML = StockUI.renderEmptyState('Commande introuvable.');
+          });
+      }
+    })();
+  </script>
+</body>
+</html>

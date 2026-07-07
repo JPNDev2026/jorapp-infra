@@ -12,6 +12,8 @@
 #   - web/voucher/* → /var/www/voucher/
 #   - pb-mobilier/pb_hooks/*   → /opt/pb-mobilier/pb_hooks/
 #   - pb-mobilier/pb_public/*  → /opt/pb-mobilier/pb_public/
+#   - pb-stock/pb_hooks/*      → /opt/pb-stock/pb_hooks/
+#   - pb-stock/pb_public/*     → /opt/pb-stock/pb_public/
 #
 # Ne touche PAS:
 #   - pb_data des trois instances (données — gérées par backup/restore)
@@ -24,6 +26,7 @@
 #   sudo bash /opt/jorapp-infra/scripts/deploy.sh nginx     # seulement nginx
 #   sudo bash /opt/jorapp-infra/scripts/deploy.sh web       # seulement les fronts statiques
 #   sudo bash /opt/jorapp-infra/scripts/deploy.sh pb-mobilier  # seulement hooks/public mobilier
+#   sudo bash /opt/jorapp-infra/scripts/deploy.sh pb-stock     # seulement hooks/public stock
 #
 set -euo pipefail
 
@@ -78,15 +81,26 @@ deploy_pb_concours() {
     echo "    systemctl restart pb-concours"
 }
 
+deploy_pb_stock() {
+    echo "→ Déploiement pb-stock (hooks + public)…"
+    rsync -av --delete "$REPO_DIR/pb-stock/pb_hooks/" /opt/pb-stock/pb_hooks/ \
+        --exclude=".gitkeep" --exclude="README.md"
+    rsync -av --delete "$REPO_DIR/pb-stock/pb_public/" /opt/pb-stock/pb_public/ \
+        --exclude=".gitkeep" --exclude="README.md"
+    systemctl restart pb-stock
+    echo "  ✓ pb-stock redémarré."
+}
+
 case "$TARGET" in
-    all)         deploy_nginx; deploy_systemd; deploy_web; deploy_pb_mobilier; deploy_pb_concours  ;;
+    all)         deploy_nginx; deploy_systemd; deploy_web; deploy_pb_mobilier; deploy_pb_concours; deploy_pb_stock ;;
     nginx)       deploy_nginx ;;
     systemd)     deploy_systemd ;;
     web)         deploy_web ;;
     pb-mobilier) deploy_pb_mobilier ;;
     pb-concours) deploy_pb_concours ;;
+    pb-stock)    deploy_pb_stock ;;
     *)
-        echo "Usage : $0 [all|nginx|systemd|web|pb-mobilier]"
+        echo "Usage : $0 [all|nginx|systemd|web|pb-mobilier|pb-concours|pb-stock]"
         exit 1
         ;;
 esac

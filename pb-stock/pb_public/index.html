@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock PNJ — Vue d'ensemble</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/theme.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/print.css" media="print">
+</head>
+<body>
+  <div id="nav-container"></div>
+
+  <main class="container mt-lg mb-xl">
+    <div class="stats-bar mb-lg" id="stats-bar"></div>
+
+    <div class="filters-bar mb-md" id="category-filters"></div>
+
+    <div class="product-grid" id="product-grid"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/cart.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    (function () {
+      StockAuth.checkAuth();
+      StockUI.renderNav('home');
+
+      var allProducts = [];
+
+      function isDateProche(dateLimite) {
+        if (!dateLimite) {
+          return false;
+        }
+        var diffDays = (new Date(dateLimite) - new Date()) / 86400000;
+        return diffDays <= 30;
+      }
+
+      function computeStats(products) {
+        return {
+          total: products.length,
+          alertCount: products.filter(function (p) { return p.quantite < 5; }).length,
+          expiredCount: products.filter(function (p) { return isDateProche(p.date_limite); }).length
+        };
+      }
+
+      function renderStats(products) {
+        var stats = computeStats(products);
+        var el = document.getElementById('stats-bar');
+        el.innerHTML =
+          '<div class="card stat-card"><span class="stat-icon">📦</span><div><div class="stat-value">' + stats.total + '</div><div class="stat-label">produits</div></div></div>' +
+          '<div class="card stat-card"><span class="stat-icon">⚠️</span><div><div class="stat-value">' + stats.alertCount + '</div><div class="stat-label">en alerte</div></div></div>' +
+          '<div class="card stat-card"><span class="stat-icon">⏳</span><div><div class="stat-value">' + stats.expiredCount + '</div><div class="stat-label">périmés / proches</div></div></div>';
+      }
+
+      function renderProductCard(produit) {
+        var categorie = produit.expand && produit.expand.categorie;
+        var badgeHtml = '';
+        if (categorie) {
+          var couleur = categorie.couleur ? StockUI.escapeHtml(categorie.couleur) : '';
+          var badgeStyle = couleur
+            ? ' style="background:' + couleur + '22; border-color:' + couleur + '; color:' + couleur + ';"'
+            : '';
+          badgeHtml = '<span class="badge"' + badgeStyle + '>' + (categorie.icone ? StockUI.escapeHtml(categorie.icone) + ' ' : '') + StockUI.escapeHtml(categorie.nom) + '</span>';
+        }
+
+        var dateHtml = isDateProche(produit.date_limite)
+          ? '<span class="badge alert-warning">Limite ' + StockUI.formatDate(produit.date_limite) + '</span>'
+          : '';
+
+        var fournisseurHtml = produit.fournisseur
+          ? '<p class="text-sm text-muted">' + StockUI.escapeHtml(produit.fournisseur) + '</p>'
+          : '';
+
+        return (
+          '<div class="card product-card">' +
+            '<div class="product-card-row">' +
+              '<span class="product-card-name">' + StockUI.escapeHtml(produit.nom) + '</span>' +
+              badgeHtml +
+            '</div>' +
+            StockUI.renderStockBar(produit.quantite) +
+            '<div class="product-card-row">' +
+              '<span class="text-sm">' + produit.quantite + ' en stock</span>' +
+              dateHtml +
+            '</div>' +
+            fournisseurHtml +
+          '</div>'
+        );
+      }
+
+      function renderProducts(products) {
+        var grid = document.getElementById('product-grid');
+        if (!products.length) {
+          grid.innerHTML = StockUI.renderEmptyState('Aucun produit ne correspond à ce filtre.');
+          return;
+        }
+        var sorted = products.slice().sort(function (a, b) { return a.quantite - b.quantite; });
+        grid.innerHTML = sorted.map(renderProductCard).join('');
+      }
+
+      function applyFilter(categorieId) {
+        var filtered = categorieId
+          ? allProducts.filter(function (p) { return p.categorie === categorieId; })
+          : allProducts;
+        renderProducts(filtered);
+      }
+
+      Promise.all([StockAPI.getCategories(), StockAPI.getProducts()])
+        .then(function (results) {
+          var categories = results[0];
+          allProducts = results[1];
+
+          renderStats(allProducts);
+          StockUI.renderCategoryFilters(categories, applyFilter);
+          renderProducts(allProducts);
+        });
+    })();
+  </script>
+</body>
+</html>

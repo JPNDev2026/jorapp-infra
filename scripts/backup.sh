@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# backup.sh — sauvegarde des pb_data des deux instances PocketBase.
+# backup.sh — sauvegarde des pb_data des instances PocketBase.
 #
 # À exécuter sur le serveur (cron quotidien recommandé).
-# Archive: /var/backups/pocketbase/{pocketbase,pb-mobilier}_YYYYMMDD_HHMMSS.tar.gz
+# Archive: /var/backups/pocketbase/{pocketbase,pb-mobilier,pb-concours,pb-stock}_YYYYMMDD_HHMMSS.tar.gz
 # Rotation: garde les 7 derniers fichiers par instance.
 #
 # Usage:
@@ -52,6 +52,7 @@ backup_instance() {
 backup_instance "pocketbase"  "pocketbase"          "/opt/pocketbase"
 backup_instance "pb-mobilier" "pocketbase-mobilier" "/opt/pb-mobilier"
 backup_instance "pb-concours" "pb-concours"         "/opt/pb-concours"
+backup_instance "pb-stock"    "pb-stock"            "/opt/pb-stock"
 
 echo ""
 echo "Sauvegardes disponibles:"

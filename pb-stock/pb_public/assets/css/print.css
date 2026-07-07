@@ -1,0 +1,79 @@
+/* ==========================================================================
+   print.css — Styles d'impression
+   Utilisé pour l'impression des commandes (commande_details.html)
+   ========================================================================== */
+
+@media print {
+  /* Éléments d'interface masqués à l'impression */
+  .nav,
+  .floating-bar,
+  .btn,
+  .modal-overlay,
+  .pill-filter,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: var(--blanc);
+    color: #000;
+    font-size: 12pt;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  /* Tableau de commande optimisé A4 */
+  .table {
+    box-shadow: none;
+    border: 1px solid #000;
+    width: 100%;
+  }
+
+  .table th,
+  .table td {
+    border: 1px solid #000;
+    color: #000;
+  }
+
+  .table th {
+    background: var(--blanc);
+  }
+
+  .table tbody tr:nth-child(even) {
+    background: var(--blanc);
+  }
+
+  /* Noir et blanc : neutralise les couleurs de la charte */
+  h1,
+  h2,
+  h3,
+  p,
+  span,
+  a {
+    color: #000 !important;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  .badge {
+    border: 1px solid #000;
+    background: var(--blanc);
+    color: #000;
+  }
+
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+}

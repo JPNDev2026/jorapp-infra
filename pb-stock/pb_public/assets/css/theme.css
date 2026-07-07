@@ -1,0 +1,185 @@
+/* ==========================================================================
+   theme.css — Variables CSS, reset, typographie, layout de base
+   Charte graphique PNJ (Parc naturel Jorat) — pb-stock
+   ========================================================================== */
+
+/* Police Google Fonts (DM Sans, graisses 400/500/700) */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+
+/* --------------------------------------------------------------------------
+   Variables CSS — charte graphique PNJ (obligatoire, ne pas modifier)
+   -------------------------------------------------------------------------- */
+:root {
+  --teal:      #1F6481;
+  --lime:      #D7E337;
+  --encre:     #142228;
+  --parchemin: #EDE0BC;
+  --blanc:     #FFFFFF;
+
+  /* Couleurs fonctionnelles dérivées */
+  --success:   #2D8F4E;
+  --warning:   #E6A817;
+  --danger:    #C0392B;
+  --muted:     #6B7280;
+  --bg-light:  #F7F8FA;
+  --border:    #E2E5E9;
+
+  /* Typographie */
+  --font-family: 'DM Sans', sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-lg: 20px;
+  --font-size-xl: 28px;
+
+  /* Espacements */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Arrondis */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* Ombres */
+  --shadow-sm: 0 1px 3px rgba(20, 34, 40, 0.08);
+  --shadow-md: 0 4px 12px rgba(20, 34, 40, 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   Reset minimal
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   Styles de base
+   -------------------------------------------------------------------------- */
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  color: var(--encre);
+  background: var(--bg-light);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  color: var(--encre);
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: var(--font-size-xl);
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+}
+
+p {
+  color: var(--encre);
+}
+
+a {
+  color: var(--teal);
+  transition: color 0.15s ease;
+}
+
+a:hover,
+a:focus-visible {
+  color: var(--encre);
+}
+
+/* --------------------------------------------------------------------------
+   Layout helpers
+   -------------------------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: var(--space-md);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.flex {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
