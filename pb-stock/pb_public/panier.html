@@ -97,9 +97,9 @@
           };
 
           StockAPI.validerCommande(payload)
-            .then(function (commande) {
+            .then(function (result) {
               StockCart.clear();
-              window.location.href = '/commande_details.html?id=' + commande.id;
+              window.location.href = '/commande_details.html?id=' + result.commande_id;
             })
             .catch(function (err) {
               var message = (err && err.data && err.data.message) || (err && err.message) || 'Erreur lors de la validation de la commande.';
