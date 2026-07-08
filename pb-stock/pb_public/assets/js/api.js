@@ -100,6 +100,13 @@
     }).catch(handleError);
   }
 
+  function retournerItem(commandeItemId, quantite) {
+    return pb.send('/api/retourner-item', {
+      method: 'POST',
+      body: { commande_item_id: commandeItemId, quantite: quantite }
+    }).catch(handleError);
+  }
+
   window.StockAPI = {
     pb: pb,
     getProducts: getProducts,
@@ -112,6 +119,7 @@
     getCommandes: getCommandes,
     getCommande: getCommande,
     getCommandeItems: getCommandeItems,
-    validerCommande: validerCommande
+    validerCommande: validerCommande,
+    retournerItem: retournerItem
   };
 })();

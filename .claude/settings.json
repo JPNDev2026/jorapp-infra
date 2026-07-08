@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sL \"https://unpkg.com/lucide-static@latest/icons/x.svg\")"
+    ]
+  }
+}

@@ -132,6 +132,62 @@
     return e.json(200, { commande_id: commandeId, numero: numero });
   });
 
+  // POST /api/retourner-item — retour (partiel ou total) d'une ligne de commande vers le stock
+  routerAdd("POST", "/api/retourner-item", function (e) {
+    var body = e.requestInfo().body || {};
+    var itemId = body.commande_item_id || "";
+    var quantite = body.quantite || 0;
+
+    if (!itemId) {
+      return e.json(400, { error: "Article de commande requis." });
+    }
+    if (quantite <= 0) {
+      return e.json(400, { error: "La quantité à retourner doit être positive." });
+    }
+
+    var result = {};
+
+    try {
+      $app.runInTransaction(function (txApp) {
+        var item;
+        try {
+          item = txApp.findRecordById("commande_items", itemId);
+        } catch (errFind) {
+          throw new BadRequestError("Article de commande introuvable.");
+        }
+
+        var dejaRetourne = item.get("quantite_retournee") || 0;
+        var quantiteCommandee = item.get("quantite") || 0;
+        var restant = quantiteCommandee - dejaRetourne;
+
+        if (quantite > restant) {
+          throw new BadRequestError("Impossible de retourner plus que la quantité restante (" + restant + ").");
+        }
+
+        var produit;
+        try {
+          produit = txApp.findRecordById("produits", item.get("produit"));
+        } catch (errProduit) {
+          throw new BadRequestError("Produit introuvable.");
+        }
+
+        item.set("quantite_retournee", dejaRetourne + quantite);
+        txApp.save(item);
+
+        produit.set("quantite", (produit.get("quantite") || 0) + quantite);
+        txApp.save(produit);
+
+        result.quantite_retournee = dejaRetourne + quantite;
+        result.produit_quantite = produit.get("quantite");
+      });
+    } catch (err) {
+      var message = (err && err.message) ? err.message : "Erreur lors de l'enregistrement du retour.";
+      return e.json(400, { error: message });
+    }
+
+    return e.json(200, result);
+  });
+
   // GET /api/stock-summary — résumé des stocks par catégorie (page home)
   routerAdd("GET", "/api/stock-summary", function (e) {
     var produits = $app.findRecordsByFilter("produits", "actif = true", "", 5000, 0);

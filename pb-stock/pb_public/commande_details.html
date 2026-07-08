@@ -31,27 +31,52 @@
       var container = document.getElementById('commande-content');
       var params = new URLSearchParams(window.location.search);
       var commandeId = params.get('id');
+      var returningItemId = null;
+      var currentCommande = null;
+
+      function renderRow(item) {
+        var produitNom = (item.expand && item.expand.produit) ? StockUI.escapeHtml(item.expand.produit.nom) : '—';
+        var prixHtml = item.prix_unitaire ? StockUI.formatCHF(item.prix_unitaire) : '—';
+        var subtotalHtml = item.prix_unitaire ? StockUI.formatCHF(item.prix_unitaire * item.quantite) : '—';
+
+        var retourne = item.quantite_retournee || 0;
+        var restant = item.quantite - retourne;
+        var retourneHtml = retourne > 0 ? (retourne + ' / ' + item.quantite) : '—';
+
+        var actionHtml;
+        if (restant <= 0) {
+          actionHtml = '<span class="text-sm text-muted">Tout retourné</span>';
+        } else if (returningItemId === item.id) {
+          actionHtml =
+            '<div class="qty-inline">' +
+              '<input type="number" min="1" max="' + restant + '" class="input" id="retour-input" value="' + restant + '">' +
+              '<button type="button" class="btn btn-primary btn-sm" data-action="confirm-retour" data-item-id="' + item.id + '">' + StockUI.icon('check', 14) + '</button>' +
+              '<button type="button" class="btn btn-outline btn-sm" data-action="cancel-retour">' + StockUI.icon('x', 14) + '</button>' +
+            '</div>';
+        } else {
+          actionHtml = '<button type="button" class="btn btn-outline btn-sm" data-action="start-retour" data-item-id="' + item.id + '">Retour</button>';
+        }
+
+        return (
+          '<tr>' +
+            '<td data-label="Produit">' + produitNom + '</td>' +
+            '<td data-label="Quantité">' + item.quantite + '</td>' +
+            '<td data-label="Retourné">' + retourneHtml + '</td>' +
+            '<td data-label="Prix unitaire">' + prixHtml + '</td>' +
+            '<td data-label="Sous-total">' + subtotalHtml + '</td>' +
+            '<td data-label="Retour" class="no-print">' + actionHtml + '</td>' +
+          '</tr>'
+        );
+      }
 
       function renderCommande(commande) {
+        currentCommande = commande;
         var collaborateur = (commande.expand && commande.expand.collaborateur) ? StockUI.escapeHtml(commande.expand.collaborateur.nom) : '—';
         var description = commande.description ? StockUI.escapeHtml(commande.description) : '—';
         var items = (commande.expand && commande.expand.commande_items_via_commande) || [];
         var hasPrices = items.some(function (item) { return item.prix_unitaire; });
 
-        var rowsHtml = items.map(function (item) {
-          var produitNom = (item.expand && item.expand.produit) ? StockUI.escapeHtml(item.expand.produit.nom) : '—';
-          var prixHtml = item.prix_unitaire ? StockUI.formatCHF(item.prix_unitaire) : '—';
-          var subtotalHtml = item.prix_unitaire ? StockUI.formatCHF(item.prix_unitaire * item.quantite) : '—';
-
-          return (
-            '<tr>' +
-              '<td data-label="Produit">' + produitNom + '</td>' +
-              '<td data-label="Quantité">' + item.quantite + '</td>' +
-              '<td data-label="Prix unitaire">' + prixHtml + '</td>' +
-              '<td data-label="Sous-total">' + subtotalHtml + '</td>' +
-            '</tr>'
-          );
-        }).join('');
+        var rowsHtml = items.map(renderRow).join('');
 
         var total = items.reduce(function (sum, item) {
           return sum + (item.prix_unitaire || 0) * item.quantite;
@@ -72,7 +97,7 @@
           '</div>' +
           '<div class="card mb-lg">' +
             '<table class="table table-responsive">' +
-              '<thead><tr><th>Produit</th><th>Quantité</th><th>Prix unitaire</th><th>Sous-total</th></tr></thead>' +
+              '<thead><tr><th>Produit</th><th>Quantité</th><th>Retourné</th><th>Prix unitaire</th><th>Sous-total</th><th class="no-print">Retour</th></tr></thead>' +
               '<tbody>' + rowsHtml + '</tbody>' +
             '</table>' +
             totalHtml +
@@ -87,14 +112,51 @@
         });
       }
 
-      if (!commandeId) {
-        container.innerHTML = StockUI.renderEmptyState('Commande introuvable.');
-      } else {
+      function loadAndRender() {
         StockAPI.getCommande(commandeId)
           .then(renderCommande)
           .catch(function () {
             container.innerHTML = StockUI.renderEmptyState('Commande introuvable.');
           });
+      }
+
+      container.addEventListener('click', function (e) {
+        var target = e.target.closest('[data-action]');
+        if (!target) {
+          return;
+        }
+        var action = target.getAttribute('data-action');
+
+        if (action === 'start-retour') {
+          returningItemId = target.getAttribute('data-item-id');
+          renderCommande(currentCommande);
+        } else if (action === 'cancel-retour') {
+          returningItemId = null;
+          renderCommande(currentCommande);
+        } else if (action === 'confirm-retour') {
+          var itemId = target.getAttribute('data-item-id');
+          var input = document.getElementById('retour-input');
+          var qty = parseInt(input.value, 10);
+          if (isNaN(qty) || qty <= 0) {
+            return;
+          }
+          StockAPI.retournerItem(itemId, qty)
+            .then(function () {
+              returningItemId = null;
+              StockUI.showToast('Retour enregistré : ' + qty + ' unité(s) remise(s) en stock.');
+              loadAndRender();
+            })
+            .catch(function (err) {
+              var message = (err && err.data && err.data.message) || (err && err.message) || 'Erreur lors de l\'enregistrement du retour.';
+              StockUI.showToast(message, 'error');
+            });
+        }
+      });
+
+      if (!commandeId) {
+        container.innerHTML = StockUI.renderEmptyState('Commande introuvable.');
+      } else {
+        loadAndRender();
       }
     })();
   </script>
