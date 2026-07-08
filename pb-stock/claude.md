@@ -35,7 +35,7 @@ L'interface est protégée par un mot de passe partagé unique et accessible via
 
 ---
 
-## 2. Charte graphique PNJ
+## 2. Charte graphique JPN
 
 Toutes les interfaces du parc utilisent cette charte. Elle est **obligatoire** et ne doit pas être adaptée/interprétée.
 
@@ -108,7 +108,7 @@ pb-stock/
 │   │   │   ├── cart.js       # État du panier (localStorage, ajout/retrait/vidage)
 │   │   │   └── ui.js         # Composants UI partagés (rendu nav, badges stock, filtres, modale)
 │   │   └── img/
-│   │       └── Logo_feuille.png  # Logo PNJ
+│   │       └── Logo_feuille.png  # Logo JPN
 │   ├── login.html            # Page de saisie du MDP
 │   ├── index.html            # Vue d'ensemble des stocks (home)
 │   ├── retrait.html          # Sélection de produits (shop-like)
@@ -134,7 +134,7 @@ Les fichiers CSS et JS dans `assets/` sont la source unique pour le style et le 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stock PNJ — [Nom de la page]</title>
+  <title>Stock JPN — [Nom de la page]</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/theme.css">
@@ -252,7 +252,7 @@ Les fichiers CSS et JS dans `assets/` sont la source unique pour le style et le 
 ### 6.1 `login.html`
 
 - Fond `--teal`, carte centrée
-- Logo PNJ en haut
+- Logo JPN en haut
 - Champ password + bouton "Entrer"
 - POST vers `/api/check-password`
 - Succès : stocke un token dans localStorage, redirige vers `index.html`

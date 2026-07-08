@@ -61,8 +61,8 @@
       '<nav class="nav">' +
         '<div class="nav-container">' +
           '<a class="nav-brand" href="/index.html">' +
-            '<img src="/assets/img/Logo_feuille.png" alt="PNJ">' +
-            '<span>Stock PNJ</span>' +
+            '<img src="/assets/img/Logo_feuille.png" alt="JPN">' +
+            '<span>Stock JPN</span>' +
           '</a>' +
           '<button class="nav-toggle" id="nav-toggle" type="button" aria-label="Menu">' + icon('menu', 22) + '</button>' +
           '<div class="nav-links" id="nav-links">' +
