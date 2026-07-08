@@ -108,7 +108,7 @@ pb-stock/
 │   │   │   ├── cart.js       # État du panier (localStorage, ajout/retrait/vidage)
 │   │   │   └── ui.js         # Composants UI partagés (rendu nav, badges stock, filtres, modale)
 │   │   └── img/
-│   │       └── feuille_unique.png  # Logo PNJ
+│   │       └── Logo_feuille.png  # Logo PNJ
 │   ├── login.html            # Page de saisie du MDP
 │   ├── index.html            # Vue d'ensemble des stocks (home)
 │   ├── retrait.html          # Sélection de produits (shop-like)

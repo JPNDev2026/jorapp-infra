@@ -67,7 +67,7 @@
 
         var thumbHtml = produit.image
           ? '<img class="product-thumb" src="' + StockAPI.pb.files.getUrl(produit, produit.image, { thumb: '80x80' }) + '" alt="">'
-          : '<span class="product-thumb">' + (categorie && categorie.icone ? StockUI.escapeHtml(categorie.icone) : '📦') + '</span>';
+          : '<span class="product-thumb">' + (categorie && categorie.icone ? StockUI.escapeHtml(categorie.icone) : StockUI.icon('package', 18)) + '</span>';
 
         var badgeHtml = '—';
         if (categorie) {
@@ -84,7 +84,7 @@
         var qtyHtml = editingId === produit.id
           ? '<div class="qty-inline">' +
               '<input type="number" min="0" class="input" id="qty-edit-input" value="' + produit.quantite + '">' +
-              '<button type="button" class="btn btn-primary btn-sm" data-action="save-qty">✓</button>' +
+              '<button type="button" class="btn btn-primary btn-sm" data-action="save-qty">' + StockUI.icon('check', 14) + '</button>' +
             '</div>'
           : '<div class="qty-display" data-action="edit-qty" role="button" tabindex="0">' +
               StockUI.renderStockBar(produit.quantite) +

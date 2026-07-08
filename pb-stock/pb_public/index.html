@@ -53,9 +53,9 @@
         var stats = computeStats(products);
         var el = document.getElementById('stats-bar');
         el.innerHTML =
-          '<div class="card stat-card"><span class="stat-icon">📦</span><div><div class="stat-value">' + stats.total + '</div><div class="stat-label">produits</div></div></div>' +
-          '<div class="card stat-card"><span class="stat-icon">⚠️</span><div><div class="stat-value">' + stats.alertCount + '</div><div class="stat-label">en alerte</div></div></div>' +
-          '<div class="card stat-card"><span class="stat-icon">⏳</span><div><div class="stat-value">' + stats.expiredCount + '</div><div class="stat-label">périmés / proches</div></div></div>';
+          '<div class="card stat-card"><span class="stat-icon">' + StockUI.icon('package', 28) + '</span><div><div class="stat-value">' + stats.total + '</div><div class="stat-label">produits</div></div></div>' +
+          '<div class="card stat-card"><span class="stat-icon">' + StockUI.icon('triangle-alert', 28) + '</span><div><div class="stat-value">' + stats.alertCount + '</div><div class="stat-label">en alerte</div></div></div>' +
+          '<div class="card stat-card"><span class="stat-icon">' + StockUI.icon('clock', 28) + '</span><div><div class="stat-value">' + stats.expiredCount + '</div><div class="stat-label">périmés / proches</div></div></div>';
       }
 
       function renderProductCard(produit) {

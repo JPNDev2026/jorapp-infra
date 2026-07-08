@@ -45,12 +45,12 @@
             '<span class="cart-item-name">' + StockUI.escapeHtml(item.nom) + '</span>' +
             priceHtml +
             '<div class="qty-selector">' +
-              '<button type="button" data-action="minus">−</button>' +
+              '<button type="button" data-action="minus">' + StockUI.icon('minus', 14) + '</button>' +
               '<span class="qty-value">' + item.quantite + '</span>' +
-              '<button type="button" data-action="plus"' + plusDisabled + '>+</button>' +
+              '<button type="button" data-action="plus"' + plusDisabled + '>' + StockUI.icon('plus', 14) + '</button>' +
             '</div>' +
             subtotalHtml +
-            '<button type="button" class="btn-icon" data-action="remove" aria-label="Supprimer">×</button>' +
+            '<button type="button" class="btn-icon" data-action="remove" aria-label="Supprimer">' + StockUI.icon('trash-2', 16) + '</button>' +
           '</div>'
         );
       }

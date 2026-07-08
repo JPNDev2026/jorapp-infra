@@ -72,6 +72,15 @@
   width: 100%;
 }
 
+/* --------------------------------------------------------------------------
+   Icônes (Lucide, SVG inline)
+   -------------------------------------------------------------------------- */
+.icon {
+  display: inline-block;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+}
+
 .btn-icon {
   width: 32px;
   height: 32px;
@@ -445,6 +454,10 @@ label {
   background: rgba(192, 57, 43, 0.1);
   border-color: var(--danger);
   color: var(--danger);
+}
+
+.alert[hidden] {
+  display: none;
 }
 
 /* --------------------------------------------------------------------------
