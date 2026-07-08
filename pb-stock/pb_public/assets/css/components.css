@@ -611,6 +611,14 @@ label {
   gap: var(--space-sm);
 }
 
+.product-card-category {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
 .product-image {
   width: 100%;
   aspect-ratio: 4 / 3;

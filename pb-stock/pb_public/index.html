@@ -60,13 +60,17 @@
 
       function renderProductCard(produit) {
         var categorie = produit.expand && produit.expand.categorie;
-        var badgeHtml = '';
+
+        var imageHtml = produit.image
+          ? '<img src="' + StockAPI.pb.files.getUrl(produit, produit.image, { thumb: '300x200' }) + '" alt="' + StockUI.escapeHtml(produit.nom) + '">'
+          : '<span class="product-image-placeholder">' + (categorie && categorie.icone ? StockUI.escapeHtml(categorie.icone) : StockUI.icon('package', 40)) + '</span>';
+
+        var categoryHtml = '';
         if (categorie) {
           var couleur = categorie.couleur ? StockUI.escapeHtml(categorie.couleur) : '';
-          var badgeStyle = couleur
-            ? ' style="background:' + couleur + '22; border-color:' + couleur + '; color:' + couleur + ';"'
-            : '';
-          badgeHtml = '<span class="badge"' + badgeStyle + '>' + (categorie.icone ? StockUI.escapeHtml(categorie.icone) + ' ' : '') + StockUI.escapeHtml(categorie.nom) + '</span>';
+          var styleAttr = couleur ? ' style="color:' + couleur + ';"' : '';
+          var iconePart = categorie.icone ? StockUI.escapeHtml(categorie.icone) + ' ' : '';
+          categoryHtml = '<div class="product-card-category"' + styleAttr + '>' + iconePart + StockUI.escapeHtml(categorie.nom) + '</div>';
         }
 
         var dateHtml = isDateProche(produit.date_limite)
@@ -79,10 +83,9 @@
 
         return (
           '<div class="card product-card">' +
-            '<div class="product-card-row">' +
-              '<span class="product-card-name">' + StockUI.escapeHtml(produit.nom) + '</span>' +
-              badgeHtml +
-            '</div>' +
+            '<div class="product-image">' + imageHtml + '</div>' +
+            '<span class="product-card-name">' + StockUI.escapeHtml(produit.nom) + '</span>' +
+            categoryHtml +
             StockUI.renderStockBar(produit.quantite) +
             '<div class="product-card-row">' +
               '<span class="text-sm">' + produit.quantite + ' en stock</span>' +
