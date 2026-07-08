@@ -81,6 +81,15 @@
   flex-shrink: 0;
 }
 
+/* --------------------------------------------------------------------------
+   Actions de ligne (tableau produits)
+   -------------------------------------------------------------------------- */
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
 .btn-icon {
   width: 32px;
   height: 32px;

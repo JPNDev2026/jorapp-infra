@@ -110,7 +110,12 @@
             '<td data-label="Fournisseur">' + fournisseurHtml + '</td>' +
             '<td data-label="Stock">' + qtyHtml + '</td>' +
             '<td data-label="Date limite">' + dateHtml + '</td>' +
-            '<td data-label="Statut"><button type="button" class="btn btn-sm ' + statutClass + '" data-action="toggle-actif">' + statutLabel + '</button></td>' +
+            '<td data-label="Statut">' +
+              '<div class="row-actions">' +
+                '<button type="button" class="btn btn-sm btn-outline" data-action="edit-product" aria-label="Modifier le produit">' + StockUI.icon('pencil', 14) + '</button>' +
+                '<button type="button" class="btn btn-sm ' + statutClass + '" data-action="toggle-actif">' + statutLabel + '</button>' +
+              '</div>' +
+            '</td>' +
           '</tr>'
         );
       }
@@ -169,6 +174,8 @@
             StockUI.showToast(produit.actif ? 'Produit réactivé.' : 'Produit désactivé.');
             renderTable();
           });
+        } else if (action === 'edit-product') {
+          openProductModal(produit);
         }
       });
 
@@ -186,14 +193,15 @@
           }).join('');
       }
 
-      function openAddModal() {
+      function openProductModal(produit) {
         closeAddModal();
+        var isEdit = !!produit;
 
         addModalOverlay = document.createElement('div');
         addModalOverlay.className = 'modal-overlay';
         addModalOverlay.innerHTML =
           '<div class="modal">' +
-            '<div class="modal-header"><h3>Ajouter un produit</h3></div>' +
+            '<div class="modal-header"><h3>' + (isEdit ? 'Modifier le produit' : 'Ajouter un produit') + '</h3></div>' +
             '<form id="product-form">' +
               '<div class="form-group">' +
                 '<label for="p-nom">Nom</label>' +
@@ -204,7 +212,7 @@
                 '<select id="p-categorie" class="select" required></select>' +
               '</div>' +
               '<div class="form-group">' +
-                '<label for="p-quantite">Quantité initiale</label>' +
+                '<label for="p-quantite">Quantité' + (isEdit ? '' : ' initiale') + '</label>' +
                 '<input type="number" id="p-quantite" class="input" min="0" required>' +
               '</div>' +
               '<div class="form-group">' +
@@ -220,7 +228,7 @@
                 '<input type="text" id="p-fournisseur" class="input">' +
               '</div>' +
               '<div class="form-group">' +
-                '<label for="p-image">Image</label>' +
+                '<label for="p-image">Image' + (isEdit ? ' (laisser vide pour conserver l\'actuelle)' : '') + '</label>' +
                 '<input type="file" id="p-image" class="input" accept="image/*">' +
               '</div>' +
               '<p id="product-form-error" class="alert alert-danger" hidden></p>' +
@@ -234,13 +242,24 @@
         document.body.appendChild(addModalOverlay);
         loadCategoriesIntoSelect(document.getElementById('p-categorie'));
 
+        if (isEdit) {
+          document.getElementById('p-nom').value = produit.nom || '';
+          document.getElementById('p-categorie').value = produit.categorie || '';
+          document.getElementById('p-quantite').value = produit.quantite;
+          document.getElementById('p-prix').value = produit.prix || '';
+          document.getElementById('p-date-limite').value = produit.date_limite ? produit.date_limite.slice(0, 10) : '';
+          document.getElementById('p-fournisseur').value = produit.fournisseur || '';
+        }
+
         document.getElementById('product-cancel').addEventListener('click', closeAddModal);
         addModalOverlay.addEventListener('click', function (e) {
           if (e.target === addModalOverlay) {
             closeAddModal();
           }
         });
-        document.getElementById('product-form').addEventListener('submit', onSubmitProduct);
+        document.getElementById('product-form').addEventListener('submit', function (e) {
+          onSubmitProduct(e, isEdit ? produit.id : null);
+        });
       }
 
       function closeAddModal() {
@@ -250,7 +269,7 @@
         addModalOverlay = null;
       }
 
-      function onSubmitProduct(e) {
+      function onSubmitProduct(e, productId) {
         e.preventDefault();
         var errorEl = document.getElementById('product-form-error');
         errorEl.hidden = true;
@@ -259,7 +278,6 @@
         formData.append('nom', document.getElementById('p-nom').value.trim());
         formData.append('categorie', document.getElementById('p-categorie').value);
         formData.append('quantite', document.getElementById('p-quantite').value);
-        formData.append('actif', 'true');
 
         var prix = document.getElementById('p-prix').value;
         if (prix) {
@@ -281,20 +299,30 @@
           formData.append('image', imageFile);
         }
 
-        StockAPI.createProduct(formData)
+        var request;
+        if (productId) {
+          request = StockAPI.updateProduct(productId, formData);
+        } else {
+          formData.append('actif', 'true');
+          request = StockAPI.createProduct(formData);
+        }
+
+        request
           .then(function () {
             closeAddModal();
-            StockUI.showToast('Produit ajouté avec succès.');
+            StockUI.showToast(productId ? 'Produit modifié avec succès.' : 'Produit ajouté avec succès.');
             loadProducts();
           })
           .catch(function (err) {
-            var message = (err && err.data && err.data.message) || (err && err.message) || 'Erreur lors de l\'ajout du produit.';
+            var message = (err && err.data && err.data.message) || (err && err.message) || 'Erreur lors de l\'enregistrement du produit.';
             errorEl.textContent = message;
             errorEl.hidden = false;
           });
       }
 
-      document.getElementById('add-product-btn').addEventListener('click', openAddModal);
+      document.getElementById('add-product-btn').addEventListener('click', function () {
+        openProductModal(null);
+      });
 
       // ---- Chargement initial -------------------------------------------------------------
 
