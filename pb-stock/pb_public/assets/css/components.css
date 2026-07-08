@@ -636,6 +636,11 @@ label {
   object-fit: cover;
 }
 
+.product-image-sm {
+  width: 50%;
+  margin-inline: auto;
+}
+
 .product-thumb {
   width: 40px;
   height: 40px;
