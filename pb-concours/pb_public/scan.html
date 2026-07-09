@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Valider un bon &mdash; Concours PNJ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/assets/Logo_feuille.png">
+<meta name="apple-mobile-web-app-title" content="PNJ scan">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1F6481">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
@@ -76,6 +82,24 @@
     location.href = '/comptoir.html' + (pendingCode ? ('?code=' + encodeURIComponent(pendingCode)) : '');
   }
 
+  // Prolonge la session à chaque ouverture : tant que le comptoir est utilisé
+  // au moins une fois par période de validité du token, l'utilisateur ne se
+  // reconnecte jamais.
+  async function refreshToken() {
+    if (!token) return;
+    try {
+      const r = await fetch('/api/collections/commercants/auth-refresh', {
+        method: 'POST',
+        headers: { 'Authorization': token }
+      });
+      if (r.ok) {
+        const d = await r.json();
+        if (d.token) localStorage.setItem('cmp_token', d.token);
+      }
+    } catch (e) {}
+  }
+  refreshToken();
+
   if (slug) {
     const img = document.getElementById('logo');
     img.onerror = function () { img.src = '/assets/Logo_feuille.png'; };
@@ -146,6 +170,7 @@
       res.classList.remove('hide');
       document.getElementById('code').value = '';
       btn.disabled = false;
+      refreshToken();
     } catch (err) { msg.textContent = err.message; btn.disabled = false; }
   }
 

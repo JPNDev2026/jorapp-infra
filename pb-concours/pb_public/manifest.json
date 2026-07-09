@@ -1,0 +1,15 @@
+{
+  "name": "JoraScan",
+  "short_name": "JoraScan",
+  "start_url": "/comptoir.html",
+  "display": "standalone",
+  "background_color": "#1F6481",
+  "theme_color": "#1F6481",
+  "icons": [
+    {
+      "src": "/assets/Logo_feuille.png",
+      "sizes": "229x260",
+      "type": "image/png"
+    }
+  ]
+}
