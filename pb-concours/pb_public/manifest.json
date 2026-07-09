@@ -7,7 +7,7 @@
   "theme_color": "#1F6481",
   "icons": [
     {
-      "src": "/assets/Logo_feuille.png",
+      "src": "/assets/Logo_feuille_icone.png",
       "sizes": "229x260",
       "type": "image/png"
     }
