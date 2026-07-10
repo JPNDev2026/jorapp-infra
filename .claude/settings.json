@@ -3,7 +3,11 @@
     "allow": [
       "Bash(curl -sL \"https://unpkg.com/lucide-static@latest/icons/x.svg\")",
       "Bash(identify /c/dev/jorapp-infra/pb-concours/pb_public/assets/Logo_feuille.png)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(nslookup concours.jorapp.org)",
+      "Bash(nslookup www.concours.jorapp.org)",
+      "Bash(command -v doctl)",
+      "Bash(doctl account *)"
     ]
   }
 }
