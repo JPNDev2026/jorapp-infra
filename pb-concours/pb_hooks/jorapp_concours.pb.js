@@ -123,13 +123,18 @@ routerAdd("GET", "/complete", (e) => {
   const COOKIE_DAYS          = 60;
   const BASE                 = "https://concours.jorapp.org";
 
+  // Slugs (champ "partenaire") a exclure temporairement du tirage au sort,
+  // ex: partenaire pas encore confirme. Laisser [] pour tirer parmi tous.
+  const PARTNERS_DISABLED = ["perroud"];
+
   function genCode() {
     const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
     let s = ""; for (let i = 0; i < 6; i++) s += A.charAt(Math.floor(Math.random() * A.length)); return s;
   }
 
   function randomPartner() {
-    const pool = $app.findRecordsByFilter("commercants", "gain != ''", "", 500, 0);
+    const pool = $app.findRecordsByFilter("commercants", "gain != ''", "", 500, 0)
+      .filter((r) => !PARTNERS_DISABLED.includes(r.get("partenaire")));
     if (!pool.length) return "";
     return pool[Math.floor(Math.random() * pool.length)].get("partenaire") || "";
   }
