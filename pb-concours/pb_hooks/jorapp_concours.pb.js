@@ -125,7 +125,7 @@ routerAdd("GET", "/complete", (e) => {
 
   // Slugs (champ "partenaire") a exclure temporairement du tirage au sort,
   // ex: partenaire pas encore confirme. Laisser [] pour tirer parmi tous.
-  const PARTNERS_DISABLED = ["perroud"];
+  const PARTNERS_DISABLED = [];
 
   function genCode() {
     const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
