@@ -175,6 +175,17 @@ const handler = (e) => {
           })
         }
       }
+
+      // Valeurs réellement configurées pour un champ "select" (pas des exemples :
+      // ce sont les options telles que définies dans la collection PocketBase).
+      if (f.type === "select") {
+        out.select = {
+          values: f.values || [],
+          maxSelect: (f.maxSelect == null ? null : f.maxSelect),
+          multiple: !!(f.maxSelect && f.maxSelect > 1),
+        }
+      }
+
       fields.push(out)
     }
 

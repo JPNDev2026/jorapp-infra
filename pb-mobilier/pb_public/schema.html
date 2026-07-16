@@ -199,6 +199,8 @@ header.top{
 .attr .desc.empty{color:var(--faint);font-style:italic}
 .relbtn{margin-top:7px;display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:12.5px;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-line);padding:4px 9px;border-radius:6px}
 .relbtn:hover{background:rgba(214,162,74,.26)}
+.values{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.vchip{font-family:var(--mono);font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line-2);padding:3px 8px;border-radius:6px}
 .incoming{display:flex;flex-wrap:wrap;gap:7px}
 .incoming button{font-family:var(--mono);font-size:12.5px;color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:5px 9px;border-radius:6px}
 .incoming button:hover{color:var(--ink);border-color:var(--line-2)}
@@ -346,9 +348,9 @@ const ENDPOINT = "/api/schema-doc";
 
 /* Domaines métier → couleur. Noms comparés sans accents/casse, singulier/pluriel tolérés. */
 const DOMAINS = {
-  conception:   ["plans","modules","licences","contributions","essences","familles"],
+  conception:   ["plans","objets","modules","licences","contributions","essences","familles"],
   acteurs:      ["acteurs","metiers","equipements"],
-  realisations: ["realisations","collectivites","projets","affectations","coalitions"],
+  realisations: ["realisations","collectivites","projets","affectations","consortium"],
 };
 function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function domainOf(name){
@@ -358,26 +360,246 @@ function domainOf(name){
 }
 function domCls(name){const d=domainOf(name);return d?('dom-'+{conception:'conc',acteurs:'act',realisations:'real'}[d]):'dom-none';}
 
+/* ============================ MOCK — démonstration hors-ligne ============================
+   Utilisée uniquement quand /api/schema-doc ne répond pas (voir bannière "démonstration").
+   En direct, la structure vient toujours du vrai PocketBase et les définitions de la
+   collection "metadonnee" (éditable depuis l'admin PocketBase) — ceci n'est qu'un repli
+   local, reconstruit à partir de l'historique des migrations (pb_migrations/) au 2026-07-16.
+
+   ── Pour changer un TEXTE de définition affiché en mode démo : édite uniquement
+      MOCK_DESCRIPTIONS ci-dessous ("Collection::attribut": "texte"). Pas besoin de
+      toucher à la structure des champs plus bas.
+   ── Pour changer la STRUCTURE (type, relation, valeurs d'un select…) : édite le
+      tableau `cols` dans MOCK, plus bas. Chaque champ est déclaré avec d(nom, type, options).
+================================================================================ */
+const MOCK_DESCRIPTIONS = {
+  "Plans::version": "Numéro de version pour suivre les évolutions du plan.",
+  "Plans::auteur": "Personne ou structure qui a conçu le plan.",
+  "Plans::contributions": "Apports de contributeurs sur le plan.",
+  "Plans::licences": "Licences encadrant la réutilisation du plan.",
+
+  "Objets::nom": "Nom du plan de mobilier, qui permet de l'identifier.",
+  "Objets::famille": "Famille typologique à laquelle appartient le plan.",
+  "Objets::fonctionnalites": "Usages que remplit l'objet (se reposer, informer, jouer, etc.).",
+  "Objets::service": "Indique si l'objet a un rôle passif ou actif.",
+  "Objets::description": "Présentation libre du plan et de son intention.",
+  "Objets::statut_maturite": "Niveau d'avancement du plan, du concept au produit fini.",
+  "Objets::essences_compatibles": "Essences de bois adaptées à la fabrication de l'objet.",
+
+  "Modules::nom": "Nom du module, élément constitutif issu d'un plan.",
+  "Modules::objets": "Objet (plan) dont le module est dérivé.",
+  "Modules::metiers": "Métiers nécessaires à la fabrication du module.",
+  "Modules::statut": "État d'avancement du module, de l'esquisse au produit.",
+  "Modules::est_kit": "Indique si le module est fourni en kit à assembler.",
+
+  "Licences::type": "Nom ou catégorie de la licence.",
+  "Licences::condition": "Conditions et obligations liées à la licence.",
+  "Licences::perimetre": "Étendue des droits accordés (ouverte, non commerciale, etc.).",
+
+  "Contributions::categories": "Indique si la contribution porte sur un plan ou un module.",
+  "Contributions::contributeurs": "Personne(s) ayant réalisé la contribution.",
+  "Contributions::types": "Nature de la contribution (conception, amélioration, validation, retour d'expérience).",
+  "Contributions::date": "Date de la contribution.",
+
+  "Essences::categories": "Grande famille de bois : résineux ou feuillus.",
+  "Essences::nom": "Nom courant de l'essence (chêne, hêtre, épicéa, etc.).",
+  "Essences::traitements": "Indique si le bois est traité ou non.",
+
+  "Familles::typologies": "Type d'usage ou de contexte du mobilier (rustique forestier, urbain, pédagogique, etc.).",
+
+  "Metiers::nom": "Nom du métier de la filière (scieur, menuisier, charpentier, etc.).",
+
+  "Acteurs::nom": "Nom de l'acteur de la filière (entreprise, atelier, indépendant).",
+  "Acteurs::types": "Type(s) d'activité dans la chaîne (transformation, conception, etc.).",
+  "Acteurs::metiers": "Métiers exercés par l'acteur.",
+  "Acteurs::Adresse": "Adresse de localisation de l'acteur.",
+  "Acteurs::site_web": "Adresse du site internet de l'acteur.",
+  "Acteurs::label_bois_suisse": "Statut de l'acteur vis-à-vis du label Bois Suisse.",
+  "Acteurs::statuts": "État de la relation avec l'acteur dans le réseau (pressenti, référencé, etc.).",
+  "Acteurs::capacite": "Capacité de production (pièce unique, petite/moyenne/grande série).",
+  "Acteurs::sur_mesure": "Indique si l'acteur réalise des pièces sur mesure.",
+
+  "Equipements::acteur": "Acteur qui possède ou met à disposition l'équipement.",
+  "Equipements::sechage": "Moyens de séchage du bois (four, aire de séchage).",
+  "Equipements::stockage": "Moyens de stockage (hangar, abris, place de stockage).",
+  "Equipements::sciage": "Moyens de sciage (scie fixe, à façon, mobile).",
+  "Equipements::transformation": "Équipements de transformation (CNC, raboteuse, presse, etc.).",
+  "Equipements::serrurie": "Équipements de serrurerie/métal (soudure, plieuse).",
+  "Equipements::finition": "Équipements de finition (cabine de traitement).",
+  "Equipements::levage_transport": "Moyens de levage et de transport (grue, camion, remorque).",
+  "Equipements::disponibilite": "Disponibilité de l'équipement (immédiate ou sur réservation).",
+  "Equipements::ouverture": "Conditions d'ouverture de l'équipement aux autres acteurs.",
+  "Equipements::model": "Modèle économique d'accès (gratuit, facturé, réciprocité, location).",
+  "Equipements::acces": "Modalités pratiques d'accès (équipement déplacé, travail/prestation sur site).",
+
+  "Collectivites::nom": "Nom de la collectivité publique.",
+  "Collectivites::type": "Type de collectivité selon sa taille ou son statut.",
+  "Collectivites::mode_decision": "Manière dont la collectivité prend ses décisions d'achat.",
+
+  "Projets::collectivites": "Collectivité à l'origine ou destinataire du projet.",
+  "Projets::besoins": "Description des besoins exprimés pour le projet.",
+  "Projets::objet": "Objet(s) de mobilier envisagé(s) pour répondre au projet.",
+  "Projets::statut": "État d'avancement du projet (émergent, cadrage, production, etc.).",
+  "Projets::consortium": "Consortium d'acteurs chargé du projet.",
+
+  "Affectations::projet": "Projet concerné par l'affectation.",
+  "Affectations::modules": "Modules à produire dans le cadre de l'affectation.",
+  "Affectations::prestataires": "Acteurs chargés de réaliser le travail.",
+  "Affectations::statuts": "État de l'affectation (à pourvoir, assignée, réalisée, etc.).",
+
+  "Consortium::type": "Forme de la coalition (consortium ou sous-traitance).",
+  "Consortium::acteurs": "Acteurs membres du consortium.",
+  "Consortium::porteurs": "Acteurs qui portent et coordonnent le consortium.",
+  "Consortium::projet": "Projet(s) auxquels le consortium est rattaché.",
+
+  "Realisations::objets": "Objet (plan) de mobilier effectivement réalisé.",
+  "Realisations::collectivite": "Collectivité pour laquelle la réalisation a été faite.",
+  "Realisations::acteurs_implique": "Acteur(s) ayant réalisé l'objet (cas d'une réalisation individuelle).",
+  "Realisations::consortium_impliques": "Consortium ayant réalisé l'objet (cas d'une réalisation collective).",
+  "Realisations::localisation": "Coordonnées GPS du lieu d'implantation de la réalisation.",
+  "Realisations::photos": "Photographies de l'objet réalisé.",
+  "Realisations::commentaires": "Remarques et observations libres sur la réalisation.",
+  "Realisations::bilan_carbone": "Bilan carbone estimé de la réalisation.",
+  "Realisations::date": "Date de la réalisation.",
+
+  "metadonnee::table": "Table décrite.",
+  "metadonnee::attribut": "Attribut décrit.",
+  "metadonnee::definition": "Définition affichée.",
+  "metadonnee::lien": "Table (et éventuellement attribut) référencée par cet attribut, si c'est une relation.",
+};
+
 /* ============================ MOCK ============================ */
 const MOCK = (() => {
-  const d = (n,t,opts={}) => Object.assign({id:"f_"+n,name:n,type:t,required:!!opts.req,hidden:false,system:false,description:opts.desc||""},
-    opts.rel?{relation:{target:opts.rel,targetId:"c_"+opts.rel,maxSelect:opts.multi?99:1,multiple:!!opts.multi}}:{});
-  const C = (name,type,fields)=>({id:"c_"+name,name,type,system:false,fields});
+  const d = (n,t,opts={}) => Object.assign(
+    {id:"f_"+n,name:n,type:t,required:!!opts.req,hidden:false,system:false,description:""},
+    opts.rel    ? {relation:{target:opts.rel,targetId:"c_"+opts.rel,maxSelect:opts.multi?99:1,multiple:!!opts.multi}} : {},
+    opts.select ? {select:{values:opts.select,maxSelect:opts.multi?99:1,multiple:!!opts.multi}} : {}
+  );
+  const C = (name,type,fields) => ({
+    id:"c_"+name, name, type, system:false,
+    fields: fields.map(f=>({...f, description: MOCK_DESCRIPTIONS[name+"::"+f.name] || ""})),
+  });
   const cols = [
-    C("Plans","base",[d("nom","text",{req:1,desc:"Nom du plan de mobilier."}),d("famille","relation",{rel:"Familles",desc:"Famille de produits."}),d("essence","relation",{rel:"Essences",desc:"Essence recommandée."}),d("licence","relation",{rel:"Licences",desc:"Licence du plan."}),d("auteur","relation",{rel:"Acteurs",desc:"Auteur du plan."})]),
-    C("Modules","base",[d("nom","text",{req:1,desc:"Module constructif."}),d("plan","relation",{rel:"Plans",desc:"Plan parent."})]),
-    C("Licences","base",[d("nom","text",{req:1,desc:"Type de licence open-source."}),d("url","url",{})]),
-    C("Contributions","base",[d("plan","relation",{rel:"Plans",desc:"Plan contribué."}),d("acteur","relation",{rel:"Acteurs",desc:"Contributeur."}),d("date","date",{})]),
-    C("Essences","base",[d("nom","text",{req:1,desc:"Essence de bois."}),d("famille","relation",{rel:"Familles",desc:"Famille botanique."})]),
-    C("Familles","base",[d("nom","text",{req:1,desc:"Famille (produits ou botanique)."})]),
-    C("Acteurs","base",[d("nom","text",{req:1,desc:"Nom de l'acteur."}),d("metier","relation",{rel:"Metiers",desc:"Métier principal."}),d("equipement","relation",{rel:"Equipements",multi:1,desc:"Équipements disponibles."})]),
-    C("Metiers","base",[d("nom","text",{req:1,desc:"Métier du bois."})]),
-    C("Equipements","base",[d("nom","text",{req:1,desc:"Équipement / machine."})]),
-    C("Collectivites","base",[d("nom","text",{req:1,desc:"Collectivité commanditaire."}),d("npa","number",{})]),
-    C("Projets","base",[d("nom","text",{req:1,desc:"Projet de réalisation."}),d("collectivite","relation",{rel:"Collectivites",desc:"Collectivité porteuse."}),d("plan","relation",{rel:"Plans",multi:1,desc:"Plans mobilisés."})]),
-    C("Affectations","base",[d("projet","relation",{rel:"Projets",desc:"Projet concerné."}),d("acteur","relation",{rel:"Acteurs",desc:"Acteur affecté."})]),
-    C("Coalitions","base",[d("nom","text",{req:1,desc:"Coalition d'acteurs."}),d("acteur","relation",{rel:"Acteurs",multi:1,desc:"Membres."})]),
-    C("metadonee","base",[d("table","text",{req:1,desc:"Table décrite."}),d("attribut","text",{req:1,desc:"Attribut décrit."}),d("definition","editor",{desc:"Définition affichée."})]),
+    C("Plans","base",[
+      d("version","number"),
+      d("auteur","text"),
+      d("contributions","relation",{rel:"Contributions",multi:1}),
+      d("licences","relation",{rel:"Licences",multi:1}),
+      d("fichiers","file"),
+    ]),
+    C("Objets","base",[
+      d("nom","text",{req:1}),
+      d("famille","relation",{rel:"Familles"}),
+      d("fonctionnalites","select",{select:["reposer-socialiser","informer-orienter","proteger-abriter","jouer","structurer-proteger","gerer-assainir"]}),
+      d("service","text"),
+      d("description","text"),
+      d("statut_maturite","text"),
+      d("essences_compatibles","relation",{rel:"Essences",multi:1}),
+      d("cout_indicatif","number"),
+      d("dimensions_standards","number"),
+      d("photos","file"),
+      d("realisations","relation",{rel:"Realisations",multi:1}),
+    ]),
+    C("Modules","base",[
+      d("nom","text",{req:1}),
+      d("objets","relation",{rel:"Objets"}),
+      d("metiers","relation",{rel:"Metiers"}),
+      d("statut","text"),
+      d("est_kit","bool"),
+    ]),
+    C("Licences","base",[
+      d("type","text"),
+      d("condition","text"),
+      d("perimetre","text"),
+    ]),
+    C("Contributions","base",[
+      d("categories","text"),
+      d("contributeurs","text"),
+      d("types","text"),
+      d("date","date"),
+    ]),
+    C("Essences","base",[
+      d("categories","text"),
+      d("nom","text",{req:1}),
+      d("traitements","text"),
+    ]),
+    C("Familles","base",[
+      d("typologies","text"),
+    ]),
+    C("Metiers","base",[
+      d("nom","text",{req:1}),
+    ]),
+    C("Acteurs","base",[
+      d("nom","text",{req:1}),
+      d("types","text"),
+      d("metiers","relation",{rel:"Metiers"}),
+      d("Adresse","text"),
+      d("site_web","url"),
+      d("label_bois_suisse","text"),
+      d("statuts","text"),
+      d("capacite","text"),
+      d("sur_mesure","text"),
+      d("geoPoint","geoPoint"),
+    ]),
+    C("Equipements","base",[
+      d("acteur","relation",{rel:"Acteurs"}),
+      d("sechage","text"),
+      d("stockage","text"),
+      d("sciage","text"),
+      d("transformation","text"),
+      d("serrurie","text"),
+      d("finition","text"),
+      d("levage_transport","text"),
+      d("disponibilite","text"),
+      d("ouverture","text"),
+      d("model","text"),
+      d("acces","text"),
+    ]),
+    C("Collectivites","base",[
+      d("nom","text",{req:1}),
+      d("type","text"),
+      d("mode_decision","text"),
+    ]),
+    C("Projets","base",[
+      d("collectivites","relation",{rel:"Collectivites"}),
+      d("intitules","text"),
+      d("besoins","text"),
+      d("objet","relation",{rel:"Objets",multi:1}),
+      d("statut","text"),
+      d("consortium","relation",{rel:"Consortium",multi:1}),
+      d("budget","number"),
+      d("documents","file"),
+      d("delais","autodate"),
+    ]),
+    C("Affectations","base",[
+      d("projet","relation",{rel:"Projets"}),
+      d("modules","relation",{rel:"Modules",multi:1}),
+      d("prestataires","relation",{rel:"Acteurs",multi:1}),
+      d("statuts","text"),
+    ]),
+    C("Consortium","base",[
+      d("type","text"),
+      d("acteurs","relation",{rel:"Acteurs",multi:1}),
+      d("porteurs","relation",{rel:"Acteurs",multi:1}),
+      d("projet","relation",{rel:"Projets",multi:1}),
+    ]),
+    C("Realisations","base",[
+      d("objets","relation",{rel:"Objets"}),
+      d("collectivite","relation",{rel:"Collectivites"}),
+      d("acteurs_implique","relation",{rel:"Acteurs"}),
+      d("consortium_impliques","relation",{rel:"Consortium",multi:1}),
+      d("localisation","geoPoint"),
+      d("photos","file"),
+      d("commentaires","text"),
+      d("bilan_carbone","text"),
+      d("date","date"),
+    ]),
+    C("metadonnee","base",[
+      d("table","text",{req:1}),
+      d("attribut","text",{req:1}),
+      d("definition","editor"),
+      d("lien","text"),
+    ]),
   ];
   const links=[];
   cols.forEach(c=>c.fields.forEach(f=>{if(f.relation)links.push({from:c.name,fromField:f.name,to:f.relation.target,multiple:f.relation.multiple,self:c.name===f.relation.target});}));
@@ -519,7 +741,7 @@ function renderNodes(){
       const row=el("div","frow"+(f.type==="relation"?" rel":""));row.dataset.field=f.name;
       if(f.required){row.appendChild(el("span","req"));}
       const fn=el("span","fname");fn.textContent=f.name;
-      const ft=el("span","ftype");ft.textContent=f.type==="relation"?("→ "+(f.relation?f.relation.target:"?")):f.type;
+      const ft=el("span","ftype");ft.textContent=f.type==="relation"?("→ "+(f.relation?f.relation.target:"?")):(f.type==="select"&&f.select&&f.select.values?f.type+" ·"+f.select.values.length:f.type);
       row.appendChild(fn);row.appendChild(ft);
       if(f.type==="relation"){const a=el("span","anchor");a.dataset.field=f.name;row.appendChild(a);}
       body.appendChild(row);
@@ -591,9 +813,15 @@ function renderInspector(){
     const a=el("div","attr"+(f.type==="relation"?" rel":""));
     const flags=[`<span class="chip">${esc(f.type)}</span>`];
     if(f.required)flags.push('<span class="chip req">requis</span>');
+    if(f.type==="select"&&f.select&&f.select.multiple)flags.push('<span class="chip">multi</span>');
     let html=`<div class="top"><span class="an">${esc(f.name)}</span>${flags.join("")}</div>`;
     html+=`<div class="desc${f.description?'':' empty'}">${f.description?esc(f.description):'— pas de définition dans metadonee'}</div>`;
     a.innerHTML=html;
+    if(f.type==="select"&&f.select&&f.select.values&&f.select.values.length){
+      const vwrap=el("div","values");
+      f.select.values.forEach(v=>{const chip=el("span","vchip");chip.textContent=v;vwrap.appendChild(chip);});
+      a.appendChild(vwrap);
+    }
     if(f.type==="relation"&&f.relation){
       const b=el("button","relbtn");b.innerHTML="→ "+esc(f.relation.target)+(f.relation.multiple?" ·∗":"");
       b.onclick=()=>{S.selected=null;select(f.relation.target);focusNode(f.relation.target);};
