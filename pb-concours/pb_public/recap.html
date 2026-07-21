@@ -17,7 +17,6 @@
     background:#f4f2ec; color:var(--encre); min-height:100vh;
   }
 
-  /* --- Login --- */
   #login-screen {
     min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:18px; padding:24px; background:var(--teal); position:relative;
@@ -41,7 +40,6 @@
   .btn:hover:not(:disabled) { filter:brightness(.96) }
   .msg { font-size:13px; color:#b23b3b; text-align:center; min-height:18px; margin-top:12px }
 
-  /* --- Dashboard --- */
   #dashboard { display:none; max-width:1080px; margin:0 auto; padding:16px 14px 50px }
   .topbar { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; gap:10px; flex-wrap:wrap }
   .topbar h1 { font-size:18px; color:var(--teal); font-weight:700; line-height:1.3 }
@@ -49,11 +47,11 @@
   .logout-btn { background:none; border:1.5px solid var(--teal); color:var(--teal); border-radius:8px; padding:9px 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap }
   .logout-btn:hover { background:var(--teal); color:var(--blanc) }
 
-  .section { background:var(--blanc); border-radius:14px; padding:18px 16px; margin-bottom:16px; box-shadow:0 2px 12px rgba(20,34,40,.08) }
+  .section { background:var(--blanc); border-radius:14px; padding:18px 16px; margin-bottom:14px; box-shadow:0 2px 12px rgba(20,34,40,.08) }
   .section h2 { font-size:14.5px; color:var(--teal); font-weight:700; margin-bottom:4px }
   .section .desc { font-size:12px; color:var(--gris); margin-bottom:14px; line-height:1.5 }
 
-  .kpis { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:6px }
+  .kpis { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:14px }
   .kpi { background:#f4f2ec; border-radius:10px; padding:12px 8px; text-align:center }
   .kpi .n { font-size:22px; font-weight:700; color:var(--teal); line-height:1.1 }
   .kpi .l { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--gris); margin-top:4px; line-height:1.3 }
@@ -61,62 +59,79 @@
   .kpi.perdu .n { color:var(--gris) }
   .kpi.encaisse .n { color:var(--teal) }
 
-  /* Tableau desktop (>= 640px) */
+  .mini-chart { display:flex; flex-direction:column; gap:9px; margin-bottom:4px }
+  .mini-row { display:flex; align-items:center; gap:8px }
+  .mini-label {
+    flex:0 0 auto; width:38%; max-width:150px; font-size:12px; color:var(--encre);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    display:flex; align-items:center; gap:6px;
+  }
+  .mini-track { flex:1; height:16px; background:#ece9e1; border-radius:5px; overflow:hidden; position:relative; min-width:40px }
+  .mini-fill { height:100%; border-radius:5px; transition:width .3s ease }
+  .mini-fill.qr_partenaire { background:var(--teal) }
+  .mini-fill.qr_lieu { background:var(--lime) }
+  .mini-fill.web { background:#c98a3e }
+  .mini-val { flex:0 0 auto; width:34px; text-align:right; font-size:12px; font-weight:700; font-variant-numeric:tabular-nums }
+
+  .badge { display:inline-block; width:8px; height:8px; border-radius:50%; flex:0 0 auto }
+  .badge.qr_partenaire { background:var(--teal) }
+  .badge.qr_lieu { background:var(--lime) }
+  .badge.web { background:#c98a3e }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--gris); margin-top:12px }
+  .legend span { display:inline-flex; align-items:center; gap:6px }
+  .legend i { width:9px; height:9px; border-radius:3px; display:inline-block }
+
+  .accordion-toggle {
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    width:100%; background:#f4f2ec; border:none; border-radius:9px;
+    padding:11px 14px; margin-top:12px; cursor:pointer; font-family:inherit;
+    font-size:12.5px; font-weight:700; color:var(--teal-deep);
+  }
+  .accordion-toggle:active { filter:brightness(.97) }
+  .accordion-toggle .chevron { transition:transform .2s ease; font-size:14px; color:var(--teal) }
+  .accordion-toggle[aria-expanded="true"] .chevron { transform:rotate(180deg) }
+
+  .accordion-panel { display:none; margin-top:10px }
+  .accordion-panel.open { display:block }
+
   table { width:100%; border-collapse:collapse; font-size:13px }
   th, td { text-align:left; padding:8px 6px; border-bottom:1px solid #ece9e1 }
   th { color:var(--gris); font-weight:700; text-transform:uppercase; font-size:10.5px; letter-spacing:.05em }
   tr:last-child td { border-bottom:none }
   td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap }
 
-  .badge { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; flex:0 0 auto }
-  .badge.qr_partenaire { background:var(--teal) }
-  .badge.qr_lieu { background:var(--lime) }
-  .badge.web { background:#c98a3e }
-
   .taux-pill { display:inline-block; padding:2px 8px; border-radius:20px; font-size:12px; font-weight:700 }
   .taux-haut { background:#e3f3e9; color:#2b7a45 }
   .taux-moyen { background:#fdf3d8; color:#9a7412 }
   .taux-bas { background:#fbe4e4; color:#b23b3b }
 
-  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--gris); margin-top:10px }
-  .legend span { display:inline-flex; align-items:center; gap:6px }
-  .legend i { width:9px; height:9px; border-radius:3px; display:inline-block }
-
   .loading, .empty { text-align:center; color:var(--gris); font-size:13px; padding:18px 0 }
   .footer { text-align:center; font-size:10.5px; color:var(--gris); text-transform:uppercase; letter-spacing:.08em; margin-top:6px }
 
-  /* --- Mode carte pour mobile : le tableau devient une liste de cartes --- */
   @media (max-width: 640px) {
-    .kpis { grid-template-columns:repeat(3, 1fr); gap:8px }
     .kpi .n { font-size:19px }
     .kpi .l { font-size:9px }
+    .mini-label { width:34%; font-size:11.5px }
 
     table.responsive-table thead { display:none }
     table.responsive-table, table.responsive-table tbody, table.responsive-table tr, table.responsive-table td {
       display:block; width:100%;
     }
-    table.responsive-table tr {
-      border:1px solid #ece9e1; border-radius:10px; padding:10px 12px; margin-bottom:10px;
-    }
-    table.responsive-table td {
-      display:flex; justify-content:space-between; align-items:center;
-      border-bottom:1px solid #f4f2ec; padding:6px 0; font-size:13px;
-    }
+    table.responsive-table tr { border:1px solid #ece9e1; border-radius:10px; padding:10px 12px; margin-bottom:10px }
+    table.responsive-table td { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f4f2ec; padding:6px 0; font-size:13px }
     table.responsive-table td:last-child { border-bottom:none }
     table.responsive-table td::before {
       content:attr(data-label); color:var(--gris); font-size:10.5px;
       text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-right:10px;
     }
-    table.responsive-table td.main-row {
-      font-weight:700; font-size:14.5px; padding-bottom:8px;
-    }
+    table.responsive-table td.main-row { font-weight:700; font-size:14.5px; padding-bottom:8px }
     table.responsive-table td.main-row::before { content:'' }
   }
 </style>
 </head>
 <body>
 
-  <!-- LOGIN -->
   <div id="login-screen">
     <div class="logo-chip"><img src="/assets/Logo_feuille.png" alt="Parc naturel du Jorat"></div>
     <div class="card">
@@ -131,7 +146,6 @@
     </div>
   </div>
 
-  <!-- DASHBOARD -->
   <div id="dashboard">
     <div class="topbar">
       <div>
@@ -142,15 +156,23 @@
     </div>
 
     <div class="section">
-      <h2>Sondages complétés par jour</h2>
-      <div class="desc">Par jour, détail de chaque partenaire, emplacement et canal web ayant généré une participation terminée (gagnant, perdu ou encaissé).</div>
-      <div id="completes-table"><div class="loading">Chargement…</div></div>
+      <h2>Sondages complétés par provenance</h2>
+      <div class="desc">Total sur la période, par partenaire, emplacement et canal web.</div>
+      <div id="completes-chart"><div class="loading">Chargement…</div></div>
+      <button class="accordion-toggle" data-target="completes-detail" aria-expanded="false">
+        <span>Voir le détail par jour</span><span class="chevron">▾</span>
+      </button>
+      <div class="accordion-panel" id="completes-detail"></div>
     </div>
 
     <div class="section">
       <h2>Taux de conversion par provenance</h2>
-      <div class="desc">Part des engagements (scans/ouvertures) qui aboutissent à un sondage complété, pour chaque partenaire, emplacement ou canal. Le meilleur indicateur pour savoir où le dispositif fonctionne.</div>
-      <div id="conversion-table"><div class="loading">Chargement…</div></div>
+      <div class="desc">Part des engagements qui aboutissent à un sondage complété — le meilleur indicateur pour savoir où le dispositif fonctionne.</div>
+      <div id="conversion-chart"><div class="loading">Chargement…</div></div>
+      <button class="accordion-toggle" data-target="conversion-detail" aria-expanded="false">
+        <span>Voir le détail chiffré</span><span class="chevron">▾</span>
+      </button>
+      <div class="accordion-panel" id="conversion-detail"></div>
       <div class="legend">
         <span><i style="background:var(--teal)"></i> QR partenaire</span>
         <span><i style="background:var(--lime)"></i> QR emplacement</span>
@@ -160,15 +182,23 @@
 
     <div class="section">
       <h2>Gagnants et perdants par partenaire</h2>
-      <div class="desc">Détail des tirages : gagnants non encore encaissés, bons déjà encaissés, et perdants.</div>
+      <div class="desc">Détail des tirages sur la période.</div>
       <div class="kpis" id="kpis-totaux"></div>
-      <div id="partenaires-table"><div class="loading">Chargement…</div></div>
+      <div id="partenaires-chart"></div>
+      <button class="accordion-toggle" data-target="partenaires-detail" aria-expanded="false">
+        <span>Voir le détail par partenaire</span><span class="chevron">▾</span>
+      </button>
+      <div class="accordion-panel" id="partenaires-detail"></div>
     </div>
 
     <div class="section">
-      <h2>Engagements par jour</h2>
-      <div class="desc">Chaque ouverture réelle d'un lien de scan, par jour et par provenance nommée — tous statuts confondus (y compris non terminés).</div>
-      <div id="engagements-table"><div class="loading">Chargement…</div></div>
+      <h2>Engagements par provenance</h2>
+      <div class="desc">Tous les scans/ouvertures, complétés ou non, par partenaire, emplacement et canal.</div>
+      <div id="engagements-chart"><div class="loading">Chargement…</div></div>
+      <button class="accordion-toggle" data-target="engagements-detail" aria-expanded="false">
+        <span>Voir le détail par jour</span><span class="chevron">▾</span>
+      </button>
+      <div class="accordion-panel" id="engagements-detail"></div>
     </div>
 
     <div class="footer">Parc naturel périurbain du Jorat</div>
@@ -220,12 +250,85 @@
     return categorie === 'qr_partenaire' ? 'qr_partenaire' : (categorie === 'web' ? 'web' : 'qr_lieu');
   }
 
-  // Reconstitue, pour chaque nom rencontré dans les données par jour, sa catégorie
-  // (à partir de conversion_par_provenance, qui porte cette info).
   function buildCategorieParNom(conversionData) {
     const map = {};
     for (const c of conversionData) map[c.nom] = c.categorie;
     return map;
+  }
+
+  function totalParNom(donneesParJour) {
+    const totaux = {};
+    for (const jour in donneesParJour) {
+      for (const nom in donneesParJour[jour]) {
+        totaux[nom] = (totaux[nom] || 0) + donneesParJour[jour][nom];
+      }
+    }
+    return totaux;
+  }
+
+  function renderMiniChart(containerId, totaux, categorieParNom, maxItems) {
+    const el = document.getElementById(containerId);
+    const entries = Object.keys(totaux)
+      .map(nom => ({ nom, valeur: totaux[nom], categorie: categorieParNom[nom] || 'qr_lieu' }))
+      .sort((a, b) => b.valeur - a.valeur)
+      .slice(0, maxItems || 8);
+
+    if (!entries.length) { el.innerHTML = '<div class="empty">Aucune donnée sur la période.</div>'; return; }
+
+    const max = Math.max(...entries.map(e => e.valeur), 1);
+    let html = '<div class="mini-chart">';
+    for (const e of entries) {
+      const pct = Math.max((e.valeur / max) * 100, 4);
+      html += `<div class="mini-row">
+        <div class="mini-label"><span class="badge ${badgeClass(e.categorie)}"></span>${e.nom}</div>
+        <div class="mini-track"><div class="mini-fill ${badgeClass(e.categorie)}" style="width:${pct}%"></div></div>
+        <div class="mini-val">${e.valeur}</div>
+      </div>`;
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function renderConversionChart(containerId, conversionData, maxItems) {
+    const el = document.getElementById(containerId);
+    const entries = conversionData.slice().sort((a, b) => b.engagements - a.engagements).slice(0, maxItems || 8);
+    if (!entries.length) { el.innerHTML = '<div class="empty">Aucune donnée sur la période.</div>'; return; }
+
+    let html = '<div class="mini-chart">';
+    for (const c of entries) {
+      const pct = Math.max(c.taux, 3);
+      html += `<div class="mini-row">
+        <div class="mini-label"><span class="badge ${badgeClass(c.categorie)}"></span>${c.nom}</div>
+        <div class="mini-track"><div class="mini-fill ${badgeClass(c.categorie)}" style="width:${Math.min(pct,100)}%"></div></div>
+        <div class="mini-val">${c.taux}%</div>
+      </div>`;
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function renderPartenairesChart(containerId, parPartenaire) {
+    const el = document.getElementById(containerId);
+    const slugs = Object.keys(parPartenaire);
+    if (!slugs.length) { el.innerHTML = ''; return; }
+
+    const entries = slugs.map(slug => {
+      const p = parPartenaire[slug];
+      return { nom: slug, valeur: p.gagnant + p.encaisse + p.perdu };
+    }).sort((a, b) => b.valeur - a.valeur).slice(0, 8);
+
+    const max = Math.max(...entries.map(e => e.valeur), 1);
+    let html = '<div class="mini-chart">';
+    for (const e of entries) {
+      const pct = Math.max((e.valeur / max) * 100, 4);
+      html += `<div class="mini-row">
+        <div class="mini-label">${e.nom}</div>
+        <div class="mini-track"><div class="mini-fill qr_partenaire" style="width:${pct}%"></div></div>
+        <div class="mini-val">${e.valeur}</div>
+      </div>`;
+    }
+    html += '</div>';
+    el.innerHTML = html;
   }
 
   function renderTableParJourNomme(containerId, data, categorieParNom) {
@@ -242,7 +345,7 @@
         const cat = categorieParNom[nom] || 'qr_lieu';
         html += `<tr>
           <td data-label="Jour">${j}</td>
-          <td data-label="Provenance"><span class="badge ${badgeClass(cat)}"></span>${nom}</td>
+          <td data-label="Provenance"><span class="badge ${badgeClass(cat)}"></span> ${nom}</td>
           <td data-label="Nombre" class="num">${data[j][nom]}</td>
         </tr>`;
       }
@@ -257,14 +360,14 @@
     return 'taux-bas';
   }
 
-  function renderConversion(containerId, conversionData) {
+  function renderConversionTable(containerId, conversionData) {
     const el = document.getElementById(containerId);
     if (!conversionData.length) { el.innerHTML = '<div class="empty">Aucune donnée sur la période.</div>'; return; }
 
     let html = '<table class="responsive-table"><thead><tr><th>Provenance</th><th class="num">Engagements</th><th class="num">Complétés</th><th class="num">Taux</th></tr></thead><tbody>';
     for (const c of conversionData) {
       html += `<tr>
-        <td class="main-row" data-label=""><span class="badge ${badgeClass(c.categorie)}"></span>${c.nom}</td>
+        <td class="main-row" data-label=""><span class="badge ${badgeClass(c.categorie)}"></span> ${c.nom}</td>
         <td data-label="Engagements" class="num">${c.engagements}</td>
         <td data-label="Complétés" class="num">${c.completes}</td>
         <td data-label="Taux" class="num"><span class="taux-pill ${classeTaux(c.taux)}">${c.taux}%</span></td>
@@ -274,22 +377,13 @@
     el.innerHTML = html;
   }
 
-  function renderPartenaires(containerId, kpisId, parPartenaire, totaux) {
+  function renderPartenairesTable(containerId, parPartenaire) {
     const el = document.getElementById(containerId);
-    const kpisEl = document.getElementById(kpisId);
-
-    kpisEl.innerHTML = `
-      <div class="kpi gagnant"><div class="n">${totaux.gagnants}</div><div class="l">Gagnants dus</div></div>
-      <div class="kpi encaisse"><div class="n">${totaux.encaisses}</div><div class="l">Encaissés</div></div>
-      <div class="kpi perdu"><div class="n">${totaux.perdus}</div><div class="l">Perdants</div></div>
-    `;
-
     const slugs = Object.keys(parPartenaire).sort((a, b) => {
       const totA = parPartenaire[a].gagnant + parPartenaire[a].encaisse + parPartenaire[a].perdu;
       const totB = parPartenaire[b].gagnant + parPartenaire[b].encaisse + parPartenaire[b].perdu;
       return totB - totA;
     });
-
     if (!slugs.length) { el.innerHTML = '<div class="empty">Aucun tirage sur la période.</div>'; return; }
 
     let html = '<table class="responsive-table"><thead><tr><th>Partenaire</th><th class="num">Gagnants</th><th class="num">Encaissés</th><th class="num">Perdants</th></tr></thead><tbody>';
@@ -306,11 +400,27 @@
     el.innerHTML = html;
   }
 
+  function initAccordions() {
+    document.querySelectorAll('.accordion-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const panel = document.getElementById(btn.dataset.target);
+        const ouvert = panel.classList.toggle('open');
+        btn.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+      });
+    });
+  }
+
+  function renderKpis(kpisId, totaux) {
+    document.getElementById(kpisId).innerHTML = `
+      <div class="kpi gagnant"><div class="n">${totaux.gagnants}</div><div class="l">Gagnants dus</div></div>
+      <div class="kpi encaisse"><div class="n">${totaux.encaisses}</div><div class="l">Encaissés</div></div>
+      <div class="kpi perdu"><div class="n">${totaux.perdus}</div><div class="l">Perdants</div></div>
+    `;
+  }
+
   async function chargerDonnees() {
     try {
-      const r = await fetch(API_BASE + '/recap-data', {
-        headers: { 'Authorization': token }
-      });
+      const r = await fetch(API_BASE + '/recap-data', { headers: { 'Authorization': token } });
       if (r.status === 401 || r.status === 403) { logout(); return; }
       const d = await r.json();
       if (!r.ok) throw new Error(d.message || 'Erreur de chargement');
@@ -320,12 +430,20 @@
 
       const categorieParNom = buildCategorieParNom(d.conversion_par_provenance);
 
-      renderTableParJourNomme('completes-table', d.completes_par_jour, categorieParNom);
-      renderConversion('conversion-table', d.conversion_par_provenance);
-      renderPartenaires('partenaires-table', 'kpis-totaux', d.par_partenaire, d.totaux);
-      renderTableParJourNomme('engagements-table', d.engagements_par_jour, categorieParNom);
+      renderMiniChart('completes-chart', totalParNom(d.completes_par_jour), categorieParNom, 8);
+      renderConversionChart('conversion-chart', d.conversion_par_provenance, 8);
+      renderKpis('kpis-totaux', d.totaux);
+      renderPartenairesChart('partenaires-chart', d.par_partenaire);
+      renderMiniChart('engagements-chart', totalParNom(d.engagements_par_jour), categorieParNom, 8);
+
+      renderTableParJourNomme('completes-detail', d.completes_par_jour, categorieParNom);
+      renderConversionTable('conversion-detail', d.conversion_par_provenance);
+      renderPartenairesTable('partenaires-detail', d.par_partenaire);
+      renderTableParJourNomme('engagements-detail', d.engagements_par_jour, categorieParNom);
+
+      initAccordions();
     } catch (err) {
-      document.getElementById('completes-table').innerHTML = `<div class="empty">Erreur : ${err.message}</div>`;
+      document.getElementById('completes-chart').innerHTML = `<div class="empty">Erreur : ${err.message}</div>`;
     }
   }
 
