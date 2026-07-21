@@ -82,6 +82,23 @@
   .legend span { display:inline-flex; align-items:center; gap:6px }
   .legend i { width:9px; height:9px; border-radius:3px; display:inline-block }
 
+  /* Pastille "dernier sondage complété" */
+  .dernier-pill {
+    display:inline-flex; align-items:center; gap:7px; background:#eef7f1; color:#2b7a45;
+    border-radius:20px; padding:6px 12px; font-size:12px; font-weight:700; margin-bottom:14px;
+  }
+  .dernier-pill .dot {
+    width:8px; height:8px; border-radius:50%; background:#3f8f5c; flex:0 0 auto;
+    box-shadow:0 0 0 rgba(63,143,92,.5); animation:pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow:0 0 0 0 rgba(63,143,92,.45) }
+    70%  { box-shadow:0 0 0 6px rgba(63,143,92,0) }
+    100% { box-shadow:0 0 0 0 rgba(63,143,92,0) }
+  }
+  .mini-row.is-last .mini-label { font-weight:700 }
+  .mini-row.is-last .mini-track { box-shadow:0 0 0 2px #3f8f5c inset }
+
   .accordion-toggle {
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     width:100%; background:#f4f2ec; border:none; border-radius:9px;
@@ -158,6 +175,7 @@
     <div class="section">
       <h2>Sondages complétés par provenance</h2>
       <div class="desc">Total sur la période, par partenaire, emplacement et canal web.</div>
+      <div id="dernier-complete-info"></div>
       <div id="completes-chart"><div class="loading">Chargement…</div></div>
       <button class="accordion-toggle" data-target="completes-detail" aria-expanded="false">
         <span>Voir le détail par jour</span><span class="chevron">▾</span>
@@ -250,6 +268,25 @@
     return categorie === 'qr_partenaire' ? 'qr_partenaire' : (categorie === 'web' ? 'web' : 'qr_lieu');
   }
 
+  function tempsRelatif(ms) {
+    const diff = Date.now() - ms;
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return "à l'instant";
+    if (min < 60) return `il y a ${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 24) return `il y a ${h} h`;
+    const j = Math.floor(h / 24);
+    return `il y a ${j} j`;
+  }
+
+  function renderDernierComplete(containerId, dernier) {
+    const el = document.getElementById(containerId);
+    if (!dernier) { el.innerHTML = ''; return; }
+    const date = new Date(dernier.completed_ms);
+    const heure = date.toLocaleString('fr-CH', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    el.innerHTML = `<div class="dernier-pill"><span class="dot"></span>Dernier sondage complété : <strong>${dernier.nom}</strong> · ${heure} (${tempsRelatif(dernier.completed_ms)})</div>`;
+  }
+
   function buildCategorieParNom(conversionData) {
     const map = {};
     for (const c of conversionData) map[c.nom] = c.categorie;
@@ -266,7 +303,7 @@
     return totaux;
   }
 
-  function renderMiniChart(containerId, totaux, categorieParNom) {
+  function renderMiniChart(containerId, totaux, categorieParNom, nomDernier) {
     const el = document.getElementById(containerId);
     const entries = Object.keys(totaux)
       .map(nom => ({ nom, valeur: totaux[nom], categorie: categorieParNom[nom] || 'qr_lieu' }))
@@ -279,8 +316,9 @@
     let html = '<div class="mini-chart">';
     for (const e of entries) {
       const pct = Math.max((e.valeur / max) * 100, 4);
-      html += `<div class="mini-row">
-        <div class="mini-label"><span class="badge ${badgeClass(e.categorie)}"></span>${e.nom}</div>
+      const estDernier = nomDernier && e.nom === nomDernier;
+      html += `<div class="mini-row${estDernier ? ' is-last' : ''}">
+        <div class="mini-label"><span class="badge ${badgeClass(e.categorie)}"></span>${e.nom}${estDernier ? ' 🕓' : ''}</div>
         <div class="mini-track"><div class="mini-fill ${badgeClass(e.categorie)}" style="width:${pct}%"></div></div>
         <div class="mini-val">${e.valeur}</div>
       </div>`;
@@ -429,8 +467,10 @@
         `Depuis le ${d.depuis} · ${d.totaux.total_engagements} engagements · ${d.totaux.total_completes} complétés`;
 
       const categorieParNom = buildCategorieParNom(d.conversion_par_provenance);
+      const nomDernier = d.dernier_complete ? d.dernier_complete.nom : null;
 
-      renderMiniChart('completes-chart', totalParNom(d.completes_par_jour), categorieParNom);
+      renderDernierComplete('dernier-complete-info', d.dernier_complete);
+      renderMiniChart('completes-chart', totalParNom(d.completes_par_jour), categorieParNom, nomDernier);
       renderConversionChart('conversion-chart', d.conversion_par_provenance);
       renderKpis('kpis-totaux', d.totaux);
       renderPartenairesChart('partenaires-chart', d.par_partenaire);

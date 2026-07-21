@@ -296,7 +296,7 @@ routerAdd("GET", "/recap-data", (e) => {
   function provenance(r) {
     const lieu = r.get("lieu") || "";
     const partenaire = r.get("partenaire") || "";
-    if (lieu === "canal") return { categorie: "web", nom: "Web" };
+    if (lieu === "canal") return { categorie: "web", nom: "Web (email / réseaux)" };
     if (partenaire && lieu === partenaire) return { categorie: "qr_partenaire", nom: partenaire };
     return { categorie: "qr_lieu", nom: lieu || "(emplacement inconnu)" };
   }
@@ -306,6 +306,8 @@ routerAdd("GET", "/recap-data", (e) => {
   const totauxParProvenance = {};   // { nom: { categorie, engagements, completes } }
   const parPartenaire = {};
   let totalGagnants = 0, totalPerdus = 0, totalEncaisses = 0;
+
+  let dernierComplete = null;  // { nom, categorie, completed_ms }
 
   for (const r of all) {
     const statut = r.get("statut");
@@ -335,6 +337,12 @@ routerAdd("GET", "/recap-data", (e) => {
       if (statut === "gagnant") { parPartenaire[p].gagnant++; totalGagnants++; }
       if (statut === "perdu")   { parPartenaire[p].perdu++; totalPerdus++; }
       if (statut === "encaisse"){ parPartenaire[p].encaisse++; totalEncaisses++; }
+
+      // Suivi du sondage le plus récemment complété (completed_ms = horodatage de fin de questionnaire)
+      const cms = r.get("completed_ms");
+      if (cms && (!dernierComplete || cms > dernierComplete.completed_ms)) {
+        dernierComplete = { nom: prov.nom, categorie: prov.categorie, completed_ms: cms };
+      }
     }
   }
 
@@ -355,6 +363,7 @@ routerAdd("GET", "/recap-data", (e) => {
     completes_par_jour: completesParJour,
     conversion_par_provenance: conversionParProvenance,
     par_partenaire: parPartenaire,
+    dernier_complete: dernierComplete,   // { nom, categorie, completed_ms } ou null si aucun
     totaux: {
       gagnants: totalGagnants,
       perdus: totalPerdus,
