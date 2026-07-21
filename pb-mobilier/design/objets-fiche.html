@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Objet — fiche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root{
+    --canvas:#EFEDE7; --panel:#FFFFFF; --ink:#1B1B18; --muted:#6E6A62; --faint:#9B968C;
+    --line:#E5E1D7; --ph:#EDE9DF; --ph-2:#E1DACB;
+    --signal:#FF5A1F; --signal-hover:#E64E17; --signal-soft:#FFE4D3; --signal-ink:#7A2A0D;
+    --steel:#33414C; --steel-soft:#E7EBEC; --steel-line:#C6D0D4;
+    --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .stage{max-width:920px;margin:0 auto;padding:32px 20px 60px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 2px 16px}
+  .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;text-decoration:none}
+  .back .ico{width:16px;height:16px}
+  .mark{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint)}
+  .mark b{color:var(--signal)}
+  .card{background:var(--panel);border-radius:14px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(23,25,28,.04), 0 18px 40px rgba(23,25,28,.09)}
+  .ico{stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .ph-icon{color:#C9C2B2}
+  .wrap{display:flex}
+  .gal{width:42%;flex:none;padding:20px;display:flex;flex-direction:column}
+  .hero{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;
+    background:linear-gradient(135deg,var(--ph) 0%,var(--ph-2) 100%);display:grid;place-items:center}
+  .hero img{width:100%;height:100%;object-fit:cover}
+  .hero .ico{width:32px;height:32px;stroke-width:1.3}
+  .hero .expand{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:7px;
+    background:rgba(255,255,255,.88);display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .hero .expand .ico{width:14px;height:14px;color:var(--ink)}
+  .thumbs{display:flex;gap:7px;margin-top:9px}
+  .thumb{width:44px;height:44px;border-radius:8px;background:var(--ph);flex:none;overflow:hidden;
+    display:grid;place-items:center;border:2px solid transparent;padding:0;cursor:pointer}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb.active{border-color:var(--signal)}
+  .thumb .ico{width:14px;height:14px;color:#C9C2B2}
+  .cta{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--signal);color:#fff;
+    border:none;border-radius:9px;padding:13px 18px;font-family:var(--sans);font-weight:600;
+    font-size:14px;margin-top:16px;cursor:pointer;width:100%}
+  .cta:hover{background:var(--signal-hover)}
+  .cta .ico{width:16px;height:16px}
+  .content{flex:1;min-width:0;padding:22px 24px 22px 6px;border-left:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--steel);margin-bottom:9px}
+  .title{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 12px}
+  .badges{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+  .badge{height:24px;border-radius:99px;padding:0 13px;display:flex;align-items:center;
+    font-size:12.5px;font-weight:500}
+  .badge.a{background:var(--steel-soft);color:var(--steel)}
+  .badge.b{background:#F1F1EF;color:var(--muted)}
+  .facts{display:flex;align-items:center;gap:16px;margin:0 0 20px;color:var(--muted);font-size:13.5px}
+  .fact{display:flex;align-items:center;gap:6px}
+  .fact .ico{width:15px;height:15px;color:var(--faint)}
+  h2{font-size:13.5px;font-weight:600;margin:0 0 11px;color:var(--ink)}
+  .section{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+  .section:first-of-type{margin-top:0;padding-top:0;border-top:none}
+  .desc-text{font-size:14px;line-height:1.65;color:var(--ink);margin:0}
+  .swatches{display:flex;gap:16px;flex-wrap:wrap}
+  .swatch{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .swatch .dot{width:32px;height:32px;border-radius:50%;border:1px solid rgba(0,0,0,.05)}
+  .swatch .lbl{font-size:11.5px;color:var(--muted)}
+  .link-row{display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:15px 0;border-top:1px solid var(--line)}
+  .link-row:first-of-type{border-top:none;padding-top:0}
+  .link-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .link-left .ico{width:18px;height:18px;color:var(--steel);flex:none}
+  .link-txt .lbl{font-size:14px;font-weight:500;color:var(--ink)}
+  .link-txt .count{font-size:12px;color:var(--faint);margin-top:2px}
+  .btn-out{display:inline-flex;align-items:center;gap:6px;background:var(--panel);color:var(--steel);
+    border:1.5px solid var(--steel-line);border-radius:99px;padding:9px 15px;font-family:var(--sans);
+    font-weight:600;font-size:13px;cursor:pointer;flex:none;white-space:nowrap}
+  .btn-out:hover{border-color:var(--steel);background:var(--steel-soft)}
+  .btn-out .ico{width:14px;height:14px}
+  .btn-out.full{width:100%;justify-content:center;padding:12px 15px;margin-top:10px}
+</style>
+</head>
+<body>
+<script src="shared.js"></script>
+<div class="stage">
+  <div class="topbar">
+    <a class="back" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>Objets</a>
+    <span class="mark"><b>Linéo</b></span>
+  </div>
+
+  <div class="card">
+    <div class="wrap">
+
+      <div class="gal">
+        <div class="hero" id="hero">
+          <svg class="ico ph-icon" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="1.5"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5.5-5.5a1.8 1.8 0 0 1 2.5 0L20 20"/></svg>
+          <span class="expand"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg></span>
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+
+        <a class="cta" href="projets-fiche.html">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Créer un projet
+        </a>
+        <button class="btn-out full" onclick="showToast('Objet associé au projet — Aménagement du parc communal')">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5 14.5 9.5"/><path d="M11 6.5 12.6 5a4 4 0 0 1 5.7 5.7l-1.6 1.6"/><path d="M13 17.5 11.4 19a4 4 0 0 1-5.7-5.7l1.6-1.6"/></svg>
+          Associer à un projet
+        </button>
+      </div>
+
+      <div class="content">
+        <div class="eyebrow" id="famille"></div>
+        <h1 class="title" id="nom"></h1>
+
+        <div class="badges" id="badges"></div>
+
+        <div class="facts">
+          <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5 16.5 3l4.5 4.5L7.5 21 3 16.5Z"/><path d="m14 6 2 2M11 9l2 2M8 12l2 2"/></svg><span id="dimensions"></span></div>
+          <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9"/></svg><span id="cout"></span></div>
+        </div>
+
+        <div class="section">
+          <h2>Description</h2>
+          <p class="desc-text" id="description"></p>
+        </div>
+
+        <div class="section">
+          <h2>Essences</h2>
+          <div class="swatches" id="essences"></div>
+        </div>
+
+        <div class="section">
+          <div class="link-row">
+            <div class="link-left">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg>
+              <div class="link-txt"><div class="lbl">Réalisations</div><div class="count" id="real-count"></div></div>
+            </div>
+            <button class="btn-out" onclick="showToast('Vue Réalisations — à venir')">Voir les réalisations<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+          </div>
+          <div class="link-row">
+            <div class="link-left">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M9 12.5h6M9 15.5h6M9 18h4"/></svg>
+              <div class="link-txt"><div class="lbl">Plans</div><div class="count" id="plans-count"></div></div>
+            </div>
+            <a class="btn-out" href="plans-fiche.html">Voir les plans<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const OBJET = {
+  nom: "Banc trois assises",
+  famille: "Mobilier d'assise",
+  statut_maturite: "Produit",
+  service: "Passif",
+  dimensions_standards: "180 cm",
+  cout_indicatif: "3 200 CHF",
+  description: "Banc massif taille dans une seule piece, assemblage sans quincaillerie apparente. Concu pour un usage exterieur intensif en zone forestiere ou periurbaine.",
+  essences: [
+    { label: "Epicea", color: "#C9A46A" },
+    { label: "Meleze", color: "#8B5E34" },
+    { label: "Chene",  color: "#D8C39C" }
+  ],
+  photos: [],
+  realisationsCount: 12,
+  plansCount: 3
+};
+
+function renderObjet(o){
+  document.getElementById("famille").textContent = o.famille || "";
+  document.getElementById("nom").textContent = o.nom || "";
+  document.getElementById("description").textContent = o.description || "";
+  document.getElementById("dimensions").textContent = o.dimensions_standards || "-";
+  document.getElementById("cout").textContent = o.cout_indicatif || "-";
+  document.getElementById("real-count").textContent = (o.realisationsCount || 0) + " installee(s) sur le terrain";
+  document.getElementById("plans-count").textContent = (o.plansCount || 0) + " document(s) technique(s)";
+
+  var badges = document.getElementById("badges");
+  badges.innerHTML = "";
+  [[o.statut_maturite,"a"], [o.service,"b"]].forEach(function(pair){
+    var txt = pair[0], cls = pair[1];
+    if(!txt) return;
+    var b = document.createElement("span");
+    b.className = "badge " + cls;
+    b.textContent = txt;
+    badges.appendChild(b);
+  });
+
+  var ess = document.getElementById("essences");
+  ess.innerHTML = "";
+  (o.essences || []).forEach(function(e){
+    var w = document.createElement("div");
+    w.className = "swatch";
+    w.innerHTML = '<div class="dot" style="background:' + e.color + '"></div><div class="lbl">' + e.label + '</div>';
+    ess.appendChild(w);
+  });
+
+  var hero = document.getElementById("hero");
+  var thumbs = document.getElementById("thumbs");
+  var photos = (o.photos && o.photos.length) ? o.photos : [null];
+
+  function setHero(i){
+    var old = hero.querySelector("img");
+    if(old) old.remove();
+    if(photos[i]){
+      var img = document.createElement("img");
+      img.src = photos[i];
+      hero.insertBefore(img, hero.firstChild);
+    }
+    var ts = thumbs.querySelectorAll(".thumb");
+    for(var k=0;k<ts.length;k++){ ts[k].classList.toggle("active", k===i); }
+  }
+
+  thumbs.innerHTML = "";
+  photos.forEach(function(src, i){
+    var t = document.createElement("button");
+    t.className = "thumb" + (i===0 ? " active" : "");
+    t.innerHTML = src
+      ? '<img src="' + src + '" alt="">'
+      : '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4.5" width="18" height="15" rx="1.5"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5.5-5.5a1.8 1.8 0 0 1 2.5 0L20 20"/></svg>';
+    t.addEventListener("click", function(){ setHero(i); });
+    thumbs.appendChild(t);
+  });
+  setHero(0);
+}
+
+renderObjet(OBJET);
+</script>
+</body>
+</html>
+                                                                                                                                                                                                                                   

@@ -273,9 +273,73 @@ routerAdd("GET", "/comptoir", (e) => {
 });
 
 
-routerAdd("GET", "/recap", (e) => {
-  const gagnants = $app.findRecordsByFilter("participations", "statut = 'gagnant' || statut = 'encaisse'", "-drawn_ms", 500, 0);
-  const parPartenaire = {};
-  for (const r of gagnants) { const p = r.get("partenaire"); parPartenaire[p] = (parPartenaire[p] || 0) + 1; }
-  return e.json(200, { gagnants_par_partenaire: parPartenaire, total_gagnants: gagnants.length });
+// Données structurées pour le dashboard recap.html — protégé superuser
+routerAdd("GET", "/recap-data", (e) => {
+  const DATE_MIN_MS = new Date("2026-07-11T00:00:00Z").getTime();
+
+  const all = $app.findRecordsByFilter(
+    "participations",
+    "scan_ms >= {:min}",
+    "-scan_ms", 5000, 0,
+    { min: DATE_MIN_MS }
+  );
+
+  function jour(ms) {
+    if (!ms) return null;
+    return new Date(ms).toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+  }
+
+  // Catégorie de provenance, basée sur la convention réelle du hook :
+  //   lieu === "canal"                          -> scan web (email/instagram/facebook, réunis sous "canal")
+  //   partenaire rempli ET lieu === partenaire   -> QR chez un commerçant (/go)
+  //   sinon                                      -> QR d'emplacement physique (/lieu)
+  function categoriser(r) {
+    const lieu = r.get("lieu") || "";
+    const partenaire = r.get("partenaire") || "";
+    if (lieu === "canal") return "web";
+    if (partenaire && lieu === partenaire) return "qr_partenaire";
+    return "qr_lieu";
+  }
+
+  const engagementsParJour = {};  // { "2026-07-11": { qr_partenaire, qr_lieu, web } }
+  const completesParJour = {};    // idem, mais uniquement statuts finaux (gagnant/perdu/encaisse)
+  const parPartenaire = {};       // { slug: { gagnant, perdu, encaisse } }
+  let totalGagnants = 0, totalPerdus = 0, totalEncaisses = 0;
+
+  for (const r of all) {
+    const statut = r.get("statut");
+    const j = jour(r.get("scan_ms"));
+    const categorie = categoriser(r);
+
+    if (j) {
+      if (!engagementsParJour[j]) engagementsParJour[j] = { qr_partenaire: 0, qr_lieu: 0, web: 0 };
+      engagementsParJour[j][categorie] = (engagementsParJour[j][categorie] || 0) + 1;
+    }
+
+    if (statut === "gagnant" || statut === "perdu" || statut === "encaisse") {
+      if (j) {
+        if (!completesParJour[j]) completesParJour[j] = { qr_partenaire: 0, qr_lieu: 0, web: 0 };
+        completesParJour[j][categorie] = (completesParJour[j][categorie] || 0) + 1;
+      }
+      const p = r.get("partenaire") || "(non attribué)";
+      if (!parPartenaire[p]) parPartenaire[p] = { gagnant: 0, perdu: 0, encaisse: 0 };
+      if (statut === "gagnant") { parPartenaire[p].gagnant++; totalGagnants++; }
+      if (statut === "perdu")   { parPartenaire[p].perdu++; totalPerdus++; }
+      if (statut === "encaisse"){ parPartenaire[p].encaisse++; totalEncaisses++; }
+    }
+  }
+
+  return e.json(200, {
+    depuis: "2026-07-11",
+    engagements_par_jour: engagementsParJour,
+    completes_par_jour: completesParJour,
+    par_partenaire: parPartenaire,
+    totaux: {
+      gagnants: totalGagnants,
+      perdus: totalPerdus,
+      encaisses: totalEncaisses,
+      total_completes: totalGagnants + totalPerdus + totalEncaisses,
+      total_engagements: all.length
+    }
+  });
 }, $apis.requireSuperuserAuth());

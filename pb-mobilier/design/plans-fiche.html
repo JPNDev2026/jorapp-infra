@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — fiche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root{
+    --canvas:#EFEDE7; --panel:#FFFFFF; --ink:#1B1B18; --muted:#6E6A62; --faint:#9B968C;
+    --line:#E5E1D7; --ph:#EDE9DF; --ph-2:#E1DACB;
+    --signal:#FF5A1F; --signal-hover:#E64E17; --signal-soft:#FFE4D3; --signal-ink:#7A2A0D;
+    --steel:#33414C; --steel-soft:#E7EBEC; --steel-line:#C6D0D4;
+    --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .stage{max-width:920px;margin:0 auto;padding:32px 20px 60px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 2px 16px}
+  .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;text-decoration:none}
+  .back .ico{width:16px;height:16px}
+  .mark{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint)}
+  .mark b{color:var(--signal)}
+  .card{background:var(--panel);border-radius:14px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(23,25,28,.04), 0 18px 40px rgba(23,25,28,.09)}
+  .ico{stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .ph-icon{color:#C9C2B2}
+  .wrap{display:flex}
+  .gal{width:42%;flex:none;padding:20px;display:flex;flex-direction:column}
+  .hero{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;
+    background:linear-gradient(135deg,var(--ph) 0%,var(--ph-2) 100%);display:grid;place-items:center}
+  .hero img{width:100%;height:100%;object-fit:cover}
+  .hero .ico{width:32px;height:32px;stroke-width:1.3}
+  .hero .expand{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:7px;
+    background:rgba(255,255,255,.88);display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .hero .expand .ico{width:14px;height:14px;color:var(--ink)}
+  .thumbs{display:flex;gap:7px;margin-top:9px}
+  .thumb{width:44px;height:44px;border-radius:8px;background:var(--ph);flex:none;overflow:hidden;
+    display:grid;place-items:center;border:2px solid transparent;padding:0;cursor:pointer}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb.active{border-color:var(--signal)}
+  .thumb .ico{width:14px;height:14px;color:#C9C2B2}
+  .cta{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--signal);color:#fff;
+    border:none;border-radius:9px;padding:13px 18px;font-family:var(--sans);font-weight:600;
+    font-size:14px;margin-top:16px;cursor:pointer;width:100%}
+  .cta:hover{background:var(--signal-hover)}
+  .cta .ico{width:16px;height:16px}
+  .content{flex:1;min-width:0;padding:22px 24px 22px 6px;border-left:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--steel);margin-bottom:9px}
+  .title{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 12px}
+  .badges{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+  .badge{height:24px;border-radius:99px;padding:0 13px;display:flex;align-items:center;
+    font-size:12.5px;font-weight:500}
+  .badge.a{background:var(--steel-soft);color:var(--steel)}
+  .badge.b{background:#F1F1EF;color:var(--muted)}
+  .facts{display:flex;align-items:center;gap:16px;margin:0 0 20px;color:var(--muted);font-size:13.5px}
+  .fact{display:flex;align-items:center;gap:6px}
+  .fact .ico{width:15px;height:15px;color:var(--faint)}
+  h2{font-size:13.5px;font-weight:600;margin:0 0 11px;color:var(--ink)}
+  .section{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+  .section:first-of-type{margin-top:0;padding-top:0;border-top:none}
+  .link-row{display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:15px 0;border-top:1px solid var(--line)}
+  .link-row:first-of-type{border-top:none;padding-top:0}
+  .link-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .link-left .ico{width:18px;height:18px;color:var(--steel);flex:none}
+  .link-txt .lbl{font-size:14px;font-weight:500;color:var(--ink)}
+  .link-txt .count{font-size:12px;color:var(--faint);margin-top:2px}
+  .btn-out{display:inline-flex;align-items:center;gap:6px;background:var(--panel);color:var(--steel);
+    border:1.5px solid var(--steel-line);border-radius:99px;padding:9px 15px;font-family:var(--sans);
+    font-weight:600;font-size:13px;cursor:pointer;flex:none;white-space:nowrap}
+  .btn-out:hover{border-color:var(--steel);background:var(--steel-soft)}
+  .btn-out .ico{width:14px;height:14px}
+  .btn-out.full{width:100%;justify-content:center;padding:12px 15px;margin-top:10px}
+
+  .modlist{display:flex;flex-direction:column;gap:8px}
+  .mod-row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:11px 13px;border:1px solid var(--line);border-radius:9px;cursor:pointer}
+  .mod-row:hover{border-color:var(--steel-line);background:var(--steel-soft)}
+  .mod-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .mod-left .ico{width:16px;height:16px;color:var(--steel);flex:none}
+  .mod-name{font-size:13.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mod-right{display:flex;align-items:center;gap:6px;flex:none}
+  .mod-status{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--steel-soft);color:var(--steel);white-space:nowrap}
+  .mod-kit{font-size:10px;padding:3px 9px;border-radius:99px;background:var(--signal-soft);color:var(--signal-ink);white-space:nowrap;font-weight:700}
+</style>
+</head>
+<body>
+<script src="shared.js"></script>
+<div class="stage">
+  <div class="topbar">
+    <a class="back" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>Plans</a>
+    <span class="mark"><b>Linéo</b></span>
+  </div>
+
+  <div class="card">
+    <div class="wrap">
+
+      <div class="gal">
+        <div class="hero" id="hero">
+          <svg class="ico ph-icon" viewBox="0 0 24 24"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M9 12.5h6M9 15.5h6M9 18h4"/></svg>
+          <span class="expand"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg></span>
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+
+        <button class="cta" onclick="showToast('Téléchargement simulé — fichiers à brancher')">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>
+          Télécharger les plans
+        </button>
+        <button class="btn-out full" onclick="showToast('Contribution associée au plan')">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5 14.5 9.5"/><path d="M11 6.5 12.6 5a4 4 0 0 1 5.7 5.7l-1.6 1.6"/><path d="M13 17.5 11.4 19a4 4 0 0 1-5.7-5.7l1.6-1.6"/></svg>
+          Associer une contribution
+        </button>
+      </div>
+
+      <div class="content">
+        <div class="eyebrow" id="objet"></div>
+        <h1 class="title" id="titre"></h1>
+
+        <div class="badges" id="badges"></div>
+
+        <div class="facts">
+          <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg><span id="auteur"></span></div>
+          <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-3 4 3 4H5"/></svg><span id="version"></span></div>
+        </div>
+
+        <div class="section" style="margin-top:0;padding-top:0;border-top:none">
+          <h2>Modules</h2>
+          <div class="modlist" id="modules"></div>
+        </div>
+
+        <div class="section">
+          <div class="link-row">
+            <div class="link-left">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z"/><path d="M13.5 6.5 17.5 10.5"/></svg>
+              <div class="link-txt"><div class="lbl">Contributions</div><div class="count" id="contrib-count"></div></div>
+            </div>
+            <button class="btn-out" onclick="showToast('Vue Contributions — à venir')">Voir les contributions<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PLAN = {
+  objet: "Banc trois assises",
+  version: 2,
+  auteur: "Atelier Fontaine",
+  licences: ["Diffusion seule"],
+  fichiers: [],
+  modules: [
+    { nom: "Assise", statut: "Plan valide", kit: false },
+    { nom: "Pietement", statut: "Prototype", kit: true },
+    { nom: "Accoudoir", statut: "Esquisse", kit: false }
+  ],
+  contributionsCount: 4
+};
+
+function renderPlan(p){
+  document.getElementById("objet").textContent = "Objet : " + (p.objet || "");
+  document.getElementById("titre").textContent = "Plan v" + (p.version || "1");
+  document.getElementById("auteur").textContent = p.auteur || "-";
+  document.getElementById("version").textContent = "version " + (p.version || "1");
+  document.getElementById("contrib-count").textContent = (p.contributionsCount || 0) + " contribution(s)";
+
+  var badges = document.getElementById("badges");
+  badges.innerHTML = "";
+  (p.licences || []).forEach(function(txt){
+    var b = document.createElement("span");
+    b.className = "badge a";
+    b.textContent = txt;
+    badges.appendChild(b);
+  });
+
+  var mods = document.getElementById("modules");
+  mods.innerHTML = "";
+  (p.modules || []).forEach(function(m){
+    var row = document.createElement("div");
+    row.className = "mod-row";
+    row.addEventListener("click", function(){ location.href = "modules-fiche.html"; });
+    row.innerHTML =
+      '<div class="mod-left">' +
+        '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8l8-4.5Z"/><path d="M4 8l8 4.5L20 8M12 12.5V21"/></svg>' +
+        '<span class="mod-name">' + m.nom + '</span>' +
+      '</div>' +
+      '<div class="mod-right">' +
+        (m.kit ? '<span class="mod-kit">kit</span>' : '') +
+        '<span class="mod-status">' + m.statut + '</span>' +
+      '</div>';
+    mods.appendChild(row);
+  });
+  if(!(p.modules || []).length){
+    mods.innerHTML = '<p style="font-size:13px;color:var(--faint);margin:0">Aucun module rattache pour le moment.</p>';
+  }
+
+  var hero = document.getElementById("hero");
+  var thumbs = document.getElementById("thumbs");
+  var files = (p.fichiers && p.fichiers.length) ? p.fichiers : [null];
+
+  function setHero(i){
+    var old = hero.querySelector("img");
+    if(old) old.remove();
+    if(files[i]){
+      var img = document.createElement("img");
+      img.src = files[i];
+      hero.insertBefore(img, hero.firstChild);
+    }
+    var ts = thumbs.querySelectorAll(".thumb");
+    for(var k=0;k<ts.length;k++){ ts[k].classList.toggle("active", k===i); }
+  }
+
+  thumbs.innerHTML = "";
+  files.forEach(function(src, i){
+    var t = document.createElement("button");
+    t.className = "thumb" + (i===0 ? " active" : "");
+    t.innerHTML = src
+      ? '<img src="' + src + '" alt="">'
+      : '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M9 12.5h6M9 15.5h6M9 18h4"/></svg>';
+    t.addEventListener("click", function(){ setHero(i); });
+    thumbs.appendChild(t);
+  });
+  setHero(0);
+}
+
+renderPlan(PLAN);
+</script>
+</body>
+</html>

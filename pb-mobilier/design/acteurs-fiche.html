@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acteurs — carte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root{
+    --canvas:#EFEDE7; --panel:#FFFFFF; --ink:#1B1B18; --muted:#6E6A62; --faint:#9B968C;
+    --line:#E5E1D7; --ph:#EDE9DF; --ph-2:#E1DACB;
+    --signal:#FF5A1F; --signal-hover:#E64E17; --signal-soft:#FFE4D3; --signal-ink:#7A2A0D;
+    --steel:#33414C; --steel-soft:#E7EBEC; --steel-line:#C6D0D4;
+    --map-a:#E3E7DA; --map-b:#D3DAC4; --map-line:#C7CFB8;
+    --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .stage{max-width:1100px;margin:0 auto;padding:32px 20px 60px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 2px 16px}
+  .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;text-decoration:none}
+  .back .ico{width:16px;height:16px}
+  .mark{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint)}
+  .mark b{color:var(--signal)}
+  .card{background:var(--panel);border-radius:14px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(23,25,28,.04), 0 18px 40px rgba(23,25,28,.09)}
+  .ico{stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+  .filters{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:14px 20px;
+    border-bottom:1px solid var(--line)}
+  .f-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--faint);margin-right:2px}
+  .filter-group{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .chip{border:1.5px solid var(--steel-line);background:var(--panel);color:var(--steel);
+    font-size:12px;font-weight:500;border-radius:99px;padding:5px 13px;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--signal);border-color:var(--signal);color:#fff}
+  .select{border:1.5px solid var(--steel-line);background:var(--panel);color:var(--ink);
+    font-size:13px;font-family:var(--sans);border-radius:8px;padding:7px 30px 7px 12px;cursor:pointer;
+    appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2333414C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 9.5 5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 9px center;background-size:14px}
+  .select:hover{border-color:var(--steel)}
+  .dist{gap:10px}
+  .dist input[type="range"]{width:130px;accent-color:var(--signal)}
+  .dist .f-val{font-family:var(--mono);font-size:12px;color:var(--ink);min-width:46px}
+  .reset-btn{margin-left:auto;border:none;background:transparent;color:var(--muted);
+    font-size:12.5px;text-decoration:underline;cursor:pointer;padding:4px}
+  .reset-btn:hover{color:var(--steel)}
+
+  .map-wrap{display:flex;height:480px}
+  .list-panel{width:300px;flex:none;border-right:1px solid var(--line);overflow-y:auto;padding:14px}
+  .list-head{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--faint);padding:2px 4px 10px}
+  .actor-row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:8px;cursor:pointer}
+  .actor-row:hover{background:var(--steel-soft)}
+  .actor-row.sel{background:var(--signal-soft)}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--steel);color:#fff;flex:none;
+    display:grid;place-items:center;font-size:12px;font-weight:700;font-family:var(--mono)}
+  .actor-row.sel .avatar{background:var(--signal)}
+  .arow-txt{min-width:0}
+  .arow-nm{font-size:13.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .arow-sub{font-size:11.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .empty-hint{font-size:12.5px;color:var(--faint);padding:10px 6px}
+
+  .map-panel{flex:1;position:relative;background:
+    radial-gradient(ellipse 60% 45% at 20% 25%, var(--map-b) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 75% 65%, var(--map-b) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 35% at 55% 20%, var(--map-b) 0%, transparent 60%),
+    var(--map-a);
+    overflow:hidden}
+  .map-grid{position:absolute;inset:0;
+    background-image:linear-gradient(var(--map-line) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--map-line) 1px, transparent 1px);
+    background-size:38px 38px;opacity:.5}
+  .compass{position:absolute;top:14px;right:16px;width:30px;height:30px;border-radius:50%;
+    background:rgba(255,255,255,.85);display:grid;place-items:center;font-family:var(--mono);
+    font-size:10px;font-weight:700;color:var(--steel);box-shadow:0 1px 3px rgba(0,0,0,.1);z-index:3}
+  .legend{position:absolute;left:14px;bottom:14px;background:rgba(255,255,255,.92);border-radius:8px;
+    padding:9px 12px;font-size:11px;color:var(--muted);display:flex;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);z-index:3}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .legend i.cert{background:var(--signal)}
+  .legend i.std{background:var(--steel)}
+  .legend i.ref{background:var(--ink);border-radius:2px;transform:rotate(45deg)}
+
+  .radius-circle{position:absolute;border:1.5px dashed var(--steel);background:rgba(51,65,76,.06);
+    border-radius:50%;pointer-events:none;z-index:1;transform:translate(-50%,-50%)}
+  .ref-pin{position:absolute;transform:translate(-50%,-50%);z-index:3}
+  .ref-pin .diamond{width:13px;height:13px;background:var(--ink);transform:rotate(45deg);
+    border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+
+  .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:2}
+  .pin .dot{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+    background:var(--steel);border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.25);
+    display:grid;place-items:center}
+  .pin .dot span{transform:rotate(45deg);font-family:var(--mono);font-size:10px;font-weight:700;color:#fff}
+  .pin.cert .dot{background:var(--signal)}
+  .pin.sel .dot{outline:3px solid rgba(255,90,31,.3);outline-offset:2px}
+  .pin .tip{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);white-space:nowrap;
+    background:var(--ink);color:#fff;font-size:11px;padding:4px 9px;border-radius:5px;opacity:0;
+    pointer-events:none;transition:opacity .12s}
+  .pin:hover .tip{opacity:1}
+
+  .detail{padding:22px 24px;border-top:1px solid var(--line)}
+  .d-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .d-name{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 8px}
+  .badges{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+  .badge{height:23px;border-radius:99px;padding:0 12px;display:flex;align-items:center;font-size:12px;font-weight:500}
+  .badge.cert{background:var(--signal-soft);color:var(--signal-ink)}
+  .badge.a{background:var(--steel-soft);color:var(--steel)}
+  .badge.b{background:#F1F1EF;color:var(--muted)}
+  .cta{display:inline-flex;align-items:center;gap:8px;background:var(--signal);color:#fff;border:none;
+    border-radius:9px;padding:11px 17px;font-family:var(--sans);font-weight:600;font-size:13.5px;cursor:pointer;flex:none}
+  .cta:hover{background:var(--signal-hover)}
+  .cta .ico{width:15px;height:15px}
+  .d-grid{display:flex;flex-wrap:wrap;gap:22px;margin-top:14px;font-size:13.5px;color:var(--muted)}
+  .d-fact{display:flex;align-items:center;gap:7px}
+  .d-fact .ico{width:15px;height:15px;color:var(--faint)}
+  .d-fact a{color:var(--steel);text-decoration:none;font-weight:500}
+  .d-fact a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<script src="shared.js"></script>
+<div class="stage">
+  <div class="topbar">
+    <a class="back" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>Accueil</a>
+    <span class="mark"><b>Linéo</b> · Acteurs</span>
+  </div>
+
+  <div class="card">
+
+    <div class="filters">
+      <div class="filter-group">
+        <span class="f-label">Métier</span>
+        <select id="metier-select" class="select"></select>
+      </div>
+      <div class="filter-group dist">
+        <span class="f-label">Rayon</span>
+        <input type="range" id="radius" min="1" max="12" step="1" value="5">
+        <span class="f-val" id="radius-val">5 km</span>
+      </div>
+      <button class="reset-btn" id="reset-filters">Réinitialiser</button>
+    </div>
+
+    <div class="map-wrap">
+      <div class="list-panel">
+        <div class="list-head" id="list-head"></div>
+        <div id="list"></div>
+      </div>
+      <div class="map-panel">
+        <div class="map-grid"></div>
+        <div class="compass">N</div>
+        <div class="legend">
+          <span><i class="cert"></i>label Bois Suisse</span>
+          <span><i class="std"></i>autre</span>
+          <span><i class="ref"></i>site du projet</span>
+        </div>
+        <div id="radius-circle-holder"></div>
+        <div id="pins"></div>
+        <div id="ref-pin-holder"></div>
+      </div>
+    </div>
+    <div class="detail" id="detail"></div>
+  </div>
+</div>
+
+<script src="acteurs-fiche.js"></script>
+</body>
+</html>

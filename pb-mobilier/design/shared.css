@@ -1,0 +1,28 @@
+/*
+  shared.css — Linéo
+  Commun à toutes les fiches (Objets, Projets, Plans, Modules, Acteurs).
+
+  1) Active les transitions animees natives du navigateur lors de la
+     navigation entre ces pages statiques (Chrome/Edge recents ; se degrade
+     sans erreur ni JS supplementaire sur les navigateurs qui ne supportent
+     pas encore la Cross-Document View Transitions API).
+  2) Styles du toast utilise par showToast() (voir shared.js) pour les
+     actions "Associer ..." qui ne changent pas de page.
+*/
+
+@view-transition {
+  navigation: auto;
+}
+
+.cta, .btn-out { text-decoration: none; }
+
+.toast{
+  position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(10px);
+  background:var(--ink,#1B1B18); color:#fff; font-size:13.5px; font-family:var(--sans,sans-serif);
+  padding:12px 20px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.25);
+  opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+  z-index:80; display:flex; align-items:center; gap:9px; max-width:88vw;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.toast .t-ico{ width:16px; height:16px; flex:none; stroke:var(--signal,#FF5A1F); fill:none;
+  stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
