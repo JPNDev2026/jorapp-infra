@@ -266,12 +266,12 @@
     return totaux;
   }
 
-  function renderMiniChart(containerId, totaux, categorieParNom, maxItems) {
+  function renderMiniChart(containerId, totaux, categorieParNom) {
     const el = document.getElementById(containerId);
     const entries = Object.keys(totaux)
       .map(nom => ({ nom, valeur: totaux[nom], categorie: categorieParNom[nom] || 'qr_lieu' }))
-      .sort((a, b) => b.valeur - a.valeur)
-      .slice(0, maxItems || 8);
+      .filter(e => e.valeur >= 1)
+      .sort((a, b) => b.valeur - a.valeur);
 
     if (!entries.length) { el.innerHTML = '<div class="empty">Aucune donnée sur la période.</div>'; return; }
 
@@ -289,9 +289,9 @@
     el.innerHTML = html;
   }
 
-  function renderConversionChart(containerId, conversionData, maxItems) {
+  function renderConversionChart(containerId, conversionData) {
     const el = document.getElementById(containerId);
-    const entries = conversionData.slice().sort((a, b) => b.engagements - a.engagements).slice(0, maxItems || 8);
+    const entries = conversionData.filter(c => c.engagements >= 1).slice().sort((a, b) => b.engagements - a.engagements);
     if (!entries.length) { el.innerHTML = '<div class="empty">Aucune donnée sur la période.</div>'; return; }
 
     let html = '<div class="mini-chart">';
@@ -315,7 +315,7 @@
     const entries = slugs.map(slug => {
       const p = parPartenaire[slug];
       return { nom: slug, valeur: p.gagnant + p.encaisse + p.perdu };
-    }).sort((a, b) => b.valeur - a.valeur).slice(0, 8);
+    }).filter(e => e.valeur >= 1).sort((a, b) => b.valeur - a.valeur);
 
     const max = Math.max(...entries.map(e => e.valeur), 1);
     let html = '<div class="mini-chart">';
@@ -430,11 +430,11 @@
 
       const categorieParNom = buildCategorieParNom(d.conversion_par_provenance);
 
-      renderMiniChart('completes-chart', totalParNom(d.completes_par_jour), categorieParNom, 8);
-      renderConversionChart('conversion-chart', d.conversion_par_provenance, 8);
+      renderMiniChart('completes-chart', totalParNom(d.completes_par_jour), categorieParNom);
+      renderConversionChart('conversion-chart', d.conversion_par_provenance);
       renderKpis('kpis-totaux', d.totaux);
       renderPartenairesChart('partenaires-chart', d.par_partenaire);
-      renderMiniChart('engagements-chart', totalParNom(d.engagements_par_jour), categorieParNom, 8);
+      renderMiniChart('engagements-chart', totalParNom(d.engagements_par_jour), categorieParNom);
 
       renderTableParJourNomme('completes-detail', d.completes_par_jour, categorieParNom);
       renderConversionTable('conversion-detail', d.conversion_par_provenance);
