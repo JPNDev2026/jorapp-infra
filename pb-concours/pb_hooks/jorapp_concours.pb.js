@@ -296,7 +296,7 @@ routerAdd("GET", "/recap-data", (e) => {
   function provenance(r) {
     const lieu = r.get("lieu") || "";
     const partenaire = r.get("partenaire") || "";
-    if (lieu === "canal") return { categorie: "web", nom: "Web (email / réseaux)" };
+    if (lieu === "canal") return { categorie: "web", nom: "Web" };
     if (partenaire && lieu === partenaire) return { categorie: "qr_partenaire", nom: partenaire };
     return { categorie: "qr_lieu", nom: lieu || "(emplacement inconnu)" };
   }
