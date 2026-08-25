@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Objet — fiche</title>
+<title>Objets — catalogue</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -24,6 +24,7 @@
   .back .ico{width:16px;height:16px}
   .mark{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint)}
   .mark b{color:var(--signal)}
+  .catalogue{display:flex;flex-direction:column;gap:22px}
   .card{background:var(--panel);border-radius:14px;overflow:hidden;
     box-shadow:0 1px 2px rgba(23,25,28,.04), 0 18px 40px rgba(23,25,28,.09)}
   .ico{stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -45,7 +46,7 @@
   .thumb .ico{width:14px;height:14px;color:#C9C2B2}
   .cta{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--signal);color:#fff;
     border:none;border-radius:9px;padding:13px 18px;font-family:var(--sans);font-weight:600;
-    font-size:14px;margin-top:16px;cursor:pointer;width:100%}
+    font-size:14px;margin-top:16px;cursor:pointer;width:100%;text-decoration:none}
   .cta:hover{background:var(--signal-hover)}
   .cta .ico{width:16px;height:16px}
   .content{flex:1;min-width:0;padding:22px 24px 22px 6px;border-left:1px solid var(--line)}
@@ -77,73 +78,85 @@
   .link-txt .count{font-size:12px;color:var(--faint);margin-top:2px}
   .btn-out{display:inline-flex;align-items:center;gap:6px;background:var(--panel);color:var(--steel);
     border:1.5px solid var(--steel-line);border-radius:99px;padding:9px 15px;font-family:var(--sans);
-    font-weight:600;font-size:13px;cursor:pointer;flex:none;white-space:nowrap}
+    font-weight:600;font-size:13px;cursor:pointer;flex:none;white-space:nowrap;text-decoration:none}
   .btn-out:hover{border-color:var(--steel);background:var(--steel-soft)}
   .btn-out .ico{width:14px;height:14px}
   .btn-out.full{width:100%;justify-content:center;padding:12px 15px;margin-top:10px}
 </style>
 </head>
-<body>
+<body data-page="objets">
 <script src="shared.js"></script>
-<div class="stage">
-  <div class="topbar">
-    <a class="back" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>Objets</a>
-    <span class="mark"><b>Linéo</b></span>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="site-nav-brand" href="accueil.html">Linéo</a>
+    <div class="site-nav-links">
+      <a href="objets-fiche.html" data-page="objets">Objets</a>
+      <a href="projets-fiche.html" data-page="projets">Projets</a>
+      <a href="plans-fiche.html" data-page="plans">Plans</a>
+      <a href="modules-fiche.html" data-page="modules">Modules</a>
+      <a href="acteurs-fiche.html" data-page="acteurs">Acteurs</a>
+      <a href="realisation-fiche.html" data-page="realisation">Réalisations</a>
+      <a href="consortium-fiche.html" data-page="consortium">Consortium</a>
+    </div>
   </div>
+</nav>
+<div class="stage">
+  <div class="catalogue" id="catalogue"></div>
+</div>
 
+<template id="card-tpl">
   <div class="card">
     <div class="wrap">
-
       <div class="gal">
-        <div class="hero" id="hero">
+        <div class="hero">
           <svg class="ico ph-icon" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="1.5"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5.5-5.5a1.8 1.8 0 0 1 2.5 0L20 20"/></svg>
           <span class="expand"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg></span>
         </div>
-        <div class="thumbs" id="thumbs"></div>
+        <div class="thumbs"></div>
 
-        <a class="cta" href="projets-fiche.html">
+        <button type="button" class="cta" data-role="create-projet">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
           Créer un projet
-        </a>
-        <button class="btn-out full" onclick="showToast('Objet associé au projet — Aménagement du parc communal')">
+        </button>
+        <button class="btn-out full" data-role="associer">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5 14.5 9.5"/><path d="M11 6.5 12.6 5a4 4 0 0 1 5.7 5.7l-1.6 1.6"/><path d="M13 17.5 11.4 19a4 4 0 0 1-5.7-5.7l1.6-1.6"/></svg>
           Associer à un projet
         </button>
       </div>
 
       <div class="content">
-        <div class="eyebrow" id="famille"></div>
-        <h1 class="title" id="nom"></h1>
+        <div class="eyebrow" data-field="famille"></div>
+        <h1 class="title" data-field="nom"></h1>
 
-        <div class="badges" id="badges"></div>
+        <div class="badges"></div>
 
         <div class="facts">
-          <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5 16.5 3l4.5 4.5L7.5 21 3 16.5Z"/><path d="m14 6 2 2M11 9l2 2M8 12l2 2"/></svg><span id="dimensions"></span></div>
-          <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9"/></svg><span id="cout"></span></div>
+          <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5 16.5 3l4.5 4.5L7.5 21 3 16.5Z"/><path d="m14 6 2 2M11 9l2 2M8 12l2 2"/></svg><span data-field="dimensions"></span></div>
+          <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9"/></svg><span data-field="cout"></span></div>
         </div>
 
         <div class="section">
           <h2>Description</h2>
-          <p class="desc-text" id="description"></p>
+          <p class="desc-text" data-field="description"></p>
         </div>
 
         <div class="section">
           <h2>Essences</h2>
-          <div class="swatches" id="essences"></div>
+          <div class="swatches"></div>
         </div>
 
         <div class="section">
           <div class="link-row">
             <div class="link-left">
               <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg>
-              <div class="link-txt"><div class="lbl">Réalisations</div><div class="count" id="real-count"></div></div>
+              <div class="link-txt"><div class="lbl">Réalisations</div><div class="count" data-field="real-count"></div></div>
             </div>
-            <button class="btn-out" onclick="showToast('Vue Réalisations — à venir')">Voir les réalisations<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+            <a class="btn-out" data-role="voir-realisations" href="realisation-fiche.html">Voir les réalisations<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
           </div>
           <div class="link-row">
             <div class="link-left">
               <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M9 12.5h6M9 15.5h6M9 18h4"/></svg>
-              <div class="link-txt"><div class="lbl">Plans</div><div class="count" id="plans-count"></div></div>
+              <div class="link-txt"><div class="lbl">Plans</div><div class="count" data-field="plans-count"></div></div>
             </div>
             <a class="btn-out" href="plans-fiche.html">Voir les plans<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
           </div>
@@ -152,38 +165,194 @@
       </div>
     </div>
   </div>
-</div>
+</template>
+
+<dialog id="dlg-create-projet" class="dlg">
+  <form method="dialog" class="dlg-card" id="form-create-projet">
+    <div class="dlg-head">
+      <h3>Créer un projet</h3>
+      <button type="button" class="dlg-close" data-close aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="dlg-body">
+      <p class="dlg-context" id="create-projet-context"></p>
+
+      <label class="dlg-field">
+        <span>Intitulé du projet</span>
+        <input type="text" name="intitules" required placeholder="ex. Aménagement du parc communal">
+      </label>
+
+      <label class="dlg-field">
+        <span>Collectivité</span>
+        <input type="text" name="collectivite" required placeholder="ex. Commune de Vucherens">
+      </label>
+
+      <div class="dlg-row">
+        <label class="dlg-field">
+          <span>Statut</span>
+          <select name="statut">
+            <option>Cadrage</option>
+            <option>En cours</option>
+            <option>Réalisé</option>
+            <option>Suspendu</option>
+          </select>
+        </label>
+        <label class="dlg-field">
+          <span>Budget</span>
+          <input type="text" name="budget" placeholder="ex. 45 000 CHF">
+        </label>
+      </div>
+
+      <label class="dlg-field">
+        <span>Délais</span>
+        <input type="text" name="delais" placeholder="ex. Printemps 2027">
+      </label>
+
+      <label class="dlg-field">
+        <span>Besoins</span>
+        <textarea name="besoins" rows="3" placeholder="Décrivez les besoins du projet..."></textarea>
+      </label>
+
+      <div class="dlg-field">
+        <span>Visibilité du projet</span>
+        <div class="dlg-visi-group" role="radiogroup">
+          <label class="dlg-visi-opt">
+            <input type="radio" name="visibilite" value="public" checked>
+            <span class="dlg-visi-card">
+              <span class="dlg-visi-nm">Public</span>
+              <span class="dlg-visi-desc">Visible par tous les acteurs de la plateforme — réponse libre à l'appel.</span>
+            </span>
+          </label>
+          <label class="dlg-visi-opt">
+            <input type="radio" name="visibilite" value="restreint">
+            <span class="dlg-visi-card">
+              <span class="dlg-visi-nm">Acteurs concernés</span>
+              <span class="dlg-visi-desc">Visible uniquement par les acteurs dont les métiers correspondent aux objets du projet.</span>
+            </span>
+          </label>
+          <label class="dlg-visi-opt">
+            <input type="radio" name="visibilite" value="prive">
+            <span class="dlg-visi-card">
+              <span class="dlg-visi-nm">Sur sélection</span>
+              <span class="dlg-visi-desc">Visible uniquement par les acteurs choisis directement par la collectivité.</span>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn-out" data-close>Annuler</button>
+      <button type="submit" class="cta" id="submit-create-projet">Créer le projet</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-associer-projet" class="dlg">
+  <div class="dlg-card">
+    <div class="dlg-head">
+      <h3>Associer à un projet</h3>
+      <button type="button" class="dlg-close" data-close aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="dlg-body">
+      <p class="dlg-context" id="associer-projet-context"></p>
+      <div class="dlg-list" id="projets-list"></div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn-out" data-close>Annuler</button>
+      <button type="button" class="cta" id="confirm-associer" disabled>Associer</button>
+    </div>
+  </div>
+</dialog>
 
 <script>
-const OBJET = {
-  nom: "Banc trois assises",
-  famille: "Mobilier d'assise",
-  statut_maturite: "Produit",
-  service: "Passif",
-  dimensions_standards: "180 cm",
-  cout_indicatif: "3 200 CHF",
-  description: "Banc massif taille dans une seule piece, assemblage sans quincaillerie apparente. Concu pour un usage exterieur intensif en zone forestiere ou periurbaine.",
-  essences: [
-    { label: "Epicea", color: "#C9A46A" },
-    { label: "Meleze", color: "#8B5E34" },
-    { label: "Chene",  color: "#D8C39C" }
-  ],
-  photos: [],
-  realisationsCount: 12,
-  plansCount: 3
-};
+const OBJETS = [
+  {
+    id: "banc",
+    nom: "Banc trois assises",
+    famille: "Mobilier d'assise",
+    statut_maturite: "Produit",
+    service: "Passif",
+    dimensions_standards: "180 cm",
+    cout_indicatif: "3 200 CHF",
+    description: "Banc massif taille dans une seule piece, assemblage sans quincaillerie apparente. Concu pour un usage exterieur intensif en zone forestiere ou periurbaine.",
+    essences: [
+      { label: "Epicea", color: "#C9A46A" },
+      { label: "Meleze", color: "#8B5E34" },
+      { label: "Chene",  color: "#D8C39C" }
+    ],
+    photos: [
+      "Images_mobilier/banc_design.png",
+      null
+    ],
+    realisationsCount: 12,
+    plansCount: 3
+  },
+  {
+    id: "abribus",
+    nom: "Abri-bus",
+    famille: "Mobilier d'attente",
+    statut_maturite: "Produit",
+    service: "Passif",
+    dimensions_standards: "240 x 150 cm",
+    cout_indicatif: "8 500 CHF",
+    description: "Abri modulaire en madriers d'epicea empiles sur plots beton, toiture monopente en bois massif avec large debord. Concu pour proteger les usagers des transports publics en zone rurale et periurbaine, ossature poteaux-poutres apparente.",
+    essences: [
+      { label: "Epicea", color: "#C9A46A" },
+      { label: "Sapin blanc", color: "#E4D6B8" }
+    ],
+    photos: [
+      "Images_mobilier/abris-bus_design.png",
+      null
+    ],
+    realisationsCount: 4,
+    plansCount: 2
+  },
+  {
+    id: "placette",
+    nom: "Placette urbaine",
+    famille: "Mobilier d'assise et de jeu",
+    statut_maturite: "Produit",
+    service: "Passif",
+    dimensions_standards: "600 x 200 cm, H 140 cm",
+    cout_indicatif: "18 500 CHF",
+    description: "Placette modulaire en lames de bois ondulees (meleze / robinier) sur structure acier galvanise, formant un parcours continu d'assises et de passages accessible des deux cotes. Finition a l'huile naturelle, pose sur platines directement sur revetement existant, sans fondation.",
+    essences: [
+      { label: "Meleze", color: "#8B5E34" },
+      { label: "Robinier", color: "#C9A46A" }
+    ],
+    photos: [
+      "Images_mobilier/placette_urbaine.png",
+      null
+    ],
+    realisationsCount: 1,
+    plansCount: 1
+  }
+];
 
-function renderObjet(o){
-  document.getElementById("famille").textContent = o.famille || "";
-  document.getElementById("nom").textContent = o.nom || "";
-  document.getElementById("description").textContent = o.description || "";
-  document.getElementById("dimensions").textContent = o.dimensions_standards || "-";
-  document.getElementById("cout").textContent = o.cout_indicatif || "-";
-  document.getElementById("real-count").textContent = (o.realisationsCount || 0) + " installee(s) sur le terrain";
-  document.getElementById("plans-count").textContent = (o.plansCount || 0) + " document(s) technique(s)";
+const PROJETS_EXISTANTS = [
+  { nom: "Aménagement du parc communal", collectivite: "Commune de Vucherens", statut: "Cadrage" },
+  { nom: "Réaménagement de la placette de la gare", collectivite: "Ville de Nyon", statut: "En cours" },
+  { nom: "Arrêts de bus, commune de Luins", collectivite: "Commune de Luins", statut: "Cadrage" },
+  { nom: "Sentier pédestre du Jorat", collectivite: "Commune de Servion", statut: "En cours" }
+];
 
-  var badges = document.getElementById("badges");
-  badges.innerHTML = "";
+function renderCard(o){
+  var tpl = document.getElementById("card-tpl");
+  var node = tpl.content.cloneNode(true);
+  var root = node.querySelector(".card");
+
+  root.querySelector('[data-field="famille"]').textContent = o.famille || "";
+  root.querySelector('[data-field="nom"]').textContent = o.nom || "";
+  root.querySelector('[data-field="description"]').textContent = o.description || "";
+  root.querySelector('[data-field="dimensions"]').textContent = o.dimensions_standards || "-";
+  root.querySelector('[data-field="cout"]').textContent = o.cout_indicatif || "-";
+  root.querySelector('[data-field="real-count"]').textContent = (o.realisationsCount || 0) + " installee(s) sur le terrain";
+  root.querySelector('[data-field="plans-count"]').textContent = (o.plansCount || 0) + " document(s) technique(s)";
+
+  var badges = root.querySelector(".badges");
   [[o.statut_maturite,"a"], [o.service,"b"]].forEach(function(pair){
     var txt = pair[0], cls = pair[1];
     if(!txt) return;
@@ -193,8 +362,7 @@ function renderObjet(o){
     badges.appendChild(b);
   });
 
-  var ess = document.getElementById("essences");
-  ess.innerHTML = "";
+  var ess = root.querySelector(".swatches");
   (o.essences || []).forEach(function(e){
     var w = document.createElement("div");
     w.className = "swatch";
@@ -202,8 +370,8 @@ function renderObjet(o){
     ess.appendChild(w);
   });
 
-  var hero = document.getElementById("hero");
-  var thumbs = document.getElementById("thumbs");
+  var hero = root.querySelector(".hero");
+  var thumbs = root.querySelector(".thumbs");
   var photos = (o.photos && o.photos.length) ? o.photos : [null];
 
   function setHero(i){
@@ -218,7 +386,6 @@ function renderObjet(o){
     for(var k=0;k<ts.length;k++){ ts[k].classList.toggle("active", k===i); }
   }
 
-  thumbs.innerHTML = "";
   photos.forEach(function(src, i){
     var t = document.createElement("button");
     t.className = "thumb" + (i===0 ? " active" : "");
@@ -229,10 +396,102 @@ function renderObjet(o){
     thumbs.appendChild(t);
   });
   setHero(0);
+
+  var createBtn = root.querySelector('[data-role="create-projet"]');
+  createBtn.addEventListener("click", function(){ openCreateDialog(o); });
+
+  var assocBtn = root.querySelector('[data-role="associer"]');
+  assocBtn.addEventListener("click", function(){ openAssocierDialog(o); });
+
+  return root;
 }
 
-renderObjet(OBJET);
+var catalogue = document.getElementById("catalogue");
+OBJETS.forEach(function(o){ catalogue.appendChild(renderCard(o)); });
+
+/* ==========================================================================
+   Boites de dialogue — "Créer un projet" (formulaire complet, champs de la
+   fiche Projet) et "Associer à un projet" (selection parmi les projets
+   concernés). Purement demonstratif : aucune persistance, juste un toast
+   de confirmation a la fin du parcours.
+   ========================================================================== */
+var dlgCreate = document.getElementById("dlg-create-projet");
+var dlgAssoc = document.getElementById("dlg-associer-projet");
+var formCreate = document.getElementById("form-create-projet");
+
+document.querySelectorAll("[data-close]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    btn.closest("dialog").close();
+  });
+});
+
+function openCreateDialog(o){
+  document.getElementById("create-projet-context").textContent = "Nouveau projet à partir de : " + o.nom;
+  formCreate.reset();
+  dlgCreate.showModal();
+}
+
+formCreate.addEventListener("submit", function(){
+  var fd = new FormData(formCreate);
+  var nom = (fd.get("intitules") || "").trim() || "Nouveau projet";
+  var created = {
+    intitules: nom,
+    collectivite: (fd.get("collectivite") || "").trim(),
+    statut: fd.get("statut") || "Cadrage",
+    visibilite: fd.get("visibilite") || "public",
+    budget: (fd.get("budget") || "").trim(),
+    delais: (fd.get("delais") || "").trim(),
+    besoins: (fd.get("besoins") || "").trim(),
+    documents: [],
+    objetsCount: 1,
+    consortiumCount: 0
+  };
+  try{ sessionStorage.setItem("lineo:new-projet", JSON.stringify(created)); }catch(e){}
+  setTimeout(function(){
+    showToast("Projet créé — " + nom);
+  }, 150);
+  setTimeout(function(){
+    location.href = "projets-fiche.html";
+  }, 1300);
+});
+
+var selectedProjet = null;
+
+function openAssocierDialog(o){
+  document.getElementById("associer-projet-context").textContent = "Choisissez le projet auquel associer : " + o.nom;
+  selectedProjet = null;
+  var confirmBtn = document.getElementById("confirm-associer");
+  confirmBtn.disabled = true;
+
+  var list = document.getElementById("projets-list");
+  list.innerHTML = "";
+  PROJETS_EXISTANTS.forEach(function(p){
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "dlg-proj";
+    btn.innerHTML =
+      '<span class="dlg-proj-radio"></span>' +
+      '<span class="dlg-proj-txt">' +
+        '<div class="dlg-proj-nm">' + p.nom + '</div>' +
+        '<div class="dlg-proj-sub">' + p.collectivite + ' — ' + p.statut + '</div>' +
+      '</span>';
+    btn.addEventListener("click", function(){
+      selectedProjet = p;
+      list.querySelectorAll(".dlg-proj").forEach(function(el){ el.classList.remove("sel"); });
+      btn.classList.add("sel");
+      confirmBtn.disabled = false;
+    });
+    list.appendChild(btn);
+  });
+
+  confirmBtn.onclick = function(){
+    if(!selectedProjet) return;
+    dlgAssoc.close();
+    showToast("Objet associé au projet — " + selectedProjet.nom);
+  };
+
+  dlgAssoc.showModal();
+}
 </script>
 </body>
 </html>
-                                                                                                                                                                                                                                   

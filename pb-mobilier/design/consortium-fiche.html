@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consortium — fiche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root{
+    --canvas:#EFEDE7; --panel:#FFFFFF; --ink:#1B1B18; --muted:#6E6A62; --faint:#9B968C;
+    --line:#E5E1D7; --ph:#EDE9DF; --ph-2:#E1DACB;
+    --signal:#FF5A1F; --signal-hover:#E64E17; --signal-soft:#FFE4D3; --signal-ink:#7A2A0D;
+    --steel:#33414C; --steel-soft:#E7EBEC; --steel-line:#C6D0D4;
+    --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .stage{max-width:920px;margin:0 auto;padding:32px 20px 60px}
+  .card{background:var(--panel);border-radius:14px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(23,25,28,.04), 0 18px 40px rgba(23,25,28,.09);padding:26px 26px 8px}
+  .ico{stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+  .eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--steel);margin-bottom:9px}
+  .title{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 12px}
+  .badges{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}
+  .badge{height:24px;border-radius:99px;padding:0 13px;display:flex;align-items:center;
+    font-size:12.5px;font-weight:500}
+  .badge.a{background:var(--steel-soft);color:var(--steel)}
+  .badge.visi-public{background:var(--signal-soft);color:var(--signal-ink)}
+  .badge.visi-restreint,.badge.visi-prive{background:var(--steel-soft);color:var(--steel)}
+  .facts{display:flex;align-items:center;gap:16px;margin:0 0 18px;color:var(--muted);font-size:13.5px}
+  .fact{display:flex;align-items:center;gap:6px}
+  .fact .ico{width:15px;height:15px;color:var(--faint)}
+  .btn-out{display:inline-flex;align-items:center;gap:6px;background:var(--panel);color:var(--steel);
+    border:1.5px solid var(--steel-line);border-radius:99px;padding:9px 15px;font-family:var(--sans);
+    font-weight:600;font-size:13px;cursor:pointer;flex:none;white-space:nowrap;text-decoration:none;margin-bottom:22px}
+  .btn-out:hover{border-color:var(--steel);background:var(--steel-soft)}
+  .btn-out .ico{width:14px;height:14px}
+
+  h2{font-size:13.5px;font-weight:600;margin:0 0 4px;color:var(--ink)}
+  .h2-sub{font-size:12px;color:var(--faint);margin:0 0 11px}
+  .section{margin-top:0;padding:20px 0;border-top:1px solid var(--line)}
+  .section:first-of-type{border-top:1px solid var(--line)}
+
+  .cons-list{display:flex;flex-direction:column}
+  .cons-row{display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:12px 8px;border-top:1px solid var(--line);cursor:pointer;border-radius:9px}
+  .cons-row:first-child{border-top:none}
+  .cons-row:hover{background:var(--steel-soft)}
+  .cons-left{display:flex;align-items:center;gap:11px;min-width:0}
+  .cons-left .ico{width:17px;height:17px;color:var(--steel);flex:none}
+  .cons-mod-nm{font-size:13.5px;font-weight:500;color:var(--ink)}
+  .cons-mod-meta{display:flex;gap:6px;margin-top:4px}
+  .cons-status{font-size:10.5px;padding:2px 9px;border-radius:99px;background:var(--steel-soft);color:var(--steel);white-space:nowrap}
+  .cons-kit{font-size:9.5px;padding:2px 8px;border-radius:99px;background:var(--signal-soft);color:var(--signal-ink);font-weight:700;white-space:nowrap}
+
+  .cons-right{display:flex;align-items:center;gap:9px;flex:none}
+  .cons-avatar{width:30px;height:30px;border-radius:50%;background:var(--steel);color:#fff;flex:none;
+    display:grid;place-items:center;font-size:11px;font-weight:700;font-family:var(--mono)}
+  .cons-avatar.cert{background:var(--signal)}
+  .cons-acteur-txt{text-align:right}
+  .cons-acteur-nm{font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap}
+  .cons-acteur-metier{font-size:11px;color:var(--faint);margin-top:2px}
+
+  .supply-row{display:flex;align-items:center;gap:12px;padding:12px 8px;border-top:1px solid var(--line)}
+  .supply-row:first-child{border-top:none}
+  .supply-txt{min-width:0}
+  .supply-nm{font-size:13.5px;font-weight:500;color:var(--ink)}
+  .supply-metier{font-size:11px;color:var(--faint);margin-top:2px}
+  .supply-role{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+
+  .recap-chips{display:flex;flex-wrap:wrap;gap:10px}
+  .recap-chip{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;
+    border:1.5px solid var(--line);border-radius:99px;cursor:pointer}
+  .recap-chip:hover{border-color:var(--steel-line);background:var(--steel-soft)}
+  .recap-chip .cons-avatar{width:26px;height:26px;font-size:10px}
+  .recap-chip-txt{display:flex;flex-direction:column}
+  .recap-chip-nm{font-size:12.5px;font-weight:500;color:var(--ink);white-space:nowrap}
+  .recap-chip-count{font-size:10.5px;color:var(--faint)}
+</style>
+</head>
+<body data-page="consortium">
+<script src="shared.js"></script>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="site-nav-brand" href="accueil.html">Linéo</a>
+    <div class="site-nav-links">
+      <a href="objets-fiche.html" data-page="objets">Objets</a>
+      <a href="projets-fiche.html" data-page="projets">Projets</a>
+      <a href="plans-fiche.html" data-page="plans">Plans</a>
+      <a href="modules-fiche.html" data-page="modules">Modules</a>
+      <a href="acteurs-fiche.html" data-page="acteurs">Acteurs</a>
+      <a href="realisation-fiche.html" data-page="realisation">Réalisations</a>
+      <a href="consortium-fiche.html" data-page="consortium">Consortium</a>
+    </div>
+  </div>
+</nav>
+<div class="stage">
+  <div class="card">
+
+    <div class="eyebrow" id="collectivite"></div>
+    <h1 class="title" id="intitules"></h1>
+    <div class="badges" id="proj-badges"></div>
+    <div class="facts" id="proj-facts"></div>
+    <a class="btn-out" href="projets-fiche.html">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>
+      Voir la fiche projet
+    </a>
+
+    <div id="objets-groups"></div>
+
+    <div class="section">
+      <h2>Approvisionnement matière première</h2>
+      <p class="h2-sub">Acteurs mobilisés pour l'ensemble du projet, non rattachés à un module specifique.</p>
+      <div id="supply-list"></div>
+    </div>
+
+    <div class="section">
+      <h2>Récapitulatif du consortium</h2>
+      <p class="h2-sub" id="recap-sub"></p>
+      <div class="recap-chips" id="recap-chips"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PROJET_CTX = {
+  intitules: "Aménagement du parc communal",
+  collectivite: "Commune de Vucherens",
+  statut: "Cadrage",
+  visibilite: "public",
+  budget: "45 000 CHF",
+  delais: "Printemps 2027"
+};
+
+const VISIBILITE_META = {
+  public: { label: "Visibilité publique", cls: "visi-public" },
+  restreint: { label: "Acteurs concernés", cls: "visi-restreint" },
+  prive: { label: "Sur sélection", cls: "visi-prive" }
+};
+
+/* certifie Label Bois Suisse — reflete l'etat des fiches Acteurs, sert
+   uniquement a colorer l'avatar (signal = certifie) dans ce recapitulatif. */
+const CERT_MAP = {
+  "Scierie du Jorat": true,
+  "Groupement forestier Haut-Jorat": true,
+  "Atelier Fontaine": false,
+  "Serrurerie Meyer": false,
+  "Charpente Rey & Fils": false,
+  "Proxybois": true
+};
+
+const OBJETS_CONSORTIUM = [
+  {
+    nom: "Banc trois assises",
+    modules: [
+      { nom: "Assise", statut: "Plan validé", kit: false, acteur: "Atelier Fontaine", metier: "Menuisier" },
+      { nom: "Piétement", statut: "Prototype", kit: true, acteur: "Serrurerie Meyer", metier: "Serrurier" },
+      { nom: "Accoudoir", statut: "Plan validé", kit: false, acteur: "Proxybois", metier: "Menuisier" }
+    ]
+  },
+  {
+    nom: "Abri-bus",
+    modules: [
+      { nom: "Ossature poteaux-poutres", statut: "Plan validé", kit: false, acteur: "Charpente Rey & Fils", metier: "Charpentier" },
+      { nom: "Toiture monopente", statut: "Prototype", kit: false, acteur: "Charpente Rey & Fils", metier: "Charpentier" },
+      { nom: "Habillage madriers", statut: "Plan validé", kit: false, acteur: "Atelier Fontaine", metier: "Menuisier" },
+      { nom: "Banc intérieur", statut: "En étude", kit: true, acteur: "Proxybois", metier: "Menuisier" }
+    ]
+  }
+];
+
+const APPROVISIONNEMENT = [
+  { acteur: "Scierie du Jorat", metier: "Scieur",
+    role: "Sciage et débit du bois massif pour l'ensemble des pièces du projet." },
+  { acteur: "Groupement forestier Haut-Jorat", metier: "Groupement forestier",
+    role: "Fourniture de grumes issues de la gestion durable des forêts du Haut-Jorat." }
+];
+
+function initials(nom){
+  var parts = (nom || "").split(" ").filter(Boolean);
+  return ((parts[0] || "")[0] || "") + ((parts[1] || "")[0] || "");
+}
+
+function renderProjetHeader(){
+  document.getElementById("collectivite").textContent = "Consortium · " + PROJET_CTX.collectivite;
+  document.getElementById("intitules").textContent = PROJET_CTX.intitules;
+
+  var badges = document.getElementById("proj-badges");
+  badges.innerHTML = "";
+  var b = document.createElement("span");
+  b.className = "badge a";
+  b.textContent = PROJET_CTX.statut;
+  badges.appendChild(b);
+
+  var visi = VISIBILITE_META[PROJET_CTX.visibilite] || VISIBILITE_META.public;
+  var vb = document.createElement("span");
+  vb.className = "badge " + visi.cls;
+  vb.textContent = visi.label;
+  badges.appendChild(vb);
+
+  var facts = document.getElementById("proj-facts");
+  facts.innerHTML =
+    '<div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9"/></svg>' + PROJET_CTX.budget + '</div>' +
+    '<div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M8 3v3.5M16 3v3.5"/></svg>' + PROJET_CTX.delais + '</div>';
+}
+
+function consRow(m){
+  var row = document.createElement("div");
+  row.className = "cons-row";
+  var cert = CERT_MAP[m.acteur];
+  row.innerHTML =
+    '<div class="cons-left">' +
+      '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8l8-4.5Z"/><path d="M4 8l8 4.5L20 8M12 12.5V21"/></svg>' +
+      '<div>' +
+        '<div class="cons-mod-nm">' + m.nom + '</div>' +
+        '<div class="cons-mod-meta">' +
+          (m.kit ? '<span class="cons-kit">kit</span>' : '') +
+          '<span class="cons-status">' + m.statut + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="cons-right">' +
+      '<div class="cons-acteur-txt"><div class="cons-acteur-nm">' + m.acteur + '</div><div class="cons-acteur-metier">' + m.metier + '</div></div>' +
+      '<div class="cons-avatar' + (cert ? ' cert' : '') + '">' + initials(m.acteur).toUpperCase() + '</div>' +
+    '</div>';
+  row.addEventListener("click", function(){ location.href = "acteurs-fiche.html"; });
+  return row;
+}
+
+function renderObjetsGroups(){
+  var wrap = document.getElementById("objets-groups");
+  wrap.innerHTML = "";
+  OBJETS_CONSORTIUM.forEach(function(o){
+    var section = document.createElement("div");
+    section.className = "section";
+    var h2 = document.createElement("h2");
+    h2.textContent = o.nom;
+    var sub = document.createElement("p");
+    sub.className = "h2-sub";
+    sub.textContent = o.modules.length + " module(s) rattaché(s) à cet objet";
+    var list = document.createElement("div");
+    list.className = "cons-list";
+    o.modules.forEach(function(m){ list.appendChild(consRow(m)); });
+    section.appendChild(h2);
+    section.appendChild(sub);
+    section.appendChild(list);
+    wrap.appendChild(section);
+  });
+}
+
+function renderSupply(){
+  var list = document.getElementById("supply-list");
+  list.innerHTML = "";
+  APPROVISIONNEMENT.forEach(function(s){
+    var cert = CERT_MAP[s.acteur];
+    var row = document.createElement("div");
+    row.className = "supply-row";
+    row.innerHTML =
+      '<div class="cons-avatar' + (cert ? ' cert' : '') + '">' + initials(s.acteur).toUpperCase() + '</div>' +
+      '<div class="supply-txt">' +
+        '<div class="supply-nm">' + s.acteur + '</div>' +
+        '<div class="supply-metier">' + s.metier + '</div>' +
+        '<div class="supply-role">' + s.role + '</div>' +
+      '</div>';
+    list.appendChild(row);
+  });
+}
+
+function renderRecap(){
+  var counts = {};
+  OBJETS_CONSORTIUM.forEach(function(o){
+    o.modules.forEach(function(m){
+      counts[m.acteur] = (counts[m.acteur] || 0) + 1;
+    });
+  });
+  APPROVISIONNEMENT.forEach(function(s){
+    counts[s.acteur] = counts[s.acteur] || 0;
+  });
+
+  var names = Object.keys(counts);
+  document.getElementById("recap-sub").textContent = names.length + " acteur(s) impliqué(s) dans ce projet";
+
+  var chips = document.getElementById("recap-chips");
+  chips.innerHTML = "";
+  names.forEach(function(nom){
+    var cert = CERT_MAP[nom];
+    var n = counts[nom];
+    var chip = document.createElement("div");
+    chip.className = "recap-chip";
+    chip.innerHTML =
+      '<div class="cons-avatar' + (cert ? ' cert' : '') + '">' + initials(nom).toUpperCase() + '</div>' +
+      '<div class="recap-chip-txt">' +
+        '<span class="recap-chip-nm">' + nom + '</span>' +
+        '<span class="recap-chip-count">' + (n > 0 ? (n + " module(s)") : "Approvisionnement") + '</span>' +
+      '</div>';
+    chip.addEventListener("click", function(){ location.href = "acteurs-fiche.html"; });
+    chips.appendChild(chip);
+  });
+}
+
+renderProjetHeader();
+renderObjetsGroups();
+renderSupply();
+renderRecap();
+</script>
+</body>
+</html>

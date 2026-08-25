@@ -57,6 +57,9 @@
     font-size:12.5px;font-weight:500}
   .badge.a{background:var(--steel-soft);color:var(--steel)}
   .badge.b{background:#F1F1EF;color:var(--muted)}
+  .badge.visi-public{background:var(--signal-soft);color:var(--signal-ink)}
+  .badge.visi-restreint,.badge.visi-prive{background:var(--steel-soft);color:var(--steel)}
+  .visi-caption{font-size:12.5px;color:var(--muted);line-height:1.5;margin:-6px 0 18px}
   .facts{display:flex;align-items:center;gap:16px;margin:0 0 20px;color:var(--muted);font-size:13.5px}
   .fact{display:flex;align-items:center;gap:6px}
   .fact .ico{width:15px;height:15px;color:var(--faint)}
@@ -79,14 +82,23 @@
   .btn-out.full{width:100%;justify-content:center;padding:12px 15px;margin-top:10px}
 </style>
 </head>
-<body>
+<body data-page="projets">
 <script src="shared.js"></script>
-<div class="stage">
-  <div class="topbar">
-    <a class="back" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>Projets</a>
-    <span class="mark"><b>Linéo</b></span>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="site-nav-brand" href="accueil.html">Linéo</a>
+    <div class="site-nav-links">
+      <a href="objets-fiche.html" data-page="objets">Objets</a>
+      <a href="projets-fiche.html" data-page="projets">Projets</a>
+      <a href="plans-fiche.html" data-page="plans">Plans</a>
+      <a href="modules-fiche.html" data-page="modules">Modules</a>
+      <a href="acteurs-fiche.html" data-page="acteurs">Acteurs</a>
+      <a href="realisation-fiche.html" data-page="realisation">Réalisations</a>
+      <a href="consortium-fiche.html" data-page="consortium">Consortium</a>
+    </div>
   </div>
-
+</nav>
+<div class="stage">
   <div class="card">
     <div class="wrap">
 
@@ -112,6 +124,7 @@
         <h1 class="title" id="intitules"></h1>
 
         <div class="badges" id="badges"></div>
+        <p class="visi-caption" id="visibilite-caption"></p>
 
         <div class="facts">
           <div class="fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9"/></svg><span id="budget"></span></div>
@@ -136,7 +149,7 @@
               <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 4.3a3 3 0 0 1 0 5.9M21 20c0-2.8-1.9-4.8-4.5-5.4"/></svg>
               <div class="link-txt"><div class="lbl">Consortium</div><div class="count" id="consortium-count"></div></div>
             </div>
-            <button class="btn-out" onclick="showToast('Vue Consortium — à venir')">Voir le consortium<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+            <a class="btn-out" href="consortium-fiche.html">Voir le consortium<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
           </div>
         </div>
 
@@ -150,12 +163,22 @@ const PROJET = {
   intitules: "Amenagement du parc communal",
   collectivite: "Commune de Vucherens",
   statut: "Cadrage",
+  visibilite: "public",
   budget: "45 000 CHF",
   delais: "Printemps 2027",
   besoins: "Le site necessite du mobilier d'assise et de repos le long du sentier forestier, ainsi qu'une signaletique d'orientation en entree de parc. Une reflexion sur l'accessibilite PMR est demandee.",
   documents: [],
-  objetsCount: 3,
-  consortiumCount: 2
+  objetsCount: 2,
+  consortiumCount: 6
+};
+
+const VISIBILITE_META = {
+  public: { label: "Visibilité publique", cls: "visi-public",
+    desc: "Visible par tous les acteurs de la plateforme — reponse libre a l'appel." },
+  restreint: { label: "Acteurs concernés", cls: "visi-restreint",
+    desc: "Visible uniquement par les acteurs dont les metiers correspondent aux objets du projet." },
+  prive: { label: "Sur sélection", cls: "visi-prive",
+    desc: "Visible uniquement par les acteurs choisis directement par la collectivite." }
 };
 
 function renderProjet(p){
@@ -175,6 +198,13 @@ function renderProjet(p){
     b.textContent = p.statut;
     badges.appendChild(b);
   }
+
+  var visi = VISIBILITE_META[p.visibilite] || VISIBILITE_META.public;
+  var vb = document.createElement("span");
+  vb.className = "badge " + visi.cls;
+  vb.textContent = visi.label;
+  badges.appendChild(vb);
+  document.getElementById("visibilite-caption").textContent = visi.desc;
 
   var hero = document.getElementById("hero");
   var thumbs = document.getElementById("thumbs");
@@ -204,6 +234,16 @@ function renderProjet(p){
   });
   setHero(0);
 }
+
+(function applyJustCreatedProjet(){
+  try{
+    var raw = sessionStorage.getItem("lineo:new-projet");
+    if(!raw) return;
+    sessionStorage.removeItem("lineo:new-projet");
+    var created = JSON.parse(raw);
+    Object.assign(PROJET, created);
+  }catch(e){}
+})();
 
 renderProjet(PROJET);
 </script>

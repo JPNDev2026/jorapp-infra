@@ -20,3 +20,14 @@ function showToast(message){
   clearTimeout(window.__toastTimer);
   window.__toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2600);
 }
+
+/*
+  Bandeau de navigation — marque comme actif le lien correspondant a la
+  page courante (identifiee par l'attribut data-page pose sur <body>).
+*/
+document.addEventListener("DOMContentLoaded", function(){
+  var page = document.body.getAttribute("data-page");
+  if(!page) return;
+  var link = document.querySelector('.site-nav-links a[data-page="' + page + '"]');
+  if(link) link.classList.add("active");
+});

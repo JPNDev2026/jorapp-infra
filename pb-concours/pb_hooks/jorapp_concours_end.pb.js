@@ -1,55 +1,60 @@
 /// <reference path="../pb_data/types.d.ts" />
 //
-// JorApp - Concours partenaires
+// JorApp - Concours partenaires - SONDAGE FERME
 // PIEGE JSVM : config + fonctions definies DANS chaque handler. Cible : PocketBase v0.23+ (v0.39).
+//
+// Ce hook remplace jorapp_concours.pb.js une fois le quota de participation atteint.
+// Les routes d'ENTREE dans le sondage (/go, /lieu, /web) ne redirigent plus vers
+// LimeSurvey mais vers concours.jorapp.org/end.html. Chaque clic est tout de meme
+// journalise dans "participations" (lieu = "end_url_click") pour garder une trace
+// du volume de trafic recu apres fermeture.
+//
+// Les routes du parcours DEJA ENTAME (/complete, /resultat) restent actives a
+// l'identique : les personnes ayant deja scanne/clique avant la fermeture et
+// deja repondu au sondage doivent pouvoir recuperer leur resultat normalement.
+// Idem pour /partner(s), /validate, /comptoir, /recap-data (non lies a l'entree
+// dans le sondage).
 
 routerAdd("GET", "/go/{partner}", (e) => {
-  const LS_SURVEY_URL = "https://survey.jorapp.org/index.php/268839";
+  const END_URL = "https://concours.jorapp.org/end.html";
   const partner = e.request.pathValue("partner");
-  const lieu = e.requestInfo().query["lieu"] || partner;
-  const session = $security.randomString(40);
   const col = $app.findCollectionByNameOrId("participations");
   const rec = new Record(col);
-  rec.set("session", session);
+  rec.set("session", $security.randomString(40));
   rec.set("partenaire", partner);
-  rec.set("lieu", lieu);
+  rec.set("lieu", "end_url_click");
   rec.set("statut", "en_attente");
   rec.set("scan_ms", Date.now());
   $app.save(rec);
-  const url = LS_SURVEY_URL + "?session=" + session + "&utm_source=" + encodeURIComponent(partner) + "&utm_medium=qr&newtest=Y";
-  return e.redirect(302, url);
+  return e.redirect(302, END_URL);
 });
 
 routerAdd("GET", "/lieu/{loc}", (e) => {
-  const LS_SURVEY_URL = "https://survey.jorapp.org/index.php/268839";
+  const END_URL = "https://concours.jorapp.org/end.html";
   const loc = e.request.pathValue("loc");
-  const session = $security.randomString(40);
   const col = $app.findCollectionByNameOrId("participations");
   const rec = new Record(col);
-  rec.set("session", session);
+  rec.set("session", $security.randomString(40));
   rec.set("partenaire", "");
-  rec.set("lieu", loc);
+  rec.set("lieu", "end_url_click");
   rec.set("statut", "en_attente");
   rec.set("scan_ms", Date.now());
   $app.save(rec);
-  const url = LS_SURVEY_URL + "?session=" + session + "&utm_source=" + encodeURIComponent(loc) + "&utm_medium=qr&newtest=Y";
-  return e.redirect(302, url);
+  return e.redirect(302, END_URL);
 });
 
 routerAdd("GET", "/web/{source}", (e) => {
-  const LS_SURVEY_URL = "https://survey.jorapp.org/index.php/268839";
+  const END_URL = "https://concours.jorapp.org/end.html";
   const source = e.request.pathValue("source");
-  const session = $security.randomString(40);
   const col = $app.findCollectionByNameOrId("participations");
   const rec = new Record(col);
-  rec.set("session", session);
+  rec.set("session", $security.randomString(40));
   rec.set("partenaire", "");
-  rec.set("lieu", source);
+  rec.set("lieu", "end_url_click");
   rec.set("statut", "en_attente");
   rec.set("scan_ms", Date.now());
   $app.save(rec);
-  const url = LS_SURVEY_URL + "?session=" + session + "&utm_source=" + encodeURIComponent(source) + "&utm_medium=web&newtest=Y";
-  return e.redirect(302, url);
+  return e.redirect(302, END_URL);
 });
 
 // Mini-API publique : nom + logo + gain d'un partenaire
@@ -111,7 +116,7 @@ routerAdd("GET", "/partners", (e) => {
 });
 
 
-// /complete : tirage IMMEDIAT
+// /complete : tirage IMMEDIAT (inchange - sert les sessions deja entamees avant fermeture)
 //   - garde-fou temps mord AVANT Math.random
 //   - /go : le partenaire est fixe (le commercant scanne le bon)
 //   - /lieu, /web : si gain -> attribution d'un partenaire au hasard parmi ceux qui ont un "gain"
@@ -211,7 +216,7 @@ routerAdd("GET", "/complete", (e) => {
 });
 
 
-// Verdict pour resultat.html (public, lecture seule via session)
+// Verdict pour resultat.html (public, lecture seule via session) - inchange
 routerAdd("GET", "/resultat", (e) => {
   const session = e.requestInfo().query["session"];
   if (!session) return e.json(400, { message: "Session manquante." });
@@ -239,7 +244,7 @@ routerAdd("GET", "/resultat", (e) => {
 });
 
 
-// Validation d'un bon par le commercant : gagnant -> encaisse (transaction atomique)
+// Validation d'un bon par le commercant : gagnant -> encaisse (transaction atomique) - inchange
 routerAdd("POST", "/validate", (e) => {
   const auth = e.auth.get("partenaire");
   const code = String(e.requestInfo().body.code || "").toUpperCase().trim();
@@ -273,7 +278,7 @@ routerAdd("GET", "/comptoir", (e) => {
 });
 
 
-// Données structurées pour le dashboard recap.html — protégé superuser
+// Données structurées pour le dashboard recap.html — protégé superuser - inchange
 routerAdd("GET", "/recap-data", (e) => {
   const DATE_MIN = "2026-07-11";
 
@@ -291,12 +296,14 @@ routerAdd("GET", "/recap-data", (e) => {
 
   // Catégorie + nom d'affichage de la provenance, selon la convention du hook :
   //   lieu === "canal"                          -> web (le détail email/insta/fb n'est pas conservé au-delà)
+  //   lieu === "end_url_click"                   -> clic recu apres fermeture du sondage
   //   partenaire rempli ET lieu === partenaire   -> QR chez un commerçant -> nom = partenaire
   //   sinon                                      -> QR d'emplacement physique -> nom = lieu
   function provenance(r) {
     const lieu = r.get("lieu") || "";
     const partenaire = r.get("partenaire") || "";
     if (lieu === "canal") return { categorie: "web", nom: "Web (email / réseaux)" };
+    if (lieu === "end_url_click") return { categorie: "end_url_click", nom: "Sondage clôturé (clics reçus après fermeture)" };
     if (partenaire && lieu === partenaire) return { categorie: "qr_partenaire", nom: partenaire };
     return { categorie: "qr_lieu", nom: lieu || "(emplacement inconnu)" };
   }

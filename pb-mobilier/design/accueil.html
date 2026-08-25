@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linéo — Accueil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root{
+    --canvas:#EFEDE7; --panel:#FFFFFF; --ink:#1B1B18; --muted:#6E6A62; --faint:#9B968C;
+    --line:#E5E1D7; --ph:#EDE9DF; --ph-2:#E1DACB;
+    --signal:#FF5A1F; --signal-hover:#E64E17; --signal-soft:#FFE4D3; --signal-ink:#7A2A0D;
+    --steel:#33414C; --steel-soft:#E7EBEC; --steel-line:#C6D0D4;
+    --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .ico{stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+  .hero-stage{max-width:980px;margin:0 auto;padding:76px 20px 90px}
+  .hero-top{text-align:center;margin-bottom:52px}
+  .hero-eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--faint);margin-bottom:14px}
+  .hero-h1{font-size:44px;font-weight:800;letter-spacing:-.02em;margin:0 0 16px;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;gap:12px}
+  .hero-h1 .dot{width:11px;height:11px;border-radius:50%;background:var(--signal);display:inline-block}
+  .hero-tagline{font-size:16.5px;color:var(--muted);max-width:520px;margin:0 auto;line-height:1.65}
+
+  .role-grid{display:flex;gap:22px;flex-wrap:wrap}
+  .role-card{flex:1;min-width:280px;background:var(--panel);border-radius:16px;padding:30px 26px 26px;
+    text-decoration:none;color:inherit;
+    box-shadow:0 1px 2px rgba(23,25,28,.04),0 18px 40px rgba(23,25,28,.08);
+    border:1.5px solid transparent;
+    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    display:flex;flex-direction:column}
+  .role-card:hover{transform:translateY(-3px);box-shadow:0 1px 2px rgba(23,25,28,.06),0 24px 50px rgba(23,25,28,.14)}
+  .role-icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;margin-bottom:22px}
+  .role-icon .ico{width:25px;height:25px;stroke-width:1.6}
+  .role-demande .role-icon{background:var(--signal-soft);color:var(--signal-ink)}
+  .role-offres .role-icon{background:var(--steel-soft);color:var(--steel)}
+  .role-demande:hover{border-color:var(--signal)}
+  .role-offres:hover{border-color:var(--steel)}
+  .role-kicker{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--faint);margin-bottom:9px}
+  .role-title{font-size:19px;font-weight:700;letter-spacing:-.01em;margin:0 0 11px;color:var(--ink)}
+  .role-desc{font-size:13.5px;color:var(--muted);line-height:1.62;margin:0 0 24px;flex:1}
+  .role-cta{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600}
+  .role-demande .role-cta{color:var(--signal-ink)}
+  .role-offres .role-cta{color:var(--steel)}
+  .role-cta .ico{width:15px;height:15px;transition:transform .15s ease}
+  .role-card:hover .role-cta .ico{transform:translateX(3px)}
+
+  .hero-foot{text-align:center;margin-top:40px;font-size:12.5px;color:var(--faint)}
+</style>
+</head>
+<body data-page="accueil">
+<script src="shared.js"></script>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="site-nav-brand" href="accueil.html">Linéo</a>
+    <div class="site-nav-links">
+      <a href="objets-fiche.html" data-page="objets">Objets</a>
+      <a href="projets-fiche.html" data-page="projets">Projets</a>
+      <a href="plans-fiche.html" data-page="plans">Plans</a>
+      <a href="modules-fiche.html" data-page="modules">Modules</a>
+      <a href="acteurs-fiche.html" data-page="acteurs">Acteurs</a>
+      <a href="realisation-fiche.html" data-page="realisation">Réalisations</a>
+      <a href="consortium-fiche.html" data-page="consortium">Consortium</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero-stage">
+  <div class="hero-top">
+    <div class="hero-eyebrow">Plateforme du mobilier bois pour l'espace public</div>
+    <h1 class="hero-h1"><span class="dot"></span>Linéo</h1>
+    <p class="hero-tagline">Du catalogue de mobilier bois à la réalisation sur le terrain — mettez en relation collectivités publiques et acteurs de la filière bois suisse.</p>
+  </div>
+
+  <div class="role-grid">
+    <a class="role-card role-demande" href="objets-fiche.html">
+      <div class="role-icon">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-6h6v6"/><path d="M4 21h16"/></svg>
+      </div>
+      <div class="role-kicker">Côté demande</div>
+      <h2 class="role-title">Communes et collectivités publiques</h2>
+      <p class="role-desc">Parcourez le catalogue de mobilier bois, créez vos projets d'aménagement et trouvez les bons prestataires pour les réaliser.</p>
+      <span class="role-cta">Accéder à l'espace collectivités
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </span>
+    </a>
+
+    <a class="role-card role-offres" href="acteurs-fiche.html">
+      <div class="role-icon">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
+      </div>
+      <div class="role-kicker">Côté offres</div>
+      <h2 class="role-title">Acteurs et prestataires</h2>
+      <p class="role-desc">Scieurs, menuisiers, charpentiers, serruriers : rejoignez le réseau, valorisez votre savoir-faire et répondez aux projets publiés par les collectivités.</p>
+      <span class="role-cta">Accéder à l'espace acteurs
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </span>
+    </a>
+  </div>
+
+  <p class="hero-foot">Vous pourrez naviguer librement entre les deux espaces à tout moment depuis le bandeau supérieur.</p>
+</div>
+</body>
+</html>

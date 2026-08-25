@@ -1,44 +1,53 @@
 /* ==========================================================================
    Donnees fictives — a remplacer par de vraies fiches Acteurs des que
-   collectees. geo = {lat, lon} reelles (WGS84). BOUNDS definit l'emprise
-   du territoire affiche sur le fond de carte : ajuste-la a la zone reelle
-   une fois les coordonnees des acteurs connues. REFERENCE simule le site
+   collectees. geo = {lat, lon} reelles (WGS84). REFERENCE simule le site
    du projet (a terme : coordonnees de la Realisation / du Projet actif).
+   Le fond de carte se recentre sur REFERENCE et son echelle (pxPerKm)
+   est recalculee a chaque changement de rayon : plus le rayon augmente,
+   plus le zoom arriere est important, de sorte que le cercle de selection
+   reste toujours entierement visible dans le cadre.
    Ce fond de carte est un placeholder stylise — a brancher sur une vraie
    librairie cartographique (Leaflet/Mapbox) le moment venu.
    ========================================================================== */
-var BOUNDS = { latMin: 46.55, latMax: 46.75, lonMin: 6.55, lonMax: 6.85 };
 var REFERENCE = { lat: 46.66, lon: 6.70 };
 var METIERS = ["scieur","menuisier","charpentier","ebeniste","serrurier","architecte-paysagiste","installateur-genie civile"];
+
+/* Cercle de selection = CIRCLE_FRACTION * (plus petite dimension du panneau carte),
+   quel que soit le rayon choisi. C'est ce ratio fixe qui garantit que le cercle
+   ne deborde jamais du cadre. */
+var CIRCLE_FRACTION = 0.74;
 
 var ACTEURS = [
   { nom:"Scierie du Jorat", types:["premiere transformation"], metiers:["scieur"],
     adresse:"Route des Cerisiers 4, Ropraz", site_web:"https://example.ch",
     label_bois_suisse:"certifie", statuts:"reference", capacite:"moyenne serie (< 100)",
     sur_mesure:false, geo:{lat:46.658, lon:6.678} },
-  { nom:"Atelier Fontaine", types:["deuxieme transformation","concepteur-designer"], metiers:["menuisier","ebeniste"],
-    adresse:"Chemin du Bois 12, Vucherens", site_web:"https://example.ch",
-    label_bois_suisse:"partiellement certifie", statuts:"en cours", capacite:"piece unique",
-    sur_mesure:true, geo:{lat:46.671, lon:6.735} },
   { nom:"Groupement forestier Haut-Jorat", types:["groupement forestier"], metiers:[],
     adresse:"Mezieres VD", site_web:"",
     label_bois_suisse:"certifie", statuts:"reference", capacite:"grande serie ( > 100)",
     sur_mesure:false, geo:{lat:46.702, lon:6.702} },
-  { nom:"Serrurerie Meyer", types:["deuxieme transformation"], metiers:["serrurier"],
-    adresse:"Zone artisanale, Oron-la-Ville", site_web:"https://example.ch",
-    label_bois_suisse:"non applicable", statuts:"pressenti", capacite:"petite serrie (2-20)",
-    sur_mesure:true, geo:{lat:46.575, lon:6.822} },
+  { nom:"Atelier Fontaine", types:["deuxieme transformation","concepteur-designer"], metiers:["menuisier","ebeniste"],
+    adresse:"Rue du Chateau 8, Lucens", site_web:"https://example.ch",
+    label_bois_suisse:"partiellement certifie", statuts:"en cours", capacite:"piece unique",
+    sur_mesure:true, geo:{lat:46.701, lon:6.831} },
   { nom:"Charpente Rey & Fils", types:["deuxieme transformation"], metiers:["charpentier"],
-    adresse:"Route de Berne 9, Servion", site_web:"",
+    adresse:"Route de Fribourg 21, Chatel-Saint-Denis FR", site_web:"",
     label_bois_suisse:"en cours", statuts:"en cours", capacite:"moyenne serie (< 100)",
-    sur_mesure:false, geo:{lat:46.641, lon:6.746} }
+    sur_mesure:false, geo:{lat:46.524, lon:6.901} },
+  { nom:"Serrurerie Meyer", types:["deuxieme transformation"], metiers:["serrurier"],
+    adresse:"Rue du Village 3, Broc FR", site_web:"https://example.ch",
+    label_bois_suisse:"non applicable", statuts:"pressenti", capacite:"petite serrie (2-20)",
+    sur_mesure:true, geo:{lat:46.617, lon:7.106} },
+  { nom:"Proxybois", types:["groupement forestier","premiere transformation","concepteur-designer"], metiers:["scieur","menuisier"],
+    adresse:"1261 Marchissy", site_web:"https://proxybois.ch",
+    label_bois_suisse:"certifie", statuts:"reference", capacite:"moyenne serie (< 100)",
+    sur_mesure:true, geo:{lat:46.508, lon:6.198} },
+  { nom:"Serrurerie du Simmental", types:["deuxieme transformation"], metiers:["serrurier"],
+    adresse:"Dorfstrasse 14, Saanen BE", site_web:"https://example.ch",
+    label_bois_suisse:"non applicable", statuts:"pressenti", capacite:"petite serrie (2-20)",
+    sur_mesure:true, geo:{lat:46.489, lon:7.258} }
 ];
 
-function project(geo){
-  var x = (geo.lon - BOUNDS.lonMin) / (BOUNDS.lonMax - BOUNDS.lonMin) * 100;
-  var y = 100 - (geo.lat - BOUNDS.latMin) / (BOUNDS.latMax - BOUNDS.latMin) * 100;
-  return { x: Math.min(94, Math.max(6, x)), y: Math.min(90, Math.max(10, y)) };
-}
 function initials(nom){
   var parts = (nom || "").split(" ").filter(Boolean);
   return ((parts[0] || "")[0] || "") + ((parts[1] || "")[0] || "");
@@ -53,6 +62,26 @@ function distanceKm(a, b){
   var aa = s1 * s1 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * s2 * s2;
   var c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
   return R * c;
+}
+
+/* Projection centree sur REFERENCE. pxPerKm depend du rayon courant (voir
+   getViewport) : c'est ce qui fait "zoomer" la carte a chaque changement
+   de rayon plutot que de se baser sur une emprise geographique fixe. */
+function getViewport(){
+  var panel = document.querySelector(".map-panel");
+  var w = panel.clientWidth || 1, h = panel.clientHeight || 1;
+  var minDim = Math.min(w, h);
+  var diameterPx = minDim * CIRCLE_FRACTION;
+  var pxPerKm = diameterPx / (2 * Math.max(filters.radiusKm, 0.5));
+  return { w: w, h: h, pxPerKm: pxPerKm, diameterPx: diameterPx };
+}
+
+function project(geo, vp){
+  var dLatKm = (geo.lat - REFERENCE.lat) * 111;
+  var dLonKm = (geo.lon - REFERENCE.lon) * 111 * Math.cos(REFERENCE.lat * Math.PI / 180);
+  var xPx = vp.w / 2 + dLonKm * vp.pxPerKm;
+  var yPx = vp.h / 2 - dLatKm * vp.pxPerKm;
+  return { xPct: (xPx / vp.w) * 100, yPct: (yPx / vp.h) * 100 };
 }
 
 var filters = { radiusKm: 5, metier: "" };
@@ -96,36 +125,28 @@ function renderList(visible){
   });
 }
 
-function renderPins(visible){
+function renderPins(visible, vp){
   var pins = document.getElementById("pins");
   pins.innerHTML = "";
   visible.forEach(function(a){
     var i = ACTEURS.indexOf(a);
-    var pos = project(a.geo);
+    var pos = project(a.geo, vp);
     var p = document.createElement("div");
     p.className = "pin" + (isCert(a) ? " cert" : "") + (i === selected ? " sel" : "");
-    p.style.left = pos.x + "%";
-    p.style.top = pos.y + "%";
+    p.style.left = pos.xPct + "%";
+    p.style.top = pos.yPct + "%";
     p.innerHTML = '<div class="tip">' + a.nom + '</div><div class="dot"><span>' + initials(a.nom).toUpperCase() + '</span></div>';
     p.addEventListener("click", function(){ selected = i; renderAll(); });
     pins.appendChild(p);
   });
 }
 
-function renderReferenceAndRadius(){
-  var panel = document.querySelector(".map-panel");
-  var pos = project(REFERENCE);
-
+function renderReferenceAndRadius(vp){
   var refHolder = document.getElementById("ref-pin-holder");
-  refHolder.innerHTML = '<div class="ref-pin" style="left:' + pos.x + '%;top:' + pos.y + '%"><div class="diamond"></div></div>';
-
-  var lonKm = (BOUNDS.lonMax - BOUNDS.lonMin) * 111 * Math.cos(REFERENCE.lat * Math.PI / 180);
-  var latKm = (BOUNDS.latMax - BOUNDS.latMin) * 111;
-  var pxPerKm = ((panel.clientWidth / lonKm) + (panel.clientHeight / latKm)) / 2;
-  var diameter = Math.min(2 * filters.radiusKm * pxPerKm, Math.min(panel.clientWidth, panel.clientHeight) * 1.9);
+  refHolder.innerHTML = '<div class="ref-pin" style="left:50%;top:50%"><div class="diamond"></div></div>';
 
   var circleHolder = document.getElementById("radius-circle-holder");
-  circleHolder.innerHTML = '<div class="radius-circle" style="left:' + pos.x + '%;top:' + pos.y + '%;width:' + diameter + 'px;height:' + diameter + 'px"></div>';
+  circleHolder.innerHTML = '<div class="radius-circle" style="left:50%;top:50%;width:' + vp.diameterPx + 'px;height:' + vp.diameterPx + 'px"></div>';
 }
 
 function renderDetail(){
@@ -150,7 +171,7 @@ function renderDetail(){
   d.innerHTML =
     '<div class="d-top">' +
       '<div><h2 class="d-name">' + a.nom + '</h2><div class="badges">' + badges + '</div></div>' +
-      '<a class="cta" href="modules-fiche.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M17 8h5M19.5 5.5v5"/></svg>Assigner ce prestataire</a>' +
+      '<a class="cta" href="modules-fiche.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M17 8h5M19.5 5.5v5"/></svg>Sélectionner ce prestataire</a>' +
     '</div>' +
     '<div class="d-grid">' +
       '<div class="d-fact"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg>' + a.adresse + ' - ' + Math.round(distanceKm(REFERENCE, a.geo)) + ' km</div>' +
@@ -164,9 +185,10 @@ function renderAll(){
   var stillSelected = false;
   for(var i=0;i<visible.length;i++){ if(ACTEURS.indexOf(visible[i]) === selected){ stillSelected = true; } }
   if(!stillSelected){ selected = visible.length ? ACTEURS.indexOf(visible[0]) : -1; }
+  var vp = getViewport();
   renderList(visible);
-  renderPins(visible);
-  renderReferenceAndRadius();
+  renderPins(visible, vp);
+  renderReferenceAndRadius(vp);
   renderDetail();
 }
 
@@ -182,7 +204,7 @@ document.getElementById("reset-filters").addEventListener("click", function(){
   document.getElementById("metier-select").value = "";
   renderAll();
 });
-window.addEventListener("resize", renderReferenceAndRadius);
+window.addEventListener("resize", renderAll);
 
 initMetierSelect();
 renderAll();
