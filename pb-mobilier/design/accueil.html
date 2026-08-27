@@ -6,15 +6,16 @@
 <title>Linéo — Accueil</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="logos/LOGO-LINEO_TEST_A-2-FAVICON.png">
 <link rel="stylesheet" href="shared.css">
 <style>
   :root{
-    --canvas:#EFEDE7; --panel:#FFFFFF; --ink:#1B1B18; --muted:#6E6A62; --faint:#9B968C;
-    --line:#E5E1D7; --ph:#EDE9DF; --ph-2:#E1DACB;
-    --signal:#FF5A1F; --signal-hover:#E64E17; --signal-soft:#FFE4D3; --signal-ink:#7A2A0D;
-    --steel:#33414C; --steel-soft:#E7EBEC; --steel-line:#C6D0D4;
-    --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --canvas:#F2EDE8; --panel:#FFFFFF; --ink:#1D1D1B; --muted:#7C7C7B; --faint:#A0A09F;
+    --line:#E4E4E4; --ph:#F1E7DF; --ph-2:#E9D8CA;
+    --signal:#C08351; --signal-hover:#926642; --signal-soft:#F6EEE7; --signal-ink:#5B4430;
+    --steel:#2B2B29; --steel-soft:#F1F1F1; --steel-line:#D2D2D1;
+    --sans:"Montserrat",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
@@ -22,12 +23,8 @@
 
   .hero-stage{max-width:980px;margin:0 auto;padding:76px 20px 90px}
   .hero-top{text-align:center;margin-bottom:52px}
-  .hero-eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;
-    color:var(--faint);margin-bottom:14px}
-  .hero-h1{font-size:44px;font-weight:800;letter-spacing:-.02em;margin:0 0 16px;color:var(--ink);
-    display:flex;align-items:center;justify-content:center;gap:12px}
-  .hero-h1 .dot{width:11px;height:11px;border-radius:50%;background:var(--signal);display:inline-block}
-  .hero-tagline{font-size:16.5px;color:var(--muted);max-width:520px;margin:0 auto;line-height:1.65}
+  .hero-logo{height:96px;width:auto;display:block;margin:0 auto 26px}
+  .hero-tagline{font-size:19px;color:var(--muted);max-width:560px;margin:0 auto;line-height:1.65}
 
   .role-grid{display:flex;gap:22px;flex-wrap:wrap}
   .role-card{flex:1;min-width:280px;background:var(--panel);border-radius:16px;padding:30px 26px 26px;
@@ -43,24 +40,36 @@
   .role-offres .role-icon{background:var(--steel-soft);color:var(--steel)}
   .role-demande:hover{border-color:var(--signal)}
   .role-offres:hover{border-color:var(--steel)}
-  .role-kicker{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;
-    color:var(--faint);margin-bottom:9px}
-  .role-title{font-size:19px;font-weight:700;letter-spacing:-.01em;margin:0 0 11px;color:var(--ink)}
-  .role-desc{font-size:13.5px;color:var(--muted);line-height:1.62;margin:0 0 24px;flex:1}
-  .role-cta{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600}
+  .role-kicker{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--faint);margin-bottom:10px}
+  .role-title{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 13px;color:var(--ink)}
+  .role-desc{font-size:15.5px;color:var(--muted);line-height:1.62;margin:0 0 24px;flex:1}
+  .role-cta{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600}
   .role-demande .role-cta{color:var(--signal-ink)}
   .role-offres .role-cta{color:var(--steel)}
   .role-cta .ico{width:15px;height:15px;transition:transform .15s ease}
   .role-card:hover .role-cta .ico{transform:translateX(3px)}
 
-  .hero-foot{text-align:center;margin-top:40px;font-size:12.5px;color:var(--faint)}
+  .hero-foot{text-align:center;margin-top:40px;font-size:14px;color:var(--faint)}
+
+  @media (max-width: 640px){
+    .hero-stage{padding:40px 16px 56px}
+    .hero-top{margin-bottom:36px}
+    .hero-logo{height:64px;margin-bottom:18px}
+    .hero-tagline{font-size:16px}
+    .role-grid{gap:16px}
+    .role-card{padding:24px 20px 22px;min-width:0}
+    .role-title{font-size:20px}
+    .role-desc{font-size:14.5px;margin-bottom:20px}
+    .hero-foot{font-size:13px;margin-top:28px}
+  }
 </style>
 </head>
 <body data-page="accueil">
 <script src="shared.js"></script>
 <nav class="site-nav">
   <div class="site-nav-inner">
-    <a class="site-nav-brand" href="accueil.html">Linéo</a>
+    <a class="site-nav-brand" href="accueil.html"><img src="logos/LOGO-LINEO_TEST_A-1.png" alt="Linéo"></a>
     <div class="site-nav-links">
       <a href="objets-fiche.html" data-page="objets">Objets</a>
       <a href="projets-fiche.html" data-page="projets">Projets</a>
@@ -75,9 +84,8 @@
 
 <div class="hero-stage">
   <div class="hero-top">
-    <div class="hero-eyebrow">Plateforme du mobilier bois pour l'espace public</div>
-    <h1 class="hero-h1"><span class="dot"></span>Linéo</h1>
-    <p class="hero-tagline">Du catalogue de mobilier bois à la réalisation sur le terrain — mettez en relation collectivités publiques et acteurs de la filière bois suisse.</p>
+    <img class="hero-logo" src="logos/LOGO-LINEO_TEST_A-1.png" alt="Linéo">
+    <p class="hero-tagline">Linéo met en relation les collectivités publiques et les savoir-faire régionaux de la filière bois suisse — en circuit court, de la forêt à l'espace public.</p>
   </div>
 
   <div class="role-grid">

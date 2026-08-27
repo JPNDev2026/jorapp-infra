@@ -6,15 +6,16 @@
 <title>Consortium — fiche</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="logos/LOGO-LINEO_TEST_A-2-FAVICON.png">
 <link rel="stylesheet" href="shared.css">
 <style>
   :root{
-    --canvas:#EFEDE7; --panel:#FFFFFF; --ink:#1B1B18; --muted:#6E6A62; --faint:#9B968C;
-    --line:#E5E1D7; --ph:#EDE9DF; --ph-2:#E1DACB;
-    --signal:#FF5A1F; --signal-hover:#E64E17; --signal-soft:#FFE4D3; --signal-ink:#7A2A0D;
-    --steel:#33414C; --steel-soft:#E7EBEC; --steel-line:#C6D0D4;
-    --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --canvas:#F2EDE8; --panel:#FFFFFF; --ink:#1D1D1B; --muted:#7C7C7B; --faint:#A0A09F;
+    --line:#E4E4E4; --ph:#F1E7DF; --ph-2:#E9D8CA;
+    --signal:#C08351; --signal-hover:#926642; --signal-soft:#F6EEE7; --signal-ink:#5B4430;
+    --steel:#2B2B29; --steel-soft:#F1F1F1; --steel-line:#D2D2D1;
+    --sans:"Montserrat",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
@@ -81,13 +82,24 @@
   .recap-chip-txt{display:flex;flex-direction:column}
   .recap-chip-nm{font-size:12.5px;font-weight:500;color:var(--ink);white-space:nowrap}
   .recap-chip-count{font-size:10.5px;color:var(--faint)}
+
+  @media (max-width: 640px){
+    .stage{padding:20px 14px 44px}
+    .card{padding:18px 16px 4px}
+    .title{font-size:20px}
+    .facts{flex-wrap:wrap;gap:10px 16px}
+    .cons-row{flex-wrap:wrap;gap:10px;padding:12px 4px}
+    .cons-right{width:100%;justify-content:flex-end}
+    .supply-row{flex-wrap:wrap}
+    .recap-chips{gap:8px}
+  }
 </style>
 </head>
 <body data-page="consortium">
 <script src="shared.js"></script>
 <nav class="site-nav">
   <div class="site-nav-inner">
-    <a class="site-nav-brand" href="accueil.html">Linéo</a>
+    <a class="site-nav-brand" href="accueil.html"><img src="logos/LOGO-LINEO_TEST_A-1.png" alt="Linéo"></a>
     <div class="site-nav-links">
       <a href="objets-fiche.html" data-page="objets">Objets</a>
       <a href="projets-fiche.html" data-page="projets">Projets</a>
