@@ -1,0 +1,47 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#EDE9DF"/>
+    <stop offset="100%" stop-color="#E1DACB"/>
+  </linearGradient>
+</defs>
+<rect width="400" height="400" fill="url(#bg)"/>
+
+<!-- ground -->
+<line x1="40" y1="300" x2="360" y2="300" stroke="#9B968C" stroke-width="1.2" stroke-dasharray="2 4"/>
+
+<!-- legs -->
+<g stroke="#FF5A1F" stroke-width="5" stroke-linecap="round" fill="none">
+  <path d="M120 300 L112 250 L150 232"/>
+  <path d="M300 300 L292 250 L254 232"/>
+</g>
+
+<!-- seat plank -->
+<rect x="95" y="222" width="230" height="14" rx="4" fill="none" stroke="#33414C" stroke-width="2.4"/>
+
+<!-- backrest -->
+<path d="M255 226 L296 150" stroke="#33414C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+<rect x="248" y="140" width="14" height="80" rx="4" transform="rotate(-20 255 180)" fill="none" stroke="#33414C" stroke-width="2.4"/>
+
+<!-- armrest hint -->
+<path d="M296 168 L296 226" stroke="#33414C" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+<!-- dimension: length -->
+<g stroke="#6E6A62" stroke-width="1" fill="none">
+  <line x1="95" y1="330" x2="325" y2="330"/>
+  <line x1="95" y1="322" x2="95" y2="338"/>
+  <line x1="325" y1="322" x2="325" y2="338"/>
+</g>
+<text x="210" y="350" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" fill="#6E6A62">LONGUEUR</text>
+
+<!-- dimension: height -->
+<g stroke="#6E6A62" stroke-width="1" fill="none">
+  <line x1="60" y1="300" x2="60" y2="150"/>
+  <line x1="52" y1="300" x2="68" y2="300"/>
+  <line x1="52" y1="150" x2="68" y2="150"/>
+</g>
+<text x="60" y="130" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" fill="#6E6A62">H</text>
+
+<text x="200" y="40" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" letter-spacing="1" fill="#33414C">VUE EN PLAN — ELEVATION</text>
+<text x="200" y="60" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" letter-spacing="1" fill="#9B968C">SCHEMA GENERIQUE</text>
+</svg>

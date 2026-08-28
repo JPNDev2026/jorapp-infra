@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linéo — Accueil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="logos/LOGO-LINEO_TEST_A-2-FAVICON.png">
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root{
+    --canvas:#F2EDE8; --panel:#FFFFFF; --ink:#1D1D1B; --muted:#7C7C7B; --faint:#A0A09F;
+    --line:#E4E4E4; --ph:#F1E7DF; --ph-2:#E9D8CA;
+    --signal:#C08351; --signal-hover:#926642; --signal-soft:#F6EEE7; --signal-ink:#5B4430;
+    --steel:#2B2B29; --steel-soft:#F1F1F1; --steel-line:#D2D2D1;
+    --sans:"Montserrat",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .ico{stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+  .hero-stage{max-width:980px;margin:0 auto;padding:76px 20px 90px}
+  .hero-top{text-align:center;margin-bottom:52px}
+  .hero-logo{height:96px;width:auto;display:block;margin:0 auto 26px}
+  .hero-tagline{font-size:19px;color:var(--muted);max-width:560px;margin:0 auto;line-height:1.65}
+
+  .role-grid{display:flex;gap:22px;flex-wrap:wrap}
+  .role-card{flex:1;min-width:280px;background:var(--panel);border-radius:16px;padding:30px 26px 26px;
+    text-decoration:none;color:inherit;
+    box-shadow:0 1px 2px rgba(23,25,28,.04),0 18px 40px rgba(23,25,28,.08);
+    border:1.5px solid transparent;
+    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    display:flex;flex-direction:column}
+  .role-card:hover{transform:translateY(-3px);box-shadow:0 1px 2px rgba(23,25,28,.06),0 24px 50px rgba(23,25,28,.14)}
+  .role-icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;margin-bottom:22px}
+  .role-icon .ico{width:25px;height:25px;stroke-width:1.6}
+  .role-demande .role-icon{background:var(--signal-soft);color:var(--signal-ink)}
+  .role-offres .role-icon{background:var(--steel-soft);color:var(--steel)}
+  .role-demande:hover{border-color:var(--signal)}
+  .role-offres:hover{border-color:var(--steel)}
+  .role-kicker{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--faint);margin-bottom:10px}
+  .role-title{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 13px;color:var(--ink)}
+  .role-desc{font-size:15.5px;color:var(--muted);line-height:1.62;margin:0 0 24px;flex:1}
+  .role-cta{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600}
+  .role-demande .role-cta{color:var(--signal-ink)}
+  .role-offres .role-cta{color:var(--steel)}
+  .role-cta .ico{width:15px;height:15px;transition:transform .15s ease}
+  .role-card:hover .role-cta .ico{transform:translateX(3px)}
+
+  .hero-foot{text-align:center;margin-top:40px;font-size:14px;color:var(--faint)}
+
+  @media (max-width: 640px){
+    .hero-stage{padding:40px 16px 56px}
+    .hero-top{margin-bottom:36px}
+    .hero-logo{height:64px;margin-bottom:18px}
+    .hero-tagline{font-size:16px}
+    .role-grid{gap:16px}
+    .role-card{padding:24px 20px 22px;min-width:0}
+    .role-title{font-size:20px}
+    .role-desc{font-size:14.5px;margin-bottom:20px}
+    .hero-foot{font-size:13px;margin-top:28px}
+  }
+</style>
+</head>
+<body data-page="accueil">
+<script src="shared.js"></script>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="site-nav-brand" href="accueil.html"><img src="logos/LOGO-LINEO_TEST_A-1.png" alt="Linéo"></a>
+    <div class="site-nav-links">
+      <a href="objets-fiche.html" data-page="objets">Objets</a>
+      <a href="projets-fiche.html" data-page="projets">Projets</a>
+      <a href="plans-fiche.html" data-page="plans">Plans</a>
+      <a href="modules-fiche.html" data-page="modules">Modules</a>
+      <a href="acteurs-fiche.html" data-page="acteurs">Acteurs</a>
+      <a href="realisation-fiche.html" data-page="realisation">Réalisations</a>
+      <a href="consortium-fiche.html" data-page="consortium">Consortium</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero-stage">
+  <div class="hero-top">
+    <img class="hero-logo" src="logos/LOGO-LINEO_TEST_A-1.png" alt="Linéo">
+    <p class="hero-tagline">Linéo met en relation les collectivités publiques et les savoir-faire régionaux de la filière bois suisse — en circuit court, de la forêt à l'espace public.</p>
+  </div>
+
+  <div class="role-grid">
+    <a class="role-card role-demande" href="objets-fiche.html">
+      <div class="role-icon">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-6h6v6"/><path d="M4 21h16"/></svg>
+      </div>
+      <div class="role-kicker">Côté demande</div>
+      <h2 class="role-title">Communes et collectivités publiques</h2>
+      <p class="role-desc">Parcourez le catalogue de mobilier bois, créez vos projets d'aménagement et trouvez les bons prestataires pour les réaliser.</p>
+      <span class="role-cta">Accéder à l'espace collectivités
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </span>
+    </a>
+
+    <a class="role-card role-offres" href="acteurs-fiche.html">
+      <div class="role-icon">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
+      </div>
+      <div class="role-kicker">Côté offres</div>
+      <h2 class="role-title">Acteurs et prestataires</h2>
+      <p class="role-desc">Scieurs, menuisiers, charpentiers, serruriers : rejoignez le réseau, valorisez votre savoir-faire et répondez aux projets publiés par les collectivités.</p>
+      <span class="role-cta">Accéder à l'espace acteurs
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </span>
+    </a>
+  </div>
+
+  <p class="hero-foot">Vous pourrez naviguer librement entre les deux espaces à tout moment depuis le bandeau supérieur.</p>
+</div>
+</body>
+</html>
