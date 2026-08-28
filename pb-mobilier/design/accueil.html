@@ -116,5 +116,982 @@
 
   <p class="hero-foot">Vous pourrez naviguer librement entre les deux espaces à tout moment depuis le bandeau supérieur.</p>
 </div>
+
+<section class="ls-story" id="ls-story" aria-label="Comment fonctionne Linéo">
+
+  <style>
+    #ls-story {
+      --ls-canvas: var(--canvas, #F2EDE8);
+      --ls-panel: var(--panel, #FFFFFF);
+      --ls-ink: var(--ink, #1D1D1B);
+      --ls-muted: var(--muted, #7C7C7B);
+      --ls-faint: var(--faint, #A0A09F);
+      --ls-line: var(--line, #E4E4E4);
+      --ls-ph: var(--ph, #F1E7DF);
+      --ls-ph-2: var(--ph-2, #E9D8CA);
+      --ls-signal: var(--signal, #C08351);
+      --ls-signal-hover: var(--signal-hover, #926642);
+      --ls-signal-soft: var(--signal-soft, #F6EEE7);
+      --ls-signal-ink: var(--signal-ink, #5B4430);
+      --ls-steel: var(--steel, #2B2B29);
+      --ls-steel-soft: var(--steel-soft, #F1F1F1);
+      --ls-steel-line: var(--steel-line, #D2D2D1);
+      --ls-sans: var(--sans, "Montserrat", system-ui, sans-serif);
+      --ls-mono: var(--mono, "IBM Plex Mono", ui-monospace, monospace);
+
+      position: relative;
+      background: var(--ls-canvas);
+      color: var(--ls-ink);
+      font-family: var(--ls-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    #ls-story * { box-sizing: border-box; }
+    #ls-story .ls-ico { stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ---- Intro ---- */
+    #ls-story .ls-intro { max-width: 720px; margin: 0 auto; padding: 88px 20px 64px; text-align: center; }
+    #ls-story .ls-eyebrow {
+      font-family: var(--ls-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+      color: var(--ls-signal); margin-bottom: 14px; font-weight: 500;
+    }
+    #ls-story .ls-intro h2 {
+      font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -0.01em; line-height: 1.2;
+      margin: 0 0 16px; color: var(--ls-ink);
+    }
+    #ls-story .ls-intro h2 em { font-style: normal; color: var(--ls-signal); }
+    #ls-story .ls-intro p {
+      font-size: 16px; line-height: 1.65; color: var(--ls-muted); max-width: 46ch; margin: 0 auto;
+    }
+
+    /* ---- Rail ---- */
+    #ls-story .ls-rail {
+      position: relative; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px; align-items: center;
+      max-width: 1220px; margin: 0 auto; padding: 0 20px;
+    }
+    #ls-story .ls-visual-col {
+      padding: 12px 0; display: flex; align-items: center; justify-content: center;
+    }
+
+    #ls-story .ls-stage {
+      position: relative;
+      width: 100%;
+      display: grid;
+      overflow: visible;
+    }
+    #ls-story .ls-scene {
+      grid-area: 1 / 1;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .5s ease;
+    }
+    #ls-story .ls-scene.is-visible { opacity: 1; pointer-events: auto; }
+
+    /* ===================== Dialog replica (objets-fiche.html .dlg) ===================== */
+    #ls-story .ls-dlg-shell {
+      width: 100%; max-width: 420px; background: #fff; border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.28); color: var(--ls-ink); font-family: var(--ls-sans);
+      display: flex; flex-direction: column; transform: scale(.97);
+      transition: transform .4s ease;
+    }
+    #ls-story .ls-scene.is-visible .ls-dlg-shell { transform: scale(1); }
+    #ls-story .ls-dlg-head {
+      display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
+      border-bottom: 1px solid var(--ls-line); flex: none;
+    }
+    #ls-story .ls-dlg-head h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--ls-ink); }
+    #ls-story .ls-dlg-close {
+      width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; color: var(--ls-muted);
+    }
+    #ls-story .ls-dlg-close svg { width: 15px; height: 15px; }
+    #ls-story .ls-dlg-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+    #ls-story .ls-dlg-context { font-size: 12.5px; color: var(--ls-muted); margin: 0; }
+    #ls-story .ls-dlg-field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ls-steel); }
+    #ls-story .ls-dlg-input {
+      font-family: var(--ls-sans); font-size: 13px; font-weight: 400; color: var(--ls-ink);
+      border: 1.5px solid var(--ls-steel-line); border-radius: 8px; padding: 8px 10px; background: #fff;
+      min-height: 34px; display: flex; align-items: center; position: relative; overflow: hidden;
+    }
+    #ls-story .ls-dlg-input.ta { min-height: 52px; align-items: flex-start; }
+    #ls-story .ls-dlg-input.filled { border-color: var(--ls-signal); }
+    #ls-story .ls-typed::after {
+      content: ""; display: inline-block; width: 1.5px; height: 13px; background: var(--ls-steel);
+      margin-left: 1px; vertical-align: -2px; animation: ls-caret 0.9s steps(1) infinite;
+    }
+    #ls-story .ls-typed.ls-done::after { display: none; }
+    @keyframes ls-caret { 50% { opacity: 0; } }
+    #ls-story .ls-dlg-row { display: flex; gap: 10px; }
+    #ls-story .ls-dlg-row .ls-dlg-field { flex: 1; }
+    #ls-story .ls-dlg-select {
+      font-family: var(--ls-sans); font-size: 13px; color: var(--ls-ink); border: 1.5px solid var(--ls-steel-line);
+      border-radius: 8px; padding: 8px 10px; background: #fff;
+    }
+    #ls-story .ls-visi-group { display: flex; flex-direction: column; gap: 6px; }
+    #ls-story .ls-visi-card {
+      display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1.5px solid var(--ls-line);
+      border-radius: 9px; transition: border-color .3s ease, background .3s ease;
+    }
+    #ls-story .ls-visi-card.sel { border-color: var(--ls-signal); background: var(--ls-signal-soft); }
+    #ls-story .ls-visi-nm { font-size: 12.5px; font-weight: 600; color: var(--ls-ink); }
+    #ls-story .ls-visi-card.sel .ls-visi-nm { color: var(--ls-signal-ink); }
+    #ls-story .ls-visi-desc { font-size: 10.5px; color: var(--ls-faint); line-height: 1.4; }
+    #ls-story .ls-dlg-foot {
+      display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--ls-line); flex: none;
+    }
+    #ls-story .ls-btn-out {
+      display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--ls-steel);
+      border: 1.5px solid var(--ls-steel-line); border-radius: 99px; padding: 8px 14px; font-family: var(--ls-sans);
+      font-weight: 600; font-size: 12.5px; transition: transform .15s ease, background .3s ease; cursor: default;
+    }
+    #ls-story .ls-btn-out.pressed { transform: scale(.95); background: var(--ls-steel-soft); }
+    #ls-story .ls-btn-cta {
+      display: inline-flex; align-items: center; gap: 6px; background: var(--ls-steel-line); color: #fff;
+      border: none; border-radius: 9px; padding: 9px 16px; font-family: var(--ls-sans); font-weight: 600; font-size: 13px;
+      transition: background .3s ease, transform .15s ease;
+    }
+    #ls-story .ls-btn-cta.ready { background: var(--ls-signal); }
+    #ls-story .ls-btn-cta.pressed { transform: scale(.95); background: var(--ls-signal-hover); }
+
+    /* ===================== Fiche replica (shared "card" pattern) ===================== */
+    #ls-story .ls-fiche-card {
+      width: 100%; max-width: 460px; background: var(--ls-panel); border-radius: 14px;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 1px 2px rgba(23,25,28,.04), 0 18px 40px rgba(23,25,28,.09);
+      transform: translateY(8px); opacity: 0; transition: transform .5s ease, opacity .5s ease;
+    }
+    #ls-story .ls-scene.is-visible .ls-fiche-card { transform: translateY(0); opacity: 1; }
+
+    #ls-story .ls-fiche-hero {
+      aspect-ratio: 16/9; background: linear-gradient(135deg, var(--ls-ph) 0%, var(--ls-ph-2) 100%);
+      display: grid; place-items: center; position: relative; overflow: hidden; flex: none;
+    }
+    #ls-story .ls-fiche-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #ls-story .ls-fiche-hero .ls-ph-icon { color: #C9C2B2; width: 38px; height: 38px; stroke-width: 1.3; }
+
+    #ls-story .ls-fiche-body { padding: 18px 22px 20px; }
+    #ls-story .ls-eyebrow-sm {
+      font-family: var(--ls-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+      color: var(--ls-steel); margin-bottom: 8px;
+    }
+    #ls-story .ls-fiche-title { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 10px; color: var(--ls-ink); }
+    #ls-story .ls-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    #ls-story .ls-badge { height: 23px; border-radius: 99px; padding: 0 12px; display: flex; align-items: center; font-size: 12px; font-weight: 500; }
+    #ls-story .ls-badge.a { background: var(--ls-steel-soft); color: var(--ls-steel); }
+    #ls-story .ls-badge.signal { background: var(--ls-signal-soft); color: var(--ls-signal-ink); }
+
+    #ls-story .ls-facts { display: flex; align-items: center; gap: 14px; margin: 0 0 16px; color: var(--ls-muted); font-size: 12.5px; flex-wrap: wrap; }
+    #ls-story .ls-fact { display: flex; align-items: center; gap: 5px; }
+    #ls-story .ls-fact .ls-ico { width: 13px; height: 13px; color: var(--ls-faint); }
+
+    #ls-story .ls-desc-text { font-size: 13px; line-height: 1.6; color: var(--ls-ink); margin: 0 0 14px; }
+
+    #ls-story .ls-swatches { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+    #ls-story .ls-swatch { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    #ls-story .ls-swatch .dot { width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(0,0,0,.05); }
+    #ls-story .ls-swatch .lbl { font-size: 10.5px; color: var(--ls-muted); }
+
+    #ls-story .ls-fiche-cta {
+      display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--ls-signal); color: #fff;
+      border: none; border-radius: 9px; padding: 12px 16px; font-family: var(--ls-sans); font-weight: 600; font-size: 13.5px;
+      width: 100%; margin-top: 4px; text-decoration: none; position: relative; overflow: hidden;
+      transition: background .2s ease, transform .15s ease;
+    }
+    #ls-story .ls-fiche-cta.pressed { transform: scale(.97); background: var(--ls-signal-hover); }
+    #ls-story .ls-fiche-cta .ls-ico { width: 15px; height: 15px; }
+    #ls-story .ls-fiche-cta .ls-ripple {
+      position: absolute; inset: 0; background: rgba(255,255,255,.35); border-radius: 50%;
+      transform: scale(0); opacity: 0; pointer-events: none;
+    }
+    #ls-story .ls-fiche-cta.pressed .ls-ripple { animation: ls-ripple .5s ease-out; }
+    @keyframes ls-ripple {
+      0% { transform: scale(0); opacity: .6; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+
+    #ls-story .ls-mini-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 0; border-top: 1px solid var(--ls-line); font-size: 12.5px;
+    }
+    #ls-story .ls-mini-row:first-of-type { border-top: none; padding-top: 0; }
+    #ls-story .ls-mini-row-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    #ls-story .ls-mini-row-left .ls-ico { width: 15px; height: 15px; color: var(--ls-steel); flex: none; }
+    #ls-story .ls-mini-row-textstack { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    #ls-story .ls-mini-row-lbl { font-size: 13px; font-weight: 500; color: var(--ls-ink); }
+    #ls-story .ls-mini-row-count { font-size: 11.5px; color: var(--ls-faint); }
+
+    /* ===================== Plans scene ===================== */
+    #ls-story .ls-plans-list { display: flex; flex-direction: column; gap: 4px; }
+    #ls-story .ls-plan-card {
+      display: flex; gap: 12px; padding: 12px 2px; border-top: 1px solid var(--ls-line);
+      opacity: 0; transform: translateY(6px); transition: opacity .4s ease, transform .4s ease;
+    }
+    #ls-story .ls-plan-card.in { opacity: 1; transform: translateY(0); }
+    #ls-story .ls-plan-card:first-child { border-top: none; padding-top: 0; }
+    #ls-story .ls-plan-thumb {
+      width: 52px; height: 52px; border-radius: 9px; flex: none; overflow: hidden;
+      background: linear-gradient(135deg, var(--ls-ph) 0%, var(--ls-ph-2) 100%); display: grid; place-items: center;
+    }
+    #ls-story .ls-plan-thumb .ls-ico { width: 22px; height: 22px; stroke-width: 1.3; color: #C9C2B2; }
+    #ls-story .ls-plan-body { flex: 1; min-width: 0; }
+    #ls-story .ls-plan-title { font-size: 13.5px; font-weight: 700; color: var(--ls-ink); margin: 0 0 3px; }
+    #ls-story .ls-plan-desc { font-size: 11.5px; color: var(--ls-muted); margin: 0 0 7px; line-height: 1.5; }
+    #ls-story .ls-plan-meta {
+      display: flex; flex-wrap: wrap; gap: 6px 12px; font-family: var(--ls-mono); font-size: 9.5px;
+      color: var(--ls-faint); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 8px;
+    }
+    #ls-story .ls-plan-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    #ls-story .ls-dl-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: var(--ls-signal); color: #fff; border: none;
+      border-radius: 8px; padding: 7px 12px; font-family: var(--ls-sans); font-weight: 600; font-size: 11.5px; text-decoration: none;
+    }
+    #ls-story .ls-dl-btn:hover { background: var(--ls-signal-hover); }
+    #ls-story .ls-dl-btn .ls-ico { width: 12px; height: 12px; }
+    #ls-story .ls-plan-size { font-size: 10px; color: var(--ls-faint); }
+
+    /* ===================== Consortium scene ===================== */
+    #ls-story .ls-cons-list { display: flex; flex-direction: column; }
+    #ls-story .ls-cons-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 2px;
+      border-top: 1px solid var(--ls-line); opacity: 0; transform: translateX(-8px);
+      transition: opacity .4s ease, transform .4s ease;
+    }
+    #ls-story .ls-cons-row.in { opacity: 1; transform: translateX(0); }
+    #ls-story .ls-cons-row:first-child { border-top: none; padding-top: 0; }
+    #ls-story .ls-cons-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    #ls-story .ls-cons-mod-nm { font-size: 12.5px; font-weight: 500; color: var(--ls-ink); }
+    #ls-story .ls-cons-meta { display: flex; gap: 5px; margin-top: 3px; }
+    #ls-story .ls-cons-status { font-size: 9.5px; padding: 2px 8px; border-radius: 99px; background: var(--ls-steel-soft); color: var(--ls-steel); white-space: nowrap; }
+    #ls-story .ls-cons-kit { font-size: 8.5px; padding: 2px 7px; border-radius: 99px; background: var(--ls-signal-soft); color: var(--ls-signal-ink); font-weight: 700; white-space: nowrap; }
+    #ls-story .ls-cons-right { display: flex; align-items: center; gap: 8px; flex: none; }
+    #ls-story .ls-cons-avatar {
+      width: 27px; height: 27px; border-radius: 50%; background: var(--ls-steel); color: #fff; flex: none;
+      display: grid; place-items: center; font-size: 10px; font-weight: 700; font-family: var(--ls-mono);
+    }
+    #ls-story .ls-cons-avatar.cert { background: var(--ls-signal); }
+    #ls-story .ls-cons-acteur-txt { text-align: right; }
+    #ls-story .ls-cons-acteur-nm { font-size: 12px; font-weight: 500; color: var(--ls-ink); white-space: nowrap; }
+    #ls-story .ls-cons-acteur-metier { font-size: 10px; color: var(--ls-faint); margin-top: 1px; }
+    #ls-story .ls-fade-in { opacity: 0; transition: opacity .4s ease; }
+    #ls-story .ls-fade-in.in { opacity: 1; }
+
+    /* ===================== Réalisation scene ===================== */
+    #ls-story .ls-real-note {
+      font-size: 11.5px; color: var(--ls-muted); background: var(--ls-steel-soft); border-radius: 8px;
+      padding: 9px 12px; margin-top: 12px; line-height: 1.55;
+    }
+
+    /* ---- Steps (défilement horizontal, une étape affichée à la fois) ---- */
+    #ls-story .ls-panel-col { display: flex; flex-direction: column; gap: 22px; }
+    #ls-story .ls-step-viewport { position: relative; min-height: 240px; }
+    #ls-story .ls-step {
+      position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .35s ease, transform .35s ease; transform: translateX(10px);
+    }
+    #ls-story .ls-step.is-active { opacity: 1; pointer-events: auto; transform: translateX(0); }
+    #ls-story .ls-step-label {
+      font-family: var(--ls-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--ls-signal); font-weight: 600; margin-bottom: 10px;
+    }
+    #ls-story .ls-step h3 {
+      font-size: clamp(20px, 2.6vw, 26px); font-weight: 800; letter-spacing: -0.01em; line-height: 1.28;
+      margin: 0 0 12px; color: var(--ls-ink);
+    }
+    #ls-story .ls-step p { font-size: 15px; line-height: 1.65; color: var(--ls-muted); max-width: 42ch; margin: 0 0 14px; }
+    #ls-story .ls-step-tag {
+      display: inline-flex; align-items: center; gap: 6px; font-family: var(--ls-mono); font-size: 11.5px;
+      color: var(--ls-steel); background: var(--ls-steel-soft); border-radius: 99px; padding: 5px 13px; width: fit-content;
+    }
+
+    /* ---- Nav row: flèches + dots ---- */
+    #ls-story .ls-nav-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    #ls-story .ls-arrow {
+      width: 42px; height: 42px; border-radius: 50%; flex: none; background: var(--ls-panel);
+      border: 1.5px solid var(--ls-steel-line); display: grid; place-items: center; padding: 0;
+      cursor: pointer; color: var(--ls-steel); transition: background .15s ease, border-color .15s ease, opacity .2s ease;
+    }
+    #ls-story .ls-arrow:hover:not(:disabled) { background: var(--ls-steel-soft); border-color: var(--ls-steel); }
+    #ls-story .ls-arrow:disabled { opacity: .3; pointer-events: none; cursor: default; }
+    #ls-story .ls-arrow svg { width: 18px; height: 18px; }
+
+    /* ---- Progress dots ---- */
+    #ls-story .ls-progress { display: flex; align-items: center; justify-content: center; gap: 9px; flex: 1; }
+    #ls-story .ls-progress-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--ls-steel-line); border: none; padding: 0;
+      cursor: pointer; transition: background .3s ease, transform .3s ease;
+    }
+    #ls-story .ls-progress-dot:hover { background: var(--ls-steel); }
+    #ls-story .ls-progress-dot.is-active { background: var(--ls-signal); transform: scale(1.5); }
+
+    /* ---- Outro ---- */
+    #ls-story .ls-outro { max-width: 640px; margin: 0 auto; padding: 40px 20px 96px; text-align: center; }
+    #ls-story .ls-outro h3 { font-size: clamp(22px, 3vw, 28px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; color: var(--ls-ink); }
+    #ls-story .ls-outro p { font-size: 15px; color: var(--ls-muted); line-height: 1.6; max-width: 44ch; margin: 0 auto 24px; }
+    #ls-story .ls-cta {
+      display: inline-flex; align-items: center; gap: 8px; background: var(--ls-signal); color: #fff; text-decoration: none;
+      border: none; border-radius: 9px; padding: 13px 22px; font-family: var(--ls-sans); font-weight: 600; font-size: 14.5px;
+    }
+    #ls-story .ls-cta:hover { background: var(--ls-signal-hover); }
+    #ls-story .ls-cta .ls-ico { width: 16px; height: 16px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      #ls-story .ls-step, #ls-story .ls-scene, #ls-story .ls-fiche-card, #ls-story .ls-dlg-shell,
+      #ls-story .ls-plan-card, #ls-story .ls-cons-row, #ls-story .ls-fade-in { transition: none !important; animation: none !important; }
+      #ls-story .ls-typed::after { display: none; }
+      #ls-story .ls-plan-card, #ls-story .ls-cons-row, #ls-story .ls-fade-in { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 860px) {
+      #ls-story .ls-rail { grid-template-columns: 1fr; gap: 24px; padding: 0 20px; }
+      #ls-story .ls-stage { min-height: 380px; }
+      #ls-story .ls-step-viewport { min-height: 210px; }
+      #ls-story .ls-arrow { width: 38px; height: 38px; }
+    }
+  </style>
+
+  <!-- Intro -->
+  <div class="ls-intro">
+    <div class="ls-eyebrow">Comment ça marche</div>
+    <h2>D'un besoin communal <em>à un objet installé</em></h2>
+    <p>Suivez le parcours d'un projet type sur Linéo — du premier besoin exprimé par une commune jusqu'au mobilier livré sur la place publique.</p>
+  </div>
+
+  <div class="ls-rail">
+    <div class="ls-visual-col">
+      <div class="ls-stage" id="ls-stage">
+
+        <!-- SCENE A : dialog "Créer un projet" en train de se remplir -->
+        <div class="ls-scene is-visible" data-scene="dlg-create">
+          <div class="ls-dlg-shell">
+            <div class="ls-dlg-head">
+              <h3>Créer un projet</h3>
+              <span class="ls-dlg-close"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"></path></svg></span>
+            </div>
+            <div class="ls-dlg-body">
+              <p class="ls-dlg-context">Nouveau projet — Commune de Vucherens</p>
+
+              <label class="ls-dlg-field">
+                <span>Intitulé du projet</span>
+                <div class="ls-dlg-input filled" id="ls-f-intitules"><span class="ls-typed ls-done">Aménagement du parc communal</span></div>
+              </label>
+
+              <label class="ls-dlg-field">
+                <span>Collectivité</span>
+                <div class="ls-dlg-input filled" id="ls-f-collectivite"><span class="ls-typed ls-done">Commune de Vucherens</span></div>
+              </label>
+
+              <div class="ls-dlg-row">
+                <label class="ls-dlg-field">
+                  <span>Statut</span>
+                  <div class="ls-dlg-select" id="ls-f-statut">Cadrage</div>
+                </label>
+                <label class="ls-dlg-field">
+                  <span>Budget</span>
+                  <div class="ls-dlg-input filled" id="ls-f-budget"><span class="ls-typed ls-done">45 000 CHF</span></div>
+                </label>
+              </div>
+
+              <label class="ls-dlg-field">
+                <span>Délais</span>
+                <div class="ls-dlg-input filled" id="ls-f-delais"><span class="ls-typed ls-done">Printemps 2027</span></div>
+              </label>
+
+              <label class="ls-dlg-field">
+                <span>Besoins</span>
+                <div class="ls-dlg-input ta filled" id="ls-f-besoins"><span class="ls-typed ls-done">Mobilier d'assise et de repos le long du sentier forestier.</span></div>
+              </label>
+
+              <div class="ls-dlg-field">
+                <span>Visibilité du projet</span>
+                <div class="ls-visi-group">
+                  <div class="ls-visi-card" id="ls-visi-public">
+                    <span class="ls-visi-nm">Public</span>
+                    <span class="ls-visi-desc">Visible par tous les acteurs de la plateforme.</span>
+                  </div>
+                  <div class="ls-visi-card" id="ls-visi-restreint">
+                    <span class="ls-visi-nm">Acteurs concernés</span>
+                    <span class="ls-visi-desc">Visible selon les métiers liés aux objets du projet.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ls-dlg-foot">
+              <span class="ls-btn-out">Annuler</span>
+              <span class="ls-btn-cta" id="ls-submit-btn">Créer le projet</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCENE B : fiche Projet réelle (structure projets-fiche.html) -->
+        <div class="ls-scene" data-scene="fiche-projet">
+          <div class="ls-fiche-card">
+            <div class="ls-fiche-hero">
+              <img src="Images_mobilier/projet_parc.jpg" alt="Aménagement du parc communal — vue du site, Vucherens">
+            </div>
+            <div class="ls-fiche-body">
+              <div class="ls-eyebrow-sm">Commune de Vucherens</div>
+              <h4 class="ls-fiche-title">Aménagement du parc communal</h4>
+              <div class="ls-badges">
+                <span class="ls-badge a">Cadrage</span>
+                <span class="ls-badge signal">Visibilité publique</span>
+              </div>
+              <div class="ls-facts">
+                <div class="ls-fact"><svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5v9"></path></svg>45 000 CHF</div>
+                <div class="ls-fact"><svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="15.5" rx="1.5"></rect><path d="M3.5 9.5h17"></path><path d="M8 3v3.5M16 3v3.5"></path></svg>Printemps 2027</div>
+              </div>
+              <p class="ls-desc-text">Le site nécessite du mobilier d'assise et de repos le long du sentier forestier, ainsi qu'une signalétique d'orientation en entrée de parc.</p>
+
+              <button type="button" class="ls-fiche-cta" id="ls-add-objet-btn">
+                <svg class="ls-ico" viewBox="0 0 24 24" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+                Ajouter un objet
+                <span class="ls-ripple"></span>
+              </button>
+
+              <div class="ls-mini-row" style="margin-top:14px">
+                <div class="ls-mini-row-left">
+                  <svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8l8-4.5Z"></path><path d="M4 8l8 4.5L20 8M12 12.5V21"></path></svg>
+                  <div class="ls-mini-row-textstack"><span class="ls-mini-row-lbl">Objets</span><span class="ls-mini-row-count" id="ls-objets-count">1 objet(s) associé(s)</span></div>
+                </div>
+              </div>
+              <div class="ls-mini-row">
+                <div class="ls-mini-row-left">
+                  <svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><circle cx="9" cy="8" r="3"></circle><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"></path><path d="M16 4.3a3 3 0 0 1 0 5.9M21 20c0-2.8-1.9-4.8-4.5-5.4"></path></svg>
+                  <div class="ls-mini-row-textstack"><span class="ls-mini-row-lbl">Consortium</span><span class="ls-mini-row-count">6 acteur(s) impliqué(s)</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCENE C : fiche Objet réelle (structure objets-fiche.html) — Banc trois assises -->
+        <div class="ls-scene" data-scene="fiche-objet">
+          <div class="ls-fiche-card">
+            <div class="ls-fiche-hero">
+              <img src="Images_mobilier/banc_design.png" alt="Banc trois assises — vues techniques">
+            </div>
+            <div class="ls-fiche-body">
+              <div class="ls-eyebrow-sm">Mobilier d'assise</div>
+              <h4 class="ls-fiche-title">Banc trois assises</h4>
+              <div class="ls-badges">
+                <span class="ls-badge a">Produit</span>
+                <span class="ls-badge">Passif</span>
+              </div>
+              <div class="ls-facts">
+                <div class="ls-fact"><svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><path d="M3 16.5 16.5 3l4.5 4.5L7.5 21 3 16.5Z"></path></svg>180 cm</div>
+                <div class="ls-fact"><svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5v9"></path></svg>3 200 CHF</div>
+              </div>
+              <p class="ls-desc-text">Banc massif taillé dans une seule pièce, assemblage sans quincaillerie apparente. Conçu pour un usage extérieur intensif en zone forestière ou périurbaine.</p>
+
+              <div class="ls-swatches">
+                <div class="ls-swatch"><div class="dot" style="background:#C9A46A"></div><div class="lbl">Épicéa</div></div>
+                <div class="ls-swatch"><div class="dot" style="background:#8B5E34"></div><div class="lbl">Mélèze</div></div>
+                <div class="ls-swatch"><div class="dot" style="background:#D8C39C"></div><div class="lbl">Chêne</div></div>
+              </div>
+
+              <div class="ls-mini-row">
+                <div class="ls-mini-row-left">
+                  <svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z"></path><circle cx="12" cy="9" r="2.3"></circle></svg>
+                  <div class="ls-mini-row-textstack"><span class="ls-mini-row-lbl">Réalisations</span><span class="ls-mini-row-count">12 installée(s) sur le terrain</span></div>
+                </div>
+              </div>
+              <div class="ls-mini-row">
+                <div class="ls-mini-row-left">
+                  <svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"></path><path d="M14 3.5V8h4"></path></svg>
+                  <div class="ls-mini-row-textstack"><span class="ls-mini-row-lbl">Plans</span><span class="ls-mini-row-count">3 document(s) technique(s)</span></div>
+                </div>
+                <button type="button" class="ls-btn-out" id="ls-plans-btn">Voir les plans<svg class="ls-ico" viewBox="0 0 24 24" stroke-width="2"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCENE D : fiche Plans réelle (structure plans-fiche.html) — Banc trois assises -->
+        <div class="ls-scene" data-scene="fiche-plans">
+          <div class="ls-fiche-card">
+            <div class="ls-fiche-body" style="padding-top:20px">
+              <div class="ls-eyebrow-sm">Plans · Banc trois assises</div>
+              <h4 class="ls-fiche-title">Documents techniques</h4>
+              <p class="ls-desc-text" style="margin-bottom:10px;color:var(--ls-faint);font-size:12px">2 plan(s) associé(s) à cet objet</p>
+
+              <div class="ls-plans-list" id="ls-plans-list">
+                <div class="ls-plan-card" data-plan="0">
+                  <div class="ls-plan-thumb"><svg class="ls-ico" viewBox="0 0 24 24"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"></path><path d="M14 3.5V8h4"></path><path d="M9 12.5h6M9 15.5h6M9 18h4"></path></svg></div>
+                  <div class="ls-plan-body">
+                    <h5 class="ls-plan-title">Plan bois — Assise et dossier</h5>
+                    <p class="ls-plan-desc">Pièces en bois massif : poutres d'assise (gradins) et planche dossier.</p>
+                    <div class="ls-plan-meta"><span>Bois massif</span><span>Échelle 1:20</span><span>A3 · indice A</span></div>
+                    <div class="ls-plan-foot">
+                      <a class="ls-dl-btn" href="Images_mobilier/plan_banc_bois.pdf" download>
+                        <svg class="ls-ico" viewBox="0 0 24 24" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>
+                        Télécharger
+                      </a>
+                      <span class="ls-plan-size">PDF · 500 Ko</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="ls-plan-card" data-plan="1">
+                  <div class="ls-plan-thumb"><svg class="ls-ico" viewBox="0 0 24 24"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"></path><path d="M14 3.5V8h4"></path><path d="M9 12.5h6M9 15.5h6M9 18h4"></path></svg></div>
+                  <div class="ls-plan-body">
+                    <h5 class="ls-plan-title">Plan métal — Piétements et accoudoirs</h5>
+                    <p class="ls-plan-desc">Pièces en acier peint : piétements en U et accoudoirs avec support dossier.</p>
+                    <div class="ls-plan-meta"><span>Acier peint (époxy RAL 2001)</span><span>Échelle 1:20</span><span>A3 · indice A</span></div>
+                    <div class="ls-plan-foot">
+                      <a class="ls-dl-btn" href="Images_mobilier/plan_banc_metal.pdf" download>
+                        <svg class="ls-ico" viewBox="0 0 24 24" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>
+                        Télécharger
+                      </a>
+                      <span class="ls-plan-size">PDF · 490 Ko</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCENE APPEL : sélection acteurs + appel d'offre (structure objets-fiche.html / acteurs-fiche.html) -->
+        <div class="ls-scene" data-scene="fiche-appel">
+          <div class="ls-fiche-card">
+            <div class="ls-fiche-body" style="padding-top:20px">
+              <div class="ls-eyebrow-sm">Appel d'offre · Banc trois assises</div>
+              <h4 class="ls-fiche-title">Sélection des acteurs</h4>
+              <p class="ls-desc-text" style="margin-bottom:12px;font-size:11.5px;color:var(--ls-faint)">3 module(s) à pourvoir, d'après les plans</p>
+
+              <div class="ls-cons-list" id="ls-appel-list">
+                <div class="ls-cons-row" data-appel="0">
+                  <div class="ls-cons-left">
+                    <div>
+                      <div class="ls-cons-mod-nm">Assise</div>
+                      <div class="ls-cons-meta">
+                        <span class="ls-cons-status">Menuisier requis</span>
+                        <span class="ls-cons-status ls-fade-in" style="background:var(--ls-signal-soft);color:var(--ls-signal-ink)">Envoyé ✓</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ls-cons-right">
+                    <div class="ls-cons-acteur-txt ls-fade-in"><div class="ls-cons-acteur-nm">Atelier Fontaine</div><div class="ls-cons-acteur-metier">Menuisier · Lucens</div></div>
+                    <div class="ls-cons-avatar ls-fade-in">AF</div>
+                  </div>
+                </div>
+                <div class="ls-cons-row" data-appel="1">
+                  <div class="ls-cons-left">
+                    <div>
+                      <div class="ls-cons-mod-nm">Piétement</div>
+                      <div class="ls-cons-meta">
+                        <span class="ls-cons-kit">kit</span>
+                        <span class="ls-cons-status">Serrurier requis</span>
+                        <span class="ls-cons-status ls-fade-in" style="background:var(--ls-signal-soft);color:var(--ls-signal-ink)">Envoyé ✓</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ls-cons-right">
+                    <div class="ls-cons-acteur-txt ls-fade-in"><div class="ls-cons-acteur-nm">Serrurerie Meyer</div><div class="ls-cons-acteur-metier">Serrurier · Broc</div></div>
+                    <div class="ls-cons-avatar ls-fade-in">SM</div>
+                  </div>
+                </div>
+                <div class="ls-cons-row" data-appel="2">
+                  <div class="ls-cons-left">
+                    <div>
+                      <div class="ls-cons-mod-nm">Accoudoir</div>
+                      <div class="ls-cons-meta">
+                        <span class="ls-cons-status">Menuisier requis</span>
+                        <span class="ls-cons-status ls-fade-in" style="background:var(--ls-signal-soft);color:var(--ls-signal-ink)">Envoyé ✓</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ls-cons-right">
+                    <div class="ls-cons-acteur-txt ls-fade-in"><div class="ls-cons-acteur-nm">Proxybois</div><div class="ls-cons-acteur-metier">Menuisier · Marchissy</div></div>
+                    <div class="ls-cons-avatar cert ls-fade-in">P</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCENE E : fiche Consortium réelle (structure consortium-fiche.html) — Banc trois assises -->
+        <div class="ls-scene" data-scene="fiche-consortium">
+          <div class="ls-fiche-card">
+            <div class="ls-fiche-body" style="padding-top:20px">
+              <div class="ls-eyebrow-sm">Consortium · Commune de Vucherens</div>
+              <h4 class="ls-fiche-title">Aménagement du parc communal</h4>
+              <div class="ls-badges">
+                <span class="ls-badge a">Cadrage</span>
+                <span class="ls-badge signal">Visibilité publique</span>
+              </div>
+              <p class="ls-desc-text" style="margin:0 0 4px;font-weight:600;font-size:12.5px">Banc trois assises</p>
+              <p class="ls-desc-text" style="margin-bottom:12px;font-size:11.5px;color:var(--ls-faint)">3 module(s) rattaché(s) à cet objet</p>
+
+              <div class="ls-cons-list" id="ls-cons-list">
+                <div class="ls-cons-row" data-cons="0">
+                  <div class="ls-cons-left">
+                    <div>
+                      <div class="ls-cons-mod-nm">Assise</div>
+                      <div class="ls-cons-meta"><span class="ls-cons-status">Plan validé</span></div>
+                    </div>
+                  </div>
+                  <div class="ls-cons-right">
+                    <div class="ls-cons-acteur-txt"><div class="ls-cons-acteur-nm">Atelier Fontaine</div><div class="ls-cons-acteur-metier">Menuisier</div></div>
+                    <div class="ls-cons-avatar">AF</div>
+                  </div>
+                </div>
+                <div class="ls-cons-row" data-cons="1">
+                  <div class="ls-cons-left">
+                    <div>
+                      <div class="ls-cons-mod-nm">Piétement</div>
+                      <div class="ls-cons-meta"><span class="ls-cons-kit">kit</span><span class="ls-cons-status">Prototype</span></div>
+                    </div>
+                  </div>
+                  <div class="ls-cons-right">
+                    <div class="ls-cons-acteur-txt"><div class="ls-cons-acteur-nm">Serrurerie Meyer</div><div class="ls-cons-acteur-metier">Serrurier</div></div>
+                    <div class="ls-cons-avatar">SM</div>
+                  </div>
+                </div>
+                <div class="ls-cons-row" data-cons="2">
+                  <div class="ls-cons-left">
+                    <div>
+                      <div class="ls-cons-mod-nm">Accoudoir</div>
+                      <div class="ls-cons-meta"><span class="ls-cons-status">Plan validé</span></div>
+                    </div>
+                  </div>
+                  <div class="ls-cons-right">
+                    <div class="ls-cons-acteur-txt"><div class="ls-cons-acteur-nm">Proxybois</div><div class="ls-cons-acteur-metier">Menuisier</div></div>
+                    <div class="ls-cons-avatar cert">P</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCENE F : fiche Réalisation réelle (structure realisation-fiche.html) -->
+        <div class="ls-scene" data-scene="fiche-realisation">
+          <div class="ls-fiche-card">
+            <div class="ls-fiche-hero">
+              <img src="Images_mobilier/Banc-espace-vert-Gland-2024.jpg" alt="Banc trois assises installé — aménagement espace vert, Gland">
+            </div>
+            <div class="ls-fiche-body">
+              <h4 class="ls-fiche-title" style="margin-bottom:8px">Aménagement espace vert</h4>
+              <div class="ls-badges">
+                <span class="ls-badge a">Banc trois assises</span>
+              </div>
+              <div class="ls-facts">
+                <div class="ls-fact"><svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z"></path><circle cx="12" cy="9" r="2.3"></circle></svg>Gland</div>
+                <div class="ls-fact"><svg class="ls-ico" viewBox="0 0 24 24" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 10h17"></path></svg>Octobre 2024</div>
+              </div>
+              <div class="ls-real-note">Exemple réel d'installation — le projet de Vucherens est encore en cadrage. Ce banc trois assises livré à Gland illustre le rendu une fois construit et posé.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="ls-panel-col">
+    <div class="ls-step-viewport" id="ls-step-viewport">
+
+      <div class="ls-step is-active" data-step="0">
+        <div class="ls-step-label">Étape 1</div>
+        <h3>Une commune exprime un besoin</h3>
+        <p>Un élu ou un service technique remplit le formulaire de création de projet — intitulé, budget, délais, besoins — et choisit sa visibilité. Le projet est aussitôt rattaché à sa collectivité.</p>
+        <span class="ls-step-tag">Collectivités → Projets</span>
+      </div>
+
+      <div class="ls-step" data-step="1">
+        <div class="ls-step-label">Étape 2</div>
+        <h3>Elle ajoute un objet du catalogue</h3>
+        <p>Depuis sa fiche projet, la commune ajoute un objet — ici un banc trois assises : dimensions, coût indicatif, essences de bois compatibles, tout est déjà documenté.</p>
+        <span class="ls-step-tag">Projets → Objets</span>
+      </div>
+
+      <div class="ls-step" data-step="2">
+        <div class="ls-step-label">Étape 3</div>
+        <h3>Les plans techniques sont réutilisés</h3>
+        <p>Chaque module du banc dispose déjà de plans validés — bois et métal — prêts à être transmis aux prestataires, avec échelle, matière et format normalisés.</p>
+        <span class="ls-step-tag">Objets → Plans</span>
+      </div>
+
+      <div class="ls-step" data-step="3">
+        <div class="ls-step-label">Étape 4</div>
+        <h3>Elle lance un appel d'offre par élément</h3>
+        <p>Pour chaque pièce définie dans les plans, la commune identifie le métier requis et sollicite les prestataires régionaux correspondants pour sa réalisation.</p>
+        <span class="ls-step-tag">Plans → Appel d'offre</span>
+      </div>
+
+      <div class="ls-step" data-step="4">
+        <div class="ls-step-label">Étape 5</div>
+        <h3>Le consortium d'acteurs se forme</h3>
+        <p>Les prestataires sollicités confirment leur participation, module par module. Les acteurs certifiés Label Bois Suisse apparaissent en cuivre.</p>
+        <span class="ls-step-tag">Appel d'offre → Consortium</span>
+      </div>
+
+      <div class="ls-step" data-step="5">
+        <div class="ls-step-label">Étape 6</div>
+        <h3>Le mobilier est installé</h3>
+        <p>Une fois fabriqué, l'objet rejoint l'espace public. Chaque réalisation est géolocalisée et documentée, photo à l'appui.</p>
+        <span class="ls-step-tag">Objets → Réalisations</span>
+      </div>
+
+    </div>
+
+    <div class="ls-nav-row">
+      <button type="button" class="ls-arrow" id="ls-prev" aria-label="Étape précédente" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"></path></svg>
+      </button>
+      <div class="ls-progress" aria-label="Progression de la démonstration">
+        <button type="button" class="ls-progress-dot is-active" data-dot="0" aria-label="Étape 1"></button>
+        <button type="button" class="ls-progress-dot" data-dot="1" aria-label="Étape 2"></button>
+        <button type="button" class="ls-progress-dot" data-dot="2" aria-label="Étape 3"></button>
+        <button type="button" class="ls-progress-dot" data-dot="3" aria-label="Étape 4"></button>
+        <button type="button" class="ls-progress-dot" data-dot="4" aria-label="Étape 5"></button>
+        <button type="button" class="ls-progress-dot" data-dot="5" aria-label="Étape 6"></button>
+      </div>
+      <button type="button" class="ls-arrow" id="ls-next" aria-label="Étape suivante">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 6 6 6-6 6"></path></svg>
+      </button>
+    </div>
+    </div>
+  </div>
+
+  <!-- Outro -->
+  <div class="ls-outro">
+    <h3>Votre commune a un projet en tête ?</h3>
+    <p>Linéo réunit déjà des communes des trois parcs, des plans réutilisables, un réseau d'acteurs locaux du bois et des réalisations installées sur le terrain.</p>
+    <a href="projets-fiche.html" class="ls-cta">
+      <svg class="ls-ico" viewBox="0 0 24 24" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+      Démarrer un projet
+    </a>
+  </div>
+
+</section>
+
+<script>
+(function () {
+  var root = document.getElementById('ls-story');
+  if (!root) return;
+
+  var steps = Array.prototype.slice.call(root.querySelectorAll('.ls-step'));
+  var scenes = {};
+  root.querySelectorAll('.ls-scene').forEach(function (el) { scenes[el.getAttribute('data-scene')] = el; });
+  var dots = Array.prototype.slice.call(root.querySelectorAll('.ls-progress-dot'));
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function showScene(name) {
+    Object.keys(scenes).forEach(function (k) { scenes[k].classList.toggle('is-visible', k === name); });
+  }
+
+  function setActiveStep(index) {
+    steps.forEach(function (s, i) { s.classList.toggle('is-active', i === index); });
+    dots.forEach(function (d, i) { d.classList.toggle('is-active', i === index); });
+  }
+
+  var timers = [];
+  function clearTimers() {
+    timers.forEach(function (t) { clearTimeout(t); clearInterval(t); });
+    timers = [];
+  }
+  function wait(ms, fn) {
+    var t = setTimeout(fn, reduceMotion ? Math.min(ms, 100) : ms);
+    timers.push(t);
+    return t;
+  }
+
+  /* ---------- Typewriter helper ---------- */
+  function typeInto(el, text, speed, cb) {
+    var span = el.querySelector('.ls-typed');
+    span.textContent = '';
+    span.classList.remove('ls-done');
+    el.classList.remove('filled');
+    if (reduceMotion) {
+      span.textContent = text;
+      span.classList.add('ls-done');
+      el.classList.add('filled');
+      if (cb) cb();
+      return;
+    }
+    var i = 0;
+    var timer = setInterval(function () {
+      span.textContent = text.slice(0, i + 1);
+      i++;
+      if (i >= text.length) {
+        clearInterval(timer);
+        span.classList.add('ls-done');
+        el.classList.add('filled');
+        if (cb) cb();
+      }
+    }, speed || 28);
+    timers.push(timer);
+  }
+
+  function revealOneByOne(els, stagger, cb) {
+    if (!els.length) { if (cb) cb(); return; }
+    var i = 0;
+    function next() {
+      els[i].classList.add('in');
+      i++;
+      if (i < els.length) { wait(stagger, next); }
+      else { wait(300, cb || function () {}); }
+    }
+    next();
+  }
+
+  /* Chaque sequence est autonome : elle affiche elle-meme sa scene de depart
+     et se remet a zero a chaque appel. Aucune sequence n'attend la
+     precedente ni ne boucle toute seule — le controleur plus bas se charge
+     de demarrer/arreter au bon moment, en fonction du texte affiche. */
+
+  /* ---------- Sequence A: remplissage du dialog "Créer un projet" -> fiche-projet ---------- */
+  function runSequenceA() {
+    showScene('dlg-create');
+    ['ls-f-intitules', 'ls-f-collectivite', 'ls-f-budget', 'ls-f-delais', 'ls-f-besoins'].forEach(function (id) {
+      var el = document.getElementById(id);
+      el.classList.remove('filled');
+      var span = el.querySelector('.ls-typed');
+      span.textContent = '';
+      span.classList.remove('ls-done');
+    });
+    document.getElementById('ls-visi-public').classList.remove('sel');
+    document.getElementById('ls-submit-btn').classList.remove('ready', 'pressed');
+
+    var t = 500;
+    wait(t, function () { typeInto(document.getElementById('ls-f-intitules'), 'Aménagement du parc communal', 26); });
+    t += 900;
+    wait(t, function () { typeInto(document.getElementById('ls-f-collectivite'), 'Commune de Vucherens', 26); });
+    t += 800;
+    wait(t, function () { typeInto(document.getElementById('ls-f-budget'), '45 000 CHF', 30); });
+    t += 500;
+    wait(t, function () { typeInto(document.getElementById('ls-f-delais'), 'Printemps 2027', 30); });
+    t += 600;
+    wait(t, function () { typeInto(document.getElementById('ls-f-besoins'), "Mobilier d'assise et de repos le long du sentier forestier.", 16); });
+    t += 1300;
+    wait(t, function () { document.getElementById('ls-visi-public').classList.add('sel'); });
+    t += 400;
+    wait(t, function () { document.getElementById('ls-submit-btn').classList.add('ready'); });
+    t += 500;
+    wait(t, function () { document.getElementById('ls-submit-btn').classList.add('pressed'); });
+    t += 250;
+    wait(t, function () { showScene('fiche-projet'); });
+  }
+
+  /* ---------- Sequence B: appui sur "Ajouter un objet" -> fiche-objet ---------- */
+  function runSequenceB() {
+    showScene('fiche-projet');
+    document.getElementById('ls-objets-count').textContent = '0 objet(s) associé(s)';
+    document.getElementById('ls-add-objet-btn').classList.remove('pressed');
+    var t = 700;
+    wait(t, function () { document.getElementById('ls-add-objet-btn').classList.add('pressed'); });
+    t += 260;
+    wait(t, function () {
+      document.getElementById('ls-objets-count').textContent = '1 objet(s) associé(s)';
+      showScene('fiche-objet');
+    });
+  }
+
+  /* ---------- Sequence C: appui sur "Voir les plans" -> fiche-plans ---------- */
+  function runSequenceC() {
+    showScene('fiche-objet');
+    var btn = document.getElementById('ls-plans-btn');
+    if (btn) btn.classList.remove('pressed');
+    var planCards = Array.prototype.slice.call(root.querySelectorAll('#ls-plans-list .ls-plan-card'));
+    planCards.forEach(function (c) { c.classList.remove('in'); });
+    var t = 700;
+    wait(t, function () { if (btn) btn.classList.add('pressed'); });
+    t += 260;
+    wait(t, function () { showScene('fiche-plans'); });
+    t += 300;
+    wait(t, function () { revealOneByOne(planCards, 260); });
+  }
+
+  /* ---------- Sequence D: sélection des acteurs + envoi de l'appel d'offre, module par module ---------- */
+  function runSequenceD() {
+    showScene('fiche-appel');
+    var rows = Array.prototype.slice.call(root.querySelectorAll('#ls-appel-list .ls-cons-row'));
+    rows.forEach(function (r) {
+      r.classList.remove('in');
+      Array.prototype.slice.call(r.querySelectorAll('.ls-fade-in')).forEach(function (el) { el.classList.remove('in'); });
+    });
+    var t = 350;
+    rows.forEach(function (row) {
+      (function (row, rowT) {
+        wait(rowT, function () { row.classList.add('in'); });
+        wait(rowT + 550, function () {
+          Array.prototype.slice.call(row.querySelectorAll('.ls-fade-in')).forEach(function (el) { el.classList.add('in'); });
+        });
+      })(row, t);
+      t += 950;
+    });
+  }
+
+  /* ---------- Sequence E: le consortium se forme, rows apparaissent une à une ---------- */
+  function runSequenceE() {
+    showScene('fiche-consortium');
+    var rows = Array.prototype.slice.call(root.querySelectorAll('#ls-cons-list .ls-cons-row'));
+    rows.forEach(function (r) { r.classList.remove('in'); });
+    wait(300, function () { revealOneByOne(rows, 320); });
+  }
+
+  /* ---------- Sequence F: révélation de la fiche Réalisation ---------- */
+  function runSequenceF() {
+    showScene('fiche-realisation');
+  }
+
+  var SEQ = [runSequenceA, runSequenceB, runSequenceC, runSequenceD, runSequenceE, runSequenceF];
+
+  /* ---------- Contrôleur : défilement horizontal par flèches/dots. Chaque
+     étape est liée à son texte — l'animation démarre (ou redémarre) dès que
+     le texte devient actif, et s'arrête net dès qu'on passe à l'étape
+     suivante ou précédente. ---------- */
+  var currentActive = 0;
+  var prevBtn = document.getElementById('ls-prev');
+  var nextBtn = document.getElementById('ls-next');
+
+  function updateNav() {
+    if (prevBtn) prevBtn.disabled = (currentActive <= 0);
+    if (nextBtn) nextBtn.disabled = (currentActive >= steps.length - 1);
+  }
+
+  function goToStep(idx) {
+    idx = Math.max(0, Math.min(steps.length - 1, idx));
+    if (idx === currentActive) return;
+    currentActive = idx;
+    setActiveStep(idx);
+    clearTimers();
+    if (storyIsOnScreen) SEQ[idx]();
+    updateNav();
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', function () { goToStep(currentActive - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', function () { goToStep(currentActive + 1); });
+  dots.forEach(function (dot, i) {
+    dot.addEventListener('click', function () { goToStep(i); });
+  });
+
+  updateNav();
+
+  /* Les animations ne démarrent (ou ne redémarrent) que lorsque la démo est
+     effectivement visible à l'écran — jamais en arrière-plan au chargement
+     de la page, ni pendant qu'on a défilé plus haut ou plus bas. */
+  var storyIsOnScreen = false;
+  if ('IntersectionObserver' in window) {
+    var visibilityObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          if (!storyIsOnScreen) {
+            storyIsOnScreen = true;
+            SEQ[currentActive]();
+          }
+        } else {
+          storyIsOnScreen = false;
+          clearTimers();
+        }
+      });
+    }, { threshold: 0.3 });
+    visibilityObserver.observe(root.querySelector('.ls-rail'));
+  } else {
+    storyIsOnScreen = true;
+    SEQ[currentActive]();
+  }
+})();
+</script>
+
 </body>
 </html>

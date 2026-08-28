@@ -169,7 +169,29 @@
   </div>
 </div>
 
+<dialog id="lightbox" class="dlg-lightbox">
+  <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Fermer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+  </button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="">
+</dialog>
+
 <script>
+/* Visionneuse plein ecran — agrandit l'image affichee dans le hero. */
+var lightbox = document.getElementById("lightbox");
+var lightboxImg = document.getElementById("lightbox-img");
+function openLightbox(src){
+  if(!src) return;
+  lightboxImg.src = src;
+  lightbox.showModal();
+}
+document.getElementById("lightbox-close").addEventListener("click", function(){
+  lightbox.close();
+});
+lightbox.addEventListener("click", function(e){
+  if(e.target === lightbox){ lightbox.close(); }
+});
+
 const PROJET = {
   intitules: "Amenagement du parc communal",
   collectivite: "Commune de Vucherens",
@@ -178,7 +200,7 @@ const PROJET = {
   budget: "45 000 CHF",
   delais: "Printemps 2027",
   besoins: "Le site necessite du mobilier d'assise et de repos le long du sentier forestier, ainsi qu'une signaletique d'orientation en entree de parc. Une reflexion sur l'accessibilite PMR est demandee.",
-  documents: [],
+  documents: ["Images_mobilier/projet_parc.jpg"],
   objetsCount: 2,
   consortiumCount: 6
 };
@@ -220,10 +242,12 @@ function renderProjet(p){
   var hero = document.getElementById("hero");
   var thumbs = document.getElementById("thumbs");
   var docs = (p.documents && p.documents.length) ? p.documents : [null];
+  var currentSrc = null;
 
   function setHero(i){
     var old = hero.querySelector("img");
     if(old) old.remove();
+    currentSrc = docs[i] || null;
     if(docs[i]){
       var img = document.createElement("img");
       img.src = docs[i];
@@ -231,6 +255,13 @@ function renderProjet(p){
     }
     var ts = thumbs.querySelectorAll(".thumb");
     for(var k=0;k<ts.length;k++){ ts[k].classList.toggle("active", k===i); }
+  }
+
+  var expandBtn = hero.querySelector(".expand");
+  if(expandBtn){
+    expandBtn.addEventListener("click", function(){
+      if(currentSrc) openLightbox(currentSrc);
+    });
   }
 
   thumbs.innerHTML = "";

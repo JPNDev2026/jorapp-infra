@@ -279,7 +279,29 @@
   </div>
 </dialog>
 
+<dialog id="lightbox" class="dlg-lightbox">
+  <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Fermer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+  </button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="">
+</dialog>
+
 <script>
+/* Visionneuse plein ecran — agrandit la photo affichee dans le hero d'une carte. */
+var lightbox = document.getElementById("lightbox");
+var lightboxImg = document.getElementById("lightbox-img");
+function openLightbox(src){
+  if(!src) return;
+  lightboxImg.src = src;
+  lightbox.showModal();
+}
+document.getElementById("lightbox-close").addEventListener("click", function(){
+  lightbox.close();
+});
+lightbox.addEventListener("click", function(e){
+  if(e.target === lightbox){ lightbox.close(); }
+});
+
 const OBJETS = [
   {
     id: "banc",
@@ -385,10 +407,12 @@ function renderCard(o){
   var hero = root.querySelector(".hero");
   var thumbs = root.querySelector(".thumbs");
   var photos = (o.photos && o.photos.length) ? o.photos : [null];
+  var currentSrc = null;
 
   function setHero(i){
     var old = hero.querySelector("img");
     if(old) old.remove();
+    currentSrc = photos[i] || null;
     if(photos[i]){
       var img = document.createElement("img");
       img.src = photos[i];
@@ -396,6 +420,13 @@ function renderCard(o){
     }
     var ts = thumbs.querySelectorAll(".thumb");
     for(var k=0;k<ts.length;k++){ ts[k].classList.toggle("active", k===i); }
+  }
+
+  var expandBtn = hero.querySelector(".expand");
+  if(expandBtn){
+    expandBtn.addEventListener("click", function(){
+      if(currentSrc) openLightbox(currentSrc);
+    });
   }
 
   photos.forEach(function(src, i){
