@@ -410,18 +410,18 @@
     /* ---- Nav row: flèches + dots ---- */
     #ls-story .ls-nav-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     #ls-story .ls-arrow {
-      width: 42px; height: 42px; border-radius: 50%; flex: none; background: var(--ls-panel);
+      width: 56px; height: 56px; border-radius: 50%; flex: none; background: var(--ls-panel);
       border: 1.5px solid var(--ls-steel-line); display: grid; place-items: center; padding: 0;
       cursor: pointer; color: var(--ls-steel); transition: background .15s ease, border-color .15s ease, opacity .2s ease;
     }
     #ls-story .ls-arrow:hover:not(:disabled) { background: var(--ls-steel-soft); border-color: var(--ls-steel); }
     #ls-story .ls-arrow:disabled { opacity: .3; pointer-events: none; cursor: default; }
-    #ls-story .ls-arrow svg { width: 18px; height: 18px; }
+    #ls-story .ls-arrow svg { width: 26px; height: 26px; }
 
     /* ---- Progress dots ---- */
-    #ls-story .ls-progress { display: flex; align-items: center; justify-content: center; gap: 9px; flex: 1; }
+    #ls-story .ls-progress { display: flex; align-items: center; justify-content: center; gap: 12px; flex: 1; }
     #ls-story .ls-progress-dot {
-      width: 7px; height: 7px; border-radius: 50%; background: var(--ls-steel-line); border: none; padding: 0;
+      width: 11px; height: 11px; border-radius: 50%; background: var(--ls-steel-line); border: none; padding: 0;
       cursor: pointer; transition: background .3s ease, transform .3s ease;
     }
     #ls-story .ls-progress-dot:hover { background: var(--ls-steel); }
@@ -449,7 +449,8 @@
       #ls-story .ls-rail { grid-template-columns: 1fr; gap: 24px; padding: 0 20px; }
       #ls-story .ls-stage { min-height: 380px; }
       #ls-story .ls-step-viewport { min-height: 210px; }
-      #ls-story .ls-arrow { width: 38px; height: 38px; }
+      #ls-story .ls-arrow { width: 48px; height: 48px; }
+      #ls-story .ls-arrow svg { width: 22px; height: 22px; }
     }
   </style>
 
