@@ -34,14 +34,15 @@
     transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
     display:flex;flex-direction:column}
   .role-card:hover{transform:translateY(-3px);box-shadow:0 1px 2px rgba(23,25,28,.06),0 24px 50px rgba(23,25,28,.14)}
-  .role-icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;margin-bottom:22px}
+  .role-head{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .role-icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex:none}
   .role-icon .ico{width:25px;height:25px;stroke-width:1.6}
   .role-demande .role-icon{background:var(--signal-soft);color:var(--signal-ink)}
   .role-offres .role-icon{background:var(--steel-soft);color:var(--steel)}
   .role-demande:hover{border-color:var(--signal)}
   .role-offres:hover{border-color:var(--steel)}
   .role-kicker{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.07em;
-    color:var(--faint);margin-bottom:10px}
+    color:var(--faint)}
   .role-title{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 13px;color:var(--ink)}
   .role-desc{font-size:15.5px;color:var(--muted);line-height:1.62;margin:0 0 24px;flex:1}
   .role-cta{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600}
@@ -90,10 +91,12 @@
 
   <div class="role-grid">
     <a class="role-card role-demande" href="objets-fiche.html">
-      <div class="role-icon">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-6h6v6"/><path d="M4 21h16"/></svg>
+      <div class="role-head">
+        <div class="role-icon">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-6h6v6"/><path d="M4 21h16"/></svg>
+        </div>
+        <div class="role-kicker">Côté demande</div>
       </div>
-      <div class="role-kicker">Côté demande</div>
       <h2 class="role-title">Communes et collectivités publiques</h2>
       <p class="role-desc">Parcourez le catalogue de mobilier bois, créez vos projets d'aménagement et trouvez les bons prestataires pour les réaliser.</p>
       <span class="role-cta">Accéder à l'espace collectivités
@@ -102,10 +105,12 @@
     </a>
 
     <a class="role-card role-offres" href="acteurs-fiche.html">
-      <div class="role-icon">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
+      <div class="role-head">
+        <div class="role-icon">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
+        </div>
+        <div class="role-kicker">Côté offres</div>
       </div>
-      <div class="role-kicker">Côté offres</div>
       <h2 class="role-title">Acteurs et prestataires</h2>
       <p class="role-desc">Scieurs, menuisiers, charpentiers, serruriers : rejoignez le réseau, valorisez votre savoir-faire et répondez aux projets publiés par les collectivités.</p>
       <span class="role-cta">Accéder à l'espace acteurs
@@ -452,7 +457,7 @@
   <div class="ls-intro">
     <div class="ls-eyebrow">Comment ça marche</div>
     <h2>Du besoin à l'installation de l'objet</h2>
-    <p>Suivez le parcours d'un projet type sur Linéo — du premier besoin exprimé par une commune jusqu'au mobilier livré sur la place publique.</p>
+    <p>Suivez le parcours d'un projet type sur Linéo, du premier besoin exprimé par une commune jusqu'au mobilier livré sur la place publique.</p>
   </div>
 
   <div class="ls-rail">
