@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plans — fiche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="logos/LOGO-LINEO_TEST_A-2-FAVICON.png">
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root{
+    --canvas:#F2EDE8; --panel:#FFFFFF; --ink:#1D1D1B; --muted:#7C7C7B; --faint:#A0A09F;
+    --line:#E4E4E4; --ph:#F1E7DF; --ph-2:#E9D8CA;
+    --signal:#C08351; --signal-hover:#926642; --signal-soft:#F6EEE7; --signal-ink:#5B4430;
+    --steel:#2B2B29; --steel-soft:#F1F1F1; --steel-line:#D2D2D1;
+    --sans:"Montserrat",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .stage{max-width:920px;margin:0 auto;padding:32px 20px 60px}
+  .card{background:var(--panel);border-radius:14px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(23,25,28,.04), 0 18px 40px rgba(23,25,28,.09);padding:26px 26px 8px}
+  .ico{stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .ph-icon{color:#C9C2B2}
+
+  .p-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--steel);margin-bottom:9px}
+  .title{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px}
+  .head-sub{font-size:13px;color:var(--faint);margin:0}
+  .btn-out{display:inline-flex;align-items:center;gap:6px;background:var(--panel);color:var(--steel);
+    border:1.5px solid var(--steel-line);border-radius:99px;padding:9px 15px;font-family:var(--sans);
+    font-weight:600;font-size:13px;cursor:pointer;flex:none;white-space:nowrap;text-decoration:none}
+  .btn-out:hover{border-color:var(--steel);background:var(--steel-soft)}
+  .btn-out .ico{width:14px;height:14px}
+
+  h2{font-size:13.5px;font-weight:600;margin:0 0 11px;color:var(--ink)}
+  .section{margin-top:6px;padding:20px 0;border-top:1px solid var(--line)}
+
+  .plans-list{display:flex;flex-direction:column}
+  .plan-card{display:flex;gap:16px;padding:18px 4px;border-top:1px solid var(--line)}
+  .plan-card:first-child{border-top:none;padding-top:4px}
+  .plan-thumb{width:76px;height:76px;border-radius:10px;flex:none;overflow:hidden;
+    background:linear-gradient(135deg,var(--ph) 0%,var(--ph-2) 100%);display:grid;place-items:center}
+  .plan-thumb .ico{width:28px;height:28px;stroke-width:1.3}
+  .plan-body{flex:1;min-width:0}
+  .plan-title{font-size:15px;font-weight:700;color:var(--ink);margin:0 0 3px}
+  .plan-desc{font-size:12.5px;color:var(--muted);margin:0 0 9px;line-height:1.5}
+  .plan-meta{display:flex;flex-wrap:wrap;gap:9px 14px;font-family:var(--mono);font-size:10.5px;
+    color:var(--faint);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px}
+  .plan-modules{display:flex;flex-wrap:wrap;gap:6px}
+  .plan-mod-chip{font-size:11px;padding:3px 11px;border-radius:99px;background:var(--steel-soft);
+    color:var(--steel);cursor:pointer;text-decoration:none;font-weight:500}
+  .plan-mod-chip:hover{background:var(--steel);color:#fff}
+  .plan-actions{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:8px;flex:none}
+  .dl-btn{display:inline-flex;align-items:center;gap:7px;background:var(--signal);color:#fff;border:none;
+    border-radius:9px;padding:10px 16px;font-family:var(--sans);font-weight:600;font-size:13px;
+    cursor:pointer;white-space:nowrap;text-decoration:none}
+  .dl-btn:hover{background:var(--signal-hover)}
+  .dl-btn .ico{width:15px;height:15px}
+  .plan-size{font-size:10.5px;color:var(--faint)}
+
+  .link-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0}
+  .link-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .link-left .ico{width:18px;height:18px;color:var(--steel);flex:none}
+  .link-txt .lbl{font-size:14px;font-weight:500;color:var(--ink)}
+  .link-txt .count{font-size:12px;color:var(--faint);margin-top:2px}
+
+  @media (max-width: 640px){
+    .stage{padding:20px 14px 44px}
+    .card{padding:18px 16px 4px}
+    .title{font-size:20px}
+    .plan-card{flex-direction:column;align-items:flex-start;gap:10px;padding:16px 2px}
+    .plan-thumb{width:56px;height:56px}
+    .plan-actions{flex-direction:row;align-items:center;justify-content:space-between;width:100%;margin-top:2px}
+  }
+</style>
+</head>
+<body data-page="plans">
+<script src="shared.js"></script>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="site-nav-brand" href="accueil.html"><img src="logos/LOGO-LINEO_TEST_A-1.png" alt="Linéo"></a>
+    <div class="site-nav-links">
+      <a href="objets-fiche.html" data-page="objets">Objets</a>
+      <a href="projets-fiche.html" data-page="projets">Projets</a>
+      <a href="plans-fiche.html" data-page="plans">Plans</a>
+      <a href="modules-fiche.html" data-page="modules">Modules</a>
+      <a href="acteurs-fiche.html" data-page="acteurs">Acteurs</a>
+      <a href="realisation-fiche.html" data-page="realisation">Réalisations</a>
+      <a href="consortium-fiche.html" data-page="consortium">Consortium</a>
+    </div>
+  </div>
+</nav>
+<div class="stage">
+  <div class="card">
+
+    <div class="p-head">
+      <div>
+        <div class="eyebrow" id="objet-eyebrow"></div>
+        <h1 class="title">Documents techniques</h1>
+        <p class="head-sub" id="plans-count-sub"></p>
+      </div>
+      <a class="btn-out" href="objets-fiche.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>
+        Voir la fiche objet
+      </a>
+    </div>
+
+    <div class="plans-list" id="plans-list"></div>
+
+    <div class="section">
+      <div class="link-row">
+        <div class="link-left">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z"/><path d="M13.5 6.5 17.5 10.5"/></svg>
+          <div class="link-txt"><div class="lbl">Contributions</div><div class="count" id="contrib-count"></div></div>
+        </div>
+        <button class="btn-out" onclick="showToast('Vue Contributions — à venir')">Voir les contributions<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const OBJET_PLANS = "Banc trois assises";
+const CONTRIBUTIONS_COUNT = 4;
+
+const PLANS = [
+  {
+    titre: "Plan bois — Assise et dossier",
+    description: "Pièces en bois massif : poutres d'assise (gradins) et planche dossier.",
+    matiere: "Bois massif",
+    echelle: "1:20",
+    format: "A3 · indice A",
+    date: "18.08.2026",
+    modules: ["Assise"],
+    fichier: "Images_mobilier/plan_banc_bois.pdf",
+    taille: "500 Ko"
+  },
+  {
+    titre: "Plan métal — Piétements et accoudoirs",
+    description: "Pièces en acier peint : piétements en U et accoudoirs avec support dossier.",
+    matiere: "Acier peint (époxy RAL 2001)",
+    echelle: "1:20",
+    format: "A3 · indice A",
+    date: "18.08.2026",
+    modules: ["Piétement", "Accoudoir"],
+    fichier: "Images_mobilier/plan_banc_metal.pdf",
+    taille: "490 Ko"
+  }
+];
+
+document.getElementById("objet-eyebrow").textContent = "Plans · " + OBJET_PLANS;
+document.getElementById("plans-count-sub").textContent = PLANS.length + " plan(s) associé(s) à cet objet";
+document.getElementById("contrib-count").textContent = CONTRIBUTIONS_COUNT + " contribution(s)";
+
+var list = document.getElementById("plans-list");
+PLANS.forEach(function(p){
+  var card = document.createElement("div");
+  card.className = "plan-card";
+
+  var modulesHtml = (p.modules || []).map(function(m){
+    return '<a class="plan-mod-chip" href="modules-fiche.html">' + m + '</a>';
+  }).join("");
+
+  card.innerHTML =
+    '<div class="plan-thumb"><svg class="ico ph-icon" viewBox="0 0 24 24"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M9 12.5h6M9 15.5h6M9 18h4"/></svg></div>' +
+    '<div class="plan-body">' +
+      '<h3 class="plan-title">' + p.titre + '</h3>' +
+      '<p class="plan-desc">' + p.description + '</p>' +
+      '<div class="plan-meta">' +
+        '<span>' + p.matiere + '</span>' +
+        '<span>Échelle ' + p.echelle + '</span>' +
+        '<span>' + p.format + '</span>' +
+        '<span>' + p.date + '</span>' +
+      '</div>' +
+      '<div class="plan-modules">' + modulesHtml + '</div>' +
+    '</div>' +
+    '<div class="plan-actions">' +
+      '<a class="dl-btn" href="' + p.fichier + '" download>' +
+        '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>' +
+        'Télécharger' +
+      '</a>' +
+      '<span class="plan-size">PDF · ' + p.taille + '</span>' +
+    '</div>';
+
+  list.appendChild(card);
+});
+</script>
+</body>
+</html>

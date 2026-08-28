@@ -1,0 +1,158 @@
+/*
+  shared.css — Linéo
+  Commun à toutes les fiches (Objets, Projets, Plans, Modules, Acteurs).
+
+  1) Active les transitions animees natives du navigateur lors de la
+     navigation entre ces pages statiques (Chrome/Edge recents ; se degrade
+     sans erreur ni JS supplementaire sur les navigateurs qui ne supportent
+     pas encore la Cross-Document View Transitions API).
+  2) Styles du toast utilise par showToast() (voir shared.js) pour les
+     actions "Associer ..." qui ne changent pas de page.
+*/
+
+@view-transition {
+  navigation: auto;
+}
+
+.cta, .btn-out { text-decoration: none; }
+
+.toast{
+  position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(10px);
+  background:var(--ink,#1D1D1B); color:#fff; font-size:13.5px; font-family:var(--sans,sans-serif);
+  padding:12px 20px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.25);
+  opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+  z-index:80; display:flex; align-items:center; gap:9px; max-width:88vw;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.toast .t-ico{ width:16px; height:16px; flex:none; stroke:var(--signal,#C08351); fill:none;
+  stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* ==========================================================================
+   Bandeau de navigation commun — identifie la page active et permet de
+   naviguer directement vers chacune des fiches. Injecte en tete de chaque
+   page (voir markup <nav class="site-nav">) ; l'etat actif est applique
+   par shared.js a partir de l'attribut data-page pose sur <body>.
+   ========================================================================== */
+.site-nav{
+  position:sticky; top:0; z-index:50;
+  background:var(--panel,#FFFFFF);
+  border-bottom:1px solid var(--line,#E4E4E4);
+  box-shadow:0 1px 2px rgba(29,29,27,.03);
+}
+.site-nav-inner{
+  max-width:1180px; margin:0 auto; padding:0 24px; height:96px;
+  display:flex; align-items:center; gap:36px;
+}
+.site-nav-brand{
+  flex:none; display:inline-flex; align-items:center;
+}
+.site-nav-brand img{ height:48px; width:auto; display:block; }
+.site-nav-links{ display:flex; align-items:center; gap:5px; overflow-x:auto; }
+.site-nav-links a{
+  font-family:var(--sans,sans-serif); font-size:16px; font-weight:500;
+  color:var(--muted,#7C7C7B); text-decoration:none; padding:11px 19px; border-radius:99px;
+  white-space:nowrap; transition:color .15s ease, background .15s ease;
+}
+.site-nav-links a:hover{ color:var(--ink,#1D1D1B); background:var(--steel-soft,#F1F1F1); }
+.site-nav-links a.active{ color:#fff; background:var(--signal,#C08351); }
+
+/* ==========================================================================
+   Boites de dialogue (natives <dialog>) — creation / association a un
+   projet, et tout autre formulaire modal reutilisant ce meme patron.
+   ========================================================================== */
+dialog.dlg{
+  border:none; border-radius:14px; padding:0; max-width:480px; width:92vw;
+  box-shadow:0 24px 60px rgba(0,0,0,.28); color:var(--ink,#1D1D1B);
+  font-family:var(--sans,sans-serif);
+}
+dialog.dlg::backdrop{ background:rgba(27,27,24,.5); }
+.dlg-card{ display:flex; flex-direction:column; max-height:85vh; }
+.dlg-head{ display:flex; align-items:center; justify-content:space-between;
+  padding:18px 20px; border-bottom:1px solid var(--line,#E4E4E4); flex:none; }
+.dlg-head h3{ margin:0; font-size:16.5px; font-weight:700; color:var(--ink,#1D1D1B); }
+.dlg-close{ border:none; background:transparent; cursor:pointer; color:var(--muted,#7C7C7B);
+  width:28px; height:28px; display:grid; place-items:center; border-radius:7px; flex:none; }
+.dlg-close:hover{ background:var(--steel-soft,#F1F1F1); color:var(--steel,#2B2B29); }
+.dlg-close svg{ width:16px; height:16px; }
+.dlg-body{ padding:18px 20px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; }
+.dlg-context{ font-size:13px; color:var(--muted,#7C7C7B); margin:0; }
+.dlg-field{ display:flex; flex-direction:column; gap:6px; font-size:12.5px;
+  font-weight:600; color:var(--steel,#2B2B29); flex:1; }
+.dlg-field input, .dlg-field select, .dlg-field textarea{
+  font-family:var(--sans,sans-serif); font-size:13.5px; font-weight:400; color:var(--ink,#1D1D1B);
+  border:1.5px solid var(--steel-line,#D2D2D1); border-radius:8px; padding:9px 11px;
+  background:#fff; resize:vertical;
+}
+.dlg-field input:focus, .dlg-field select:focus, .dlg-field textarea:focus{
+  outline:none; border-color:var(--signal,#C08351);
+}
+.dlg-row{ display:flex; gap:12px; }
+.dlg-foot{ display:flex; justify-content:flex-end; gap:10px;
+  padding:16px 20px; border-top:1px solid var(--line,#E4E4E4); flex:none; }
+.dlg-foot .cta, .dlg-foot .btn-out{ width:auto; margin-top:0; }
+.dlg-foot .cta[disabled]{ opacity:.45; cursor:not-allowed; background:var(--signal,#C08351); }
+.dlg-list{ display:flex; flex-direction:column; gap:8px; }
+.dlg-proj{ display:flex; align-items:center; gap:12px; padding:11px 13px;
+  border:1.5px solid var(--line,#E4E4E4); border-radius:9px; cursor:pointer; text-align:left;
+  background:#fff; width:100%; font-family:var(--sans,sans-serif); }
+.dlg-proj:hover{ border-color:var(--steel-line,#D2D2D1); background:var(--steel-soft,#F1F1F1); }
+.dlg-proj.sel{ border-color:var(--signal,#C08351); background:var(--signal-soft,#F6EEE7); }
+.dlg-proj-radio{ width:16px; height:16px; border-radius:50%; border:2px solid var(--steel-line,#D2D2D1); flex:none; }
+.dlg-proj.sel .dlg-proj-radio{ border-color:var(--signal,#C08351); position:relative; }
+.dlg-proj.sel .dlg-proj-radio::after{
+  content:""; position:absolute; inset:3px; border-radius:50%; background:var(--signal,#C08351);
+}
+.dlg-proj-txt{ min-width:0; }
+.dlg-proj-nm{ font-size:13.5px; font-weight:500; color:var(--ink,#1D1D1B); }
+.dlg-proj-sub{ font-size:11.5px; color:var(--faint,#A0A09F); margin-top:2px; }
+
+.dlg-visi-group{ display:flex; flex-direction:column; gap:8px; }
+.dlg-visi-opt{ display:block; cursor:pointer; }
+.dlg-visi-opt input{ position:absolute; opacity:0; width:1px; height:1px; pointer-events:none; }
+.dlg-visi-card{ display:flex; flex-direction:column; gap:3px; padding:10px 12px;
+  border:1.5px solid var(--line,#E4E4E4); border-radius:9px; }
+.dlg-visi-nm{ font-size:13.5px; font-weight:600; color:var(--ink,#1D1D1B); }
+.dlg-visi-desc{ font-size:11.5px; color:var(--faint,#A0A09F); line-height:1.4; }
+.dlg-visi-opt input:checked + .dlg-visi-card{ border-color:var(--signal,#C08351); background:var(--signal-soft,#F6EEE7); }
+.dlg-visi-opt input:checked + .dlg-visi-card .dlg-visi-nm{ color:var(--signal-ink,#5B4430); }
+.dlg-visi-opt input:focus-visible + .dlg-visi-card{ outline:2px solid var(--signal,#C08351); outline-offset:1px; }
+
+/* ==========================================================================
+   Visionneuse plein ecran (lightbox) — agrandit une photo au clic. Reutilise
+   le meme <dialog> natif que les autres boites de dialogue, mais sans cadre
+   ni fond, pour laisser la place a l'image.
+   ========================================================================== */
+dialog.dlg-lightbox{
+  border:none; padding:0; background:transparent; margin:auto;
+  width:94vw; height:94vh; max-width:94vw; max-height:94vh;
+}
+dialog.dlg-lightbox[open]{ display:flex; align-items:center; justify-content:center; }
+dialog.dlg-lightbox::backdrop{ background:rgba(10,10,9,.88); }
+.lightbox-img{
+  display:block; max-width:100%; max-height:100%; width:auto; height:auto;
+  border-radius:10px; box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.lightbox-close{
+  position:fixed; top:20px; right:24px; width:40px; height:40px; border-radius:50%;
+  background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.32); color:#fff;
+  cursor:pointer; display:grid; place-items:center; z-index:5;
+}
+.lightbox-close:hover{ background:rgba(255,255,255,.22); }
+.lightbox-close svg{ width:18px; height:18px; }
+
+/* ==========================================================================
+   Responsive — bandeau et boites de dialogue sur petit ecran.
+   ========================================================================== */
+@media (max-width: 640px){
+  .site-nav-inner{ height:60px; padding:0 14px; gap:16px; }
+  .site-nav-brand img{ height:30px; }
+  .site-nav-links{ gap:2px; }
+  .site-nav-links a{ font-size:13px; padding:8px 12px; }
+
+  dialog.dlg{ width:94vw; max-height:88vh; }
+  .dlg-row{ flex-direction:column; gap:14px; }
+  .dlg-head{ padding:15px 16px; }
+  .dlg-body{ padding:15px 16px; }
+  .dlg-foot{ padding:14px 16px; flex-wrap:wrap; }
+  .dlg-foot .cta, .dlg-foot .btn-out{ flex:1; justify-content:center; }
+}
