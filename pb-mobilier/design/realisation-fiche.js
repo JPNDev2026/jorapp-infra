@@ -27,6 +27,15 @@ var REALISATIONS = [
     date: "2019",
     geo: { lat: 46.520, lon: 6.634 },
     photo: "Images_mobilier/Parklet_de_la_rue_du_midi_à_Lausanne.jpg"
+  },
+  {
+    id: "r4",
+    nom: "Arrêt de bus — Girarde",
+    objet: "Abri-bus Épalinges",
+    commune: "Épalinges",
+    date: "2024",
+    geo: { lat: 46.5433, lon: 6.6472 },
+    photo: "Images_mobilier/Arrêt bus Epalinges (1).jpg"
   }
 ];
 
