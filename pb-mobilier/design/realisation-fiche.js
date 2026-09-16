@@ -1,3 +1,5 @@
+var BOUNDS = { latMin: 46.38, latMax: 46.56, lonMin: 6.16, lonMax: 6.70 };
+
 var REALISATIONS = [
   {
     id: "r1",
@@ -45,23 +47,13 @@ REALISATIONS.forEach(function(r){
 var filters = { objet: "" };
 var selectedId = REALISATIONS.length ? REALISATIONS[0].id : null;
 
-/* Fond de carte reel — tuiles OpenStreetMap via Leaflet. */
-var map = L.map("leaflet-map", { zoomControl: true, scrollWheelZoom: true });
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-}).addTo(map);
-
-var markerLayer = L.layerGroup().addTo(map);
-
-(function fitToRealisations(){
-  var latlngs = REALISATIONS.map(function(r){ return [r.geo.lat, r.geo.lon]; });
-  if(latlngs.length){
-    map.fitBounds(latlngs, { padding: [40, 40] });
-  } else {
-    map.setView([46.5, 6.6], 9);
-  }
-})();
+function project(geo){
+  var x = (geo.lon - BOUNDS.lonMin) / (BOUNDS.lonMax - BOUNDS.lonMin);
+  var y = 1 - (geo.lat - BOUNDS.latMin) / (BOUNDS.latMax - BOUNDS.latMin);
+  x = Math.min(0.94, Math.max(0.06, x));
+  y = Math.min(0.9, Math.max(0.1, y));
+  return { xPct: x * 100, yPct: y * 100 };
+}
 
 function initObjetSelect(){
   var sel = document.getElementById("objet-select");
@@ -115,22 +107,22 @@ function renderList(){
 }
 
 function renderPins(){
-  markerLayer.clearLayers();
+  var pins = document.getElementById("pins");
+  pins.innerHTML = "";
   REALISATIONS.filter(passesFilters).forEach(function(r){
-    var icon = L.divIcon({
-      className: "pin" + (r.id === selectedId ? " sel" : ""),
-      html:
-        '<div class="mount"><img src="' + r.photo + '" alt=""></div>' +
-        '<div class="tip">' + r.nom + ' — ' + r.commune + '</div>',
-      iconSize: [40, 40],
-      iconAnchor: [20, 40]
-    });
-    var marker = L.marker([r.geo.lat, r.geo.lon], { icon: icon });
-    marker.on("click", function(){
+    var pos = project(r.geo);
+    var pin = document.createElement("div");
+    pin.className = "pin" + (r.id === selectedId ? " sel" : "");
+    pin.style.left = pos.xPct + "%";
+    pin.style.top = pos.yPct + "%";
+    pin.innerHTML =
+      '<div class="mount"><img src="' + r.photo + '" alt=""></div>' +
+      '<div class="tip">' + r.nom + ' — ' + r.commune + '</div>';
+    pin.addEventListener("click", function(){
       selectedId = r.id;
       renderAll();
     });
-    marker.addTo(markerLayer);
+    pins.appendChild(pin);
   });
 }
 
@@ -193,7 +185,6 @@ document.getElementById("reset-filters").addEventListener("click", function(){
   document.getElementById("objet-select").value = "";
   renderAll();
 });
-window.addEventListener("resize", function(){ map.invalidateSize(); });
 
 initObjetSelect();
 renderAll();

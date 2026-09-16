@@ -2,11 +2,20 @@
    Donnees fictives — a remplacer par de vraies fiches Acteurs des que
    collectees. geo = {lat, lon} reelles (WGS84). REFERENCE simule le site
    du projet (a terme : coordonnees de la Realisation / du Projet actif).
-   Fond de carte reel (tuiles OpenStreetMap via Leaflet) : la vue se
-   recadre sur le cercle de rayon choisi a chaque changement du curseur.
+   Le fond de carte se recentre sur REFERENCE et son echelle (pxPerKm)
+   est recalculee a chaque changement de rayon : plus le rayon augmente,
+   plus le zoom arriere est important, de sorte que le cercle de selection
+   reste toujours entierement visible dans le cadre.
+   Ce fond de carte est un placeholder stylise — a brancher sur une vraie
+   librairie cartographique (Leaflet/Mapbox) le moment venu.
    ========================================================================== */
 var REFERENCE = { lat: 46.66, lon: 6.70 };
 var METIERS = ["scieur","menuisier","charpentier","ebeniste","serrurier","architecte-paysagiste","installateur-genie civile"];
+
+/* Cercle de selection = CIRCLE_FRACTION * (plus petite dimension du panneau carte),
+   quel que soit le rayon choisi. C'est ce ratio fixe qui garantit que le cercle
+   ne deborde jamais du cadre. */
+var CIRCLE_FRACTION = 0.74;
 
 var ACTEURS = [
   { nom:"Scierie du Jorat", types:["premiere transformation"], metiers:["scieur"],
@@ -55,46 +64,24 @@ function distanceKm(a, b){
   return R * c;
 }
 
-/* Fond de carte reel — tuiles OpenStreetMap via Leaflet. */
-var map = L.map("leaflet-map", { zoomControl: true, scrollWheelZoom: true });
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-}).addTo(map);
-
-var markerLayer = L.layerGroup().addTo(map);
-var steelColor = getComputedStyle(document.documentElement).getPropertyValue("--steel").trim() || "#2B2B29";
-
-var radiusCircle = L.circle([REFERENCE.lat, REFERENCE.lon], {
-  radius: 5000,
-  color: steelColor,
-  weight: 1.5,
-  dashArray: "4 4",
-  fillColor: steelColor,
-  fillOpacity: 0.06,
-  interactive: false
-}).addTo(map);
-
-L.marker([REFERENCE.lat, REFERENCE.lon], {
-  icon: L.divIcon({
-    className: "ref-pin",
-    html: '<div class="diamond"></div>',
-    iconSize: [13, 13],
-    iconAnchor: [6.5, 6.5]
-  }),
-  interactive: false
-}).addTo(map);
-
-/* Recadre la vue sur le cercle de selection courant : plus le rayon
-   augmente, plus le zoom arriere est important, de sorte que le cercle
-   reste toujours entierement visible dans le cadre. */
-function fitMapToRadius(){
-  var bounds = L.circle([REFERENCE.lat, REFERENCE.lon], { radius: filters.radiusKm * 1000 }).getBounds();
-  map.fitBounds(bounds, { padding: [24, 24] });
+/* Projection centree sur REFERENCE. pxPerKm depend du rayon courant (voir
+   getViewport) : c'est ce qui fait "zoomer" la carte a chaque changement
+   de rayon plutot que de se baser sur une emprise geographique fixe. */
+function getViewport(){
+  var panel = document.querySelector(".map-panel");
+  var w = panel.clientWidth || 1, h = panel.clientHeight || 1;
+  var minDim = Math.min(w, h);
+  var diameterPx = minDim * CIRCLE_FRACTION;
+  var pxPerKm = diameterPx / (2 * Math.max(filters.radiusKm, 0.5));
+  return { w: w, h: h, pxPerKm: pxPerKm, diameterPx: diameterPx };
 }
 
-function updateRadiusCircle(){
-  radiusCircle.setRadius(filters.radiusKm * 1000);
+function project(geo, vp){
+  var dLatKm = (geo.lat - REFERENCE.lat) * 111;
+  var dLonKm = (geo.lon - REFERENCE.lon) * 111 * Math.cos(REFERENCE.lat * Math.PI / 180);
+  var xPx = vp.w / 2 + dLonKm * vp.pxPerKm;
+  var yPx = vp.h / 2 - dLatKm * vp.pxPerKm;
+  return { xPct: (xPx / vp.w) * 100, yPct: (yPx / vp.h) * 100 };
 }
 
 var filters = { radiusKm: 5, metier: "" };
@@ -138,20 +125,28 @@ function renderList(visible){
   });
 }
 
-function renderPins(visible){
-  markerLayer.clearLayers();
+function renderPins(visible, vp){
+  var pins = document.getElementById("pins");
+  pins.innerHTML = "";
   visible.forEach(function(a){
     var i = ACTEURS.indexOf(a);
-    var icon = L.divIcon({
-      className: "pin" + (isCert(a) ? " cert" : "") + (i === selected ? " sel" : ""),
-      html: '<div class="tip">' + a.nom + '</div><div class="dot"><span>' + initials(a.nom).toUpperCase() + '</span></div>',
-      iconSize: [26, 26],
-      iconAnchor: [13, 26]
-    });
-    var marker = L.marker([a.geo.lat, a.geo.lon], { icon: icon });
-    marker.on("click", function(){ selected = i; renderAll(); });
-    marker.addTo(markerLayer);
+    var pos = project(a.geo, vp);
+    var p = document.createElement("div");
+    p.className = "pin" + (isCert(a) ? " cert" : "") + (i === selected ? " sel" : "");
+    p.style.left = pos.xPct + "%";
+    p.style.top = pos.yPct + "%";
+    p.innerHTML = '<div class="tip">' + a.nom + '</div><div class="dot"><span>' + initials(a.nom).toUpperCase() + '</span></div>';
+    p.addEventListener("click", function(){ selected = i; renderAll(); });
+    pins.appendChild(p);
   });
+}
+
+function renderReferenceAndRadius(vp){
+  var refHolder = document.getElementById("ref-pin-holder");
+  refHolder.innerHTML = '<div class="ref-pin" style="left:50%;top:50%"><div class="diamond"></div></div>';
+
+  var circleHolder = document.getElementById("radius-circle-holder");
+  circleHolder.innerHTML = '<div class="radius-circle" style="left:50%;top:50%;width:' + vp.diameterPx + 'px;height:' + vp.diameterPx + 'px"></div>';
 }
 
 function renderDetail(){
@@ -190,16 +185,16 @@ function renderAll(){
   var stillSelected = false;
   for(var i=0;i<visible.length;i++){ if(ACTEURS.indexOf(visible[i]) === selected){ stillSelected = true; } }
   if(!stillSelected){ selected = visible.length ? ACTEURS.indexOf(visible[0]) : -1; }
+  var vp = getViewport();
   renderList(visible);
-  renderPins(visible);
-  updateRadiusCircle();
+  renderPins(visible, vp);
+  renderReferenceAndRadius(vp);
   renderDetail();
 }
 
 document.getElementById("radius").addEventListener("input", function(e){
   filters.radiusKm = Number(e.target.value);
   document.getElementById("radius-val").textContent = filters.radiusKm + " km";
-  fitMapToRadius();
   renderAll();
 });
 document.getElementById("reset-filters").addEventListener("click", function(){
@@ -207,11 +202,9 @@ document.getElementById("reset-filters").addEventListener("click", function(){
   document.getElementById("radius").value = 5;
   document.getElementById("radius-val").textContent = "5 km";
   document.getElementById("metier-select").value = "";
-  fitMapToRadius();
   renderAll();
 });
-window.addEventListener("resize", function(){ map.invalidateSize(); });
+window.addEventListener("resize", renderAll);
 
 initMetierSelect();
-fitMapToRadius();
 renderAll();
